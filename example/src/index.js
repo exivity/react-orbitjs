@@ -1,9 +1,14 @@
 import React from "react"
 import ReactDOM from "react-dom"
 
-import App from "./App"
+import { DataProvider } from "./../../src"
+import store from "./store"
+
+import Planetarium from "./Planetarium"
 
 ReactDOM.render(
-  <App/>,
+  <DataProvider dataStore={store}>
+    <Planetarium/>
+  </DataProvider>,
   document.getElementById("root"),
 )

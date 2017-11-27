@@ -2,6 +2,36 @@
 # yarn lockfile v1
 
 
+"@orbit/core@^0.15.7":
+  version "0.15.7"
+  resolved "https://registry.yarnpkg.com/@orbit/core/-/core-0.15.7.tgz#c577f52832b3e463c7497d9fbe569263d7a5112a"
+  dependencies:
+    "@orbit/utils" "^0.15.7"
+
+"@orbit/data@^0.15.8":
+  version "0.15.8"
+  resolved "https://registry.yarnpkg.com/@orbit/data/-/data-0.15.8.tgz#e63f247ddf1dca5759bc69f009e284a620ad55e0"
+  dependencies:
+    "@orbit/core" "^0.15.7"
+    "@orbit/utils" "^0.15.7"
+
+"@orbit/immutable@^0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@orbit/immutable/-/immutable-0.15.0.tgz#c4009dd41a8fb2b560e9e3e276ee2fc43d60a7e3"
+
+"@orbit/store@^0.15.8":
+  version "0.15.8"
+  resolved "https://registry.yarnpkg.com/@orbit/store/-/store-0.15.8.tgz#b4f550dc94f607326adb15569db76570aafa7453"
+  dependencies:
+    "@orbit/core" "^0.15.7"
+    "@orbit/data" "^0.15.8"
+    "@orbit/immutable" "^0.15.0"
+    "@orbit/utils" "^0.15.7"
+
+"@orbit/utils@^0.15.7":
+  version "0.15.7"
+  resolved "https://registry.yarnpkg.com/@orbit/utils/-/utils-0.15.7.tgz#fe68da9f1f90e6be4a1ac149e5860dd78a30da38"
+
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
@@ -344,6 +374,10 @@ babel-plugin-syntax-jsx@^6.3.13, babel-plugin-syntax-jsx@^6.8.0:
   version "6.18.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-syntax-jsx/-/babel-plugin-syntax-jsx-6.18.0.tgz#0af32a9a6e13ca7a3fd5069e62d7b0f58d0d8946"
 
+babel-plugin-syntax-object-rest-spread@^6.8.0:
+  version "6.13.0"
+  resolved "https://registry.yarnpkg.com/babel-plugin-syntax-object-rest-spread/-/babel-plugin-syntax-object-rest-spread-6.13.0.tgz#fd6536f2bce13836ffa3a5458c4903a597bb3bf5"
+
 babel-plugin-transform-es2015-arrow-functions@^6.22.0:
   version "6.22.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-es2015-arrow-functions/-/babel-plugin-transform-es2015-arrow-functions-6.22.0.tgz#452692cb711d5f79dc7f85e440ce41b9f244d221"
@@ -518,6 +552,13 @@ babel-plugin-transform-flow-strip-types@^6.22.0:
   dependencies:
     babel-plugin-syntax-flow "^6.18.0"
     babel-runtime "^6.22.0"
+
+babel-plugin-transform-object-rest-spread@^6.26.0:
+  version "6.26.0"
+  resolved "https://registry.yarnpkg.com/babel-plugin-transform-object-rest-spread/-/babel-plugin-transform-object-rest-spread-6.26.0.tgz#0f36692d50fef6b7e2d4b3ac1478137a963b7b06"
+  dependencies:
+    babel-plugin-syntax-object-rest-spread "^6.8.0"
+    babel-runtime "^6.26.0"
 
 babel-plugin-transform-react-display-name@^6.23.0:
   version "6.25.0"
@@ -1816,6 +1857,10 @@ hmac-drbg@^1.0.0:
 hoek@2.x.x:
   version "2.16.3"
   resolved "https://registry.yarnpkg.com/hoek/-/hoek-2.16.3.tgz#20bb7403d3cea398e91dc4710a8ff1b8274a25ed"
+
+hoist-non-react-statics@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.3.1.tgz#343db84c6018c650778898240135a1420ee22ce0"
 
 home-or-tmp@^2.0.0:
   version "2.0.0"
