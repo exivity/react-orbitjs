@@ -24,7 +24,36 @@ yarn add react-orbitjs
 Documentation
 -------------
 
-Coming soon.
+### `<DataProvider/>`
+
+```
+const store = new Store({schema})
+
+ReactDOM.render(
+  <DataProvider dataStore={store}>
+    <Planetarium/>
+  </DataProvider>,
+  rootElement
+)
+```
+
+### `withData()`
+
+```
+const mapRecordsToProps = (ownProps) => {
+  return {
+    planets: q => q.findRecords("planet").sort(ownProps.sortBy),
+  }
+}
+
+// or
+
+const mapRecordsToProps = {
+  planets: q => q.findRecords("planet"),
+}
+
+const PlanetariumWithData = withData(mapRecordsToProps)(Planetarium)
+```
 
 License
 -------

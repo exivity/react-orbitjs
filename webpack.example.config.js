@@ -20,6 +20,7 @@ module.exports = {
       inject: "body",
     }),
   ],
+  devtool: "source-map",
   devServer: {
     open: true,
   },

@@ -18,6 +18,16 @@ export const venus = {
   },
 }
 
+export const jupiter = {
+  type: "planet",
+  id: "jupiter",
+  attributes: {
+    name: "Jupiter",
+    classification: "giant",
+    atmosphere: true,
+  },
+}
+
 export const theMoon = {
   type: "moon",
   id: "theMoon",

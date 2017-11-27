@@ -1,7 +1,7 @@
 import { Schema } from "@orbit/data"
 import Store from "@orbit/store"
 
-import { earth, venus, theMoon } from "./repository"
+import { earth, venus, jupiter, theMoon } from "./repository"
 
 const schemaDefinition = {
   models: {
@@ -27,11 +27,12 @@ const schemaDefinition = {
 
 const schema = new Schema(schemaDefinition)
 
-const store = new Store({schema})
+const store = window.store = new Store({schema})
 
 store.update(t => [
   t.addRecord(venus),
   t.addRecord(earth),
+  t.addRecord(jupiter),
   t.addRecord(theMoon),
 ])
 

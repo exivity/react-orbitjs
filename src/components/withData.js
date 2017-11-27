@@ -3,7 +3,7 @@ import dataStoreShape from "../utils/dataStoreShape"
 import shallowEqual from "../utils/shallowEqual"
 import hoistStatics from "hoist-non-react-statics"
 
-const defaultMapRecordsToProps = state => ({})
+const defaultMapRecordsToProps = {}
 const defaultMergeProps = (recordProps, parentProps) => ({
   ...parentProps,
   ...recordProps,
@@ -13,7 +13,8 @@ function getDisplayName(WrappedComponent) {
   return WrappedComponent.displayName || WrappedComponent.name || "Component"
 }
 
-let errorObject = { value: null }
+let errorObject = {value: null}
+
 function tryCatch(fn, ctx) {
   try {
     return fn.apply(ctx)
@@ -23,14 +24,11 @@ function tryCatch(fn, ctx) {
   }
 }
 
-export default function withData(mapRecordsToProps, mergeProps, options = {}) {
+export default function withData(mapRecordsToProps, mergeProps) {
   const shouldSubscribe = Boolean(mapRecordsToProps)
 
   const mapRecords = mapRecordsToProps || defaultMapRecordsToProps
   const finalMergeProps = mergeProps || defaultMergeProps
-
-  const {pure = true} = options
-  const checkMergedEquals = pure && finalMergeProps !== defaultMergeProps
 
   return function wrapWithConnect(WrappedComponent) {
     const componentDisplayName = `withData(${getDisplayName(WrappedComponent)})`
@@ -41,7 +39,7 @@ export default function withData(mapRecordsToProps, mergeProps, options = {}) {
 
     class WithData extends Component {
       shouldComponentUpdate() {
-        return !pure || this.haveOwnPropsChanged || this.hasStoreStateChanged
+        return this.haveOwnPropsChanged || this.hasDataStoreChanged
       }
 
       constructor(props, context) {
@@ -57,89 +55,84 @@ export default function withData(mapRecordsToProps, mergeProps, options = {}) {
           )
         }
 
-        const storeState = this.dataStore.getState()
-        this.state = {storeState}
+        // const storeState = this.dataStore.getState()
+        // this.state = {storeState}
         this.clearCache()
       }
 
-      computeRecordProps(store, props) {
-        if (!this.finalMapStateToProps) {
-          return this.configureFinalMapState(store, props)
+      computeRecordProps = (dataStore, props) => {
+        const recordQueries = this.getRecordQueries(dataStore, props)
+
+        const recordProps = {
+          updateStore: (...args) => store.update(...args)
         }
 
-        const state = store.getState()
-        const stateProps = this.doStatePropsDependOnOwnProps ?
-          this.finalMapStateToProps(state, props) :
-          this.finalMapStateToProps(state)
+        Object.keys(recordQueries).forEach(prop => {
+          recordProps[prop] = dataStore.cache.query(recordQueries[prop])
+        })
 
-
-        return stateProps
+        return recordProps
       }
 
-      configureFinalMapState(store, props) {
-        const mappedState = mapRecords(store.getState(), props)
-        const isFactory = typeof mappedState === "function"
-
-        this.finalMapStateToProps = isFactory ? mappedState : mapRecords
-        this.doStatePropsDependOnOwnProps = this.finalMapStateToProps.length !== 1
-
-        if (isFactory) {
-          return this.computeRecordProps(store, props)
+      getRecordQueries = (dataStore, props) => {
+        if (!this.mapRecordsIsConfigured
+          || (this.doRecordPropsDependOnOwnProps && this.haveOwnPropsChanged)) {
+          return this.configureMapRecords(dataStore, props)
         }
 
-        return mappedState
+        return this.mapRecordsGivenOwnProps(props)
       }
 
-      computeDispatchProps(store, props) {
-        if (!this.finalMapDispatchToProps) {
-          return this.configureFinalMapDispatch(store, props)
-        }
-
-        const {dispatch} = store
-        const dispatchProps = this.doDispatchPropsDependOnOwnProps ?
-          this.finalMapDispatchToProps(dispatch, props) :
-          this.finalMapDispatchToProps(dispatch)
-
-        return dispatchProps
+      mapRecordsGivenOwnProps = (props) => {
+        return this.doRecordPropsDependOnOwnProps ?
+          mapRecords(props) :
+          mapRecords
       }
 
-      configureFinalMapDispatch(store, props) {
-        const mappedDispatch = mapDispatch(store.dispatch, props)
-        const isFactory = typeof mappedDispatch === "function"
+      configureMapRecords = (dataStore, props) => {
+        this.doRecordPropsDependOnOwnProps = (typeof mapRecords === "function") && mapRecords.length > 0
+        this.mapRecordsIsConfigured = true
 
-        this.finalMapDispatchToProps = isFactory ? mappedDispatch : mapDispatch
-        this.doDispatchPropsDependOnOwnProps = this.finalMapDispatchToProps.length !== 1
+        const recordQueries = this.mapRecordsGivenOwnProps(props)
 
-        if (isFactory) {
-          return this.computeDispatchProps(store, props)
-        }
+        // Iterate all queries, to make a list of models to listen for
+        Object.keys(recordQueries).forEach(prop => {
+          const expression = recordQueries[prop](dataStore.queryBuilder).expression
 
-        return mappedDispatch
+          switch (expression.op) {
+            case "findRecord":
+            case "findRecords":
+              this.subscribedModels.push(expression.type)
+              break
+
+            case "findRelatedRecord":
+            case "findRelatedRecords":
+              this.subscribedModels.push(expression.record.type)
+              // @todo map expression.record.relationship to type (from store schema)
+              // this.subscribedModels.push(...)
+              console.warn("findRelatedRecord and findRelatedRecords are not fully supported yet")
+          }
+        })
+
+        this.subscribedModels = this.subscribedModels.filter((value, index, self) => self.indexOf(value) === index)
+
+        return recordQueries
       }
 
-      updateStatePropsIfNeeded() {
-        const nextStateProps = this.computeRecordProps(this.dataStore, this.props)
-        if (this.stateProps && shallowEqual(nextStateProps, this.stateProps)) {
+      updateRecordPropsIfNeeded = () => {
+        const nextRecordProps = this.computeRecordProps(this.dataStore, this.props)
+
+        if (this.recordProps && shallowEqual(nextRecordProps, this.recordProps)) {
           return false
         }
 
-        this.stateProps = nextStateProps
+        this.recordProps = nextRecordProps
         return true
       }
 
-      updateDispatchPropsIfNeeded() {
-        const nextDispatchProps = this.computeDispatchProps(this.dataStore, this.props)
-        if (this.dispatchProps && shallowEqual(nextDispatchProps, this.dispatchProps)) {
-          return false
-        }
-
-        this.dispatchProps = nextDispatchProps
-        return true
-      }
-
-      updateMergedPropsIfNeeded() {
-        const nextMergedProps = computeMergedProps(this.stateProps, this.dispatchProps, this.props)
-        if (this.mergedProps && checkMergedEquals && shallowEqual(nextMergedProps, this.mergedProps)) {
+      updateMergedPropsIfNeeded = () => {
+        const nextMergedProps = computeMergedProps(this.recordProps, this.props)
+        if (this.mergedProps && shallowEqual(nextMergedProps, this.mergedProps)) {
           return false
         }
 
@@ -147,21 +140,17 @@ export default function withData(mapRecordsToProps, mergeProps, options = {}) {
         return true
       }
 
-      isSubscribed() {
-        return typeof this.unsubscribe === "function"
-      }
-
-      trySubscribe() {
-        if (shouldSubscribe && !this.unsubscribe) {
-          this.unsubscribe = this.dataStore.subscribe(this.handleChange.bind(this))
-          this.handleChange()
+      trySubscribe = () => {
+        if (shouldSubscribe && !this.isListening) {
+          this.isListening = true
+          this.dataStore.on("transform", this.handleTransform)
         }
       }
 
-      tryUnsubscribe() {
-        if (this.unsubscribe) {
-          this.unsubscribe()
-          this.unsubscribe = null
+      tryUnsubscribe = () => {
+        if (this.isListening) {
+          this.isListening = null
+          this.dataStore.off("transform", this.handleTransform)
         }
       }
 
@@ -170,7 +159,7 @@ export default function withData(mapRecordsToProps, mergeProps, options = {}) {
       }
 
       componentWillReceiveProps(nextProps) {
-        if (!pure || !shallowEqual(nextProps, this.props)) {
+        if (!shallowEqual(nextProps, this.props)) {
           this.haveOwnPropsChanged = true
         }
       }
@@ -180,88 +169,84 @@ export default function withData(mapRecordsToProps, mergeProps, options = {}) {
         this.clearCache()
       }
 
-      clearCache() {
-        this.dispatchProps = null
-        this.stateProps = null
+      clearCache = () => {
+        this.recordProps = null
         this.mergedProps = null
         this.haveOwnPropsChanged = true
-        this.hasStoreStateChanged = true
-        this.haveStatePropsBeenPrecalculated = false
-        this.statePropsPrecalculationError = null
+        this.hasDataStoreChanged = true
+        this.haveRecordPropsBeenPrecalculated = false
+        this.recordPropsPrecalculationError = null
         this.renderedElement = null
-        this.finalMapDispatchToProps = null
-        this.finalMapStateToProps = null
+        this.mapRecordsIsConfigured = false
+        this.subscribedModels = []
       }
 
-      handleChange() {
-        if (!this.unsubscribe) {
+      handleTransform = (transform) => {
+        if (!this.isListening) {
           return
         }
 
-        const storeState = this.dataStore.getState()
-        const prevStoreState = this.state.storeState
-        if (pure && prevStoreState === storeState) {
-          return
-        }
+        // Iterate all transforms, to see if any of those matches a model in the list of queries
+        const operationModels = []
+        transform.operations.forEach(operation => {
+          switch (operation.op) {
+            case "addRecord":
+            case "removeRecord":
+            case "replaceRecord":
+              operationModels.push(operation.record.type)
+              break
 
-        if (pure && !this.doStatePropsDependOnOwnProps) {
-          const haveStatePropsChanged = tryCatch(this.updateStatePropsIfNeeded, this)
-          if (!haveStatePropsChanged) {
-            return
+            default:
+              // @todo handle other operations
+              console.warn("only listening to addRecord, removeRecord and replaceRecord for now")
           }
-          if (haveStatePropsChanged === errorObject) {
-            this.statePropsPrecalculationError = errorObject.value
-          }
-          this.haveStatePropsBeenPrecalculated = true
-        }
+        })
 
-        this.hasStoreStateChanged = true
-        this.setState({storeState})
+        operationModels.some(model => {
+          if (this.subscribedModels.indexOf(model) !== -1) {
+            this.hasDataStoreChanged = true
+            return true
+          }
+        })
+
+        this.forceUpdate()
       }
 
       render() {
         const {
           haveOwnPropsChanged,
-          hasStoreStateChanged,
-          haveStatePropsBeenPrecalculated,
-          statePropsPrecalculationError,
+          hasDataStoreChanged,
+          haveRecordPropsBeenPrecalculated,
+          recordPropsPrecalculationError,
           renderedElement,
         } = this
 
         this.haveOwnPropsChanged = false
-        this.hasStoreStateChanged = false
-        this.haveStatePropsBeenPrecalculated = false
-        this.statePropsPrecalculationError = null
+        this.hasDataStoreChanged = false
+        this.haveRecordPropsBeenPrecalculated = false
+        this.recordPropsPrecalculationError = null
 
-        if (statePropsPrecalculationError) {
-          throw statePropsPrecalculationError
+        if (recordPropsPrecalculationError) {
+          throw recordPropsPrecalculationError
         }
 
         let shouldUpdateStateProps = true
-        let shouldUpdateDispatchProps = true
-        if (pure && renderedElement) {
-          shouldUpdateStateProps = hasStoreStateChanged || (
-            haveOwnPropsChanged && this.doStatePropsDependOnOwnProps
+        if (renderedElement) {
+          shouldUpdateStateProps = hasDataStoreChanged || (
+            haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps
           )
-          shouldUpdateDispatchProps =
-            haveOwnPropsChanged && this.doDispatchPropsDependOnOwnProps
         }
 
         let haveStatePropsChanged = false
-        let haveDispatchPropsChanged = false
-        if (haveStatePropsBeenPrecalculated) {
+        if (haveRecordPropsBeenPrecalculated) {
           haveStatePropsChanged = true
         } else if (shouldUpdateStateProps) {
-          haveStatePropsChanged = this.updateStatePropsIfNeeded()
-        }
-        if (shouldUpdateDispatchProps) {
-          haveDispatchPropsChanged = this.updateDispatchPropsIfNeeded()
+          haveStatePropsChanged = this.updateRecordPropsIfNeeded()
         }
 
         let haveMergedPropsChanged = true
         if (
           haveStatePropsChanged ||
-          haveDispatchPropsChanged ||
           haveOwnPropsChanged
         ) {
           haveMergedPropsChanged = this.updateMergedPropsIfNeeded()
