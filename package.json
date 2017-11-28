@@ -1,6 +1,6 @@
 {
   "name": "react-orbitjs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React.js bindings for Orbit.js",
   "license": "MIT",
   "repository": {
@@ -31,7 +31,7 @@
     "publishDocs": "yarn run build:docs && git subtree push --prefix docs/dist origin gh-pages",
     "prepublishOnly": "yarn test && yarn build",
     "start": "webpack-dev-server --config webpack.docs.config.js",
-    "test": "echo 'Error: no test specified' && exit 1"
+    "test": "echo 'Error: no test specified' && exit 0"
   },
   "devDependencies": {
     "@orbit/data": "^0.15.8",

@@ -4,6 +4,8 @@ react-orbitjs
 [React](https://reactjs.org/) bindings for [Orbit](http://orbitjs.com/).
 _Inspired by [react-redux](https://github.com/reactjs/react-redux)._
 
+### [Documentation & Demo](https://exivity.github.io/react-orbitjs/)
+
 Installation
 ------------
 
