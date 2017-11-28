@@ -1,12 +1,11 @@
 const path = require("path")
-const HtmlWebpackPlugin = require("html-webpack-plugin")
 
 // Webpack configuration
 module.exports = {
   entry: "./src/index.js",
   output: {
-    path: path.resolve("dist"),
-    filename: "react-orbitjs.bundle.js",
+    path: path.resolve(__dirname, "dist/bundle"),
+    filename: "react-orbitjs.js",
   },
   externals: [
     "react",
