@@ -64,7 +64,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         const recordQueries = this.getRecordQueries(dataStore, props)
 
         const recordProps = {
-          updateStore: (...args) => store.update(...args)
+          updateStore: (...args) => dataStore.update(...args),
         }
 
         Object.keys(recordQueries).forEach(prop => {
@@ -110,7 +110,8 @@ export default function withData(mapRecordsToProps, mergeProps) {
               this.subscribedModels.push(expression.record.type)
               // @todo map expression.record.relationship to type (from store schema)
               // this.subscribedModels.push(...)
-              console.warn("findRelatedRecord and findRelatedRecords are not fully supported yet")
+              console.warn("The queries findRelatedRecord and findRelatedRecords are not fully supported yet in" +
+                " react-orbitjs.")
           }
         })
 
@@ -193,12 +194,14 @@ export default function withData(mapRecordsToProps, mergeProps) {
             case "addRecord":
             case "removeRecord":
             case "replaceRecord":
+            case "replaceKey":
+            case "replaceAttribute":
               operationModels.push(operation.record.type)
               break
 
             default:
               // @todo handle other operations
-              console.warn("only listening to addRecord, removeRecord and replaceRecord for now")
+              console.warn("This transform operation is not yet supported in react-orbitjs.")
           }
         })
 
