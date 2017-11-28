@@ -18,14 +18,19 @@
   "homepage": "https://github.com/exivity/react-orbitjs#readme",
   "main": "dist/bundle/react-orbitjs.js",
   "module": "dist/module",
+  "files": [
+    "src",
+    "dist"
+  ],
   "scripts": {
-    "build": "yarn run build:clean && yarn run build:bundle && yarn run build:module && yarn run build:example",
+    "build": "yarn run build:clean && yarn run build:module && yarn run build:bundle",
     "build:clean": "rimraf dist && rimraf example/build",
-    "build:bundle": "webpack --config webpack.config.js",
     "build:module": "babel src -d dist/es5",
-    "build:example": "webpack --config webpack.example.config.js",
-    "prepublishOnly": "yarn build",
-    "start": "webpack-dev-server --config webpack.example.config.js",
+    "build:bundle": "webpack --config webpack.bundle.config.js",
+    "build:docs": "webpack --config webpack.docs.config.js",
+    "publishDocs": "git subtree push --prefix docs/build origin gh-pages",
+    "prepublishOnly": "yarn test && yarn build",
+    "start": "webpack-dev-server --config webpack.docs.config.js",
     "test": "echo 'Error: no test specified' && exit 1"
   },
   "devDependencies": {
