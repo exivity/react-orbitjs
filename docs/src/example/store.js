@@ -1,6 +1,6 @@
-import { Schema } from "@orbit/data"
+import {Schema} from "@orbit/data"
 import Store from "@orbit/store"
-import { DateTime } from "luxon"
+import {DateTime} from "luxon"
 
 const schemaDefinition = {
   models: {
@@ -22,7 +22,7 @@ store.update(t => t.addRecord({
     type: "todo",
     id: "my-first-todo",
     attributes: {
-      description: "Read react-orbit documentation",
+      description: "Read react-orbitjs documentation",
       done: false,
       added: DateTime.local().toString()
     },

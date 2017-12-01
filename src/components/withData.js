@@ -64,6 +64,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         const recordQueries = this.getRecordQueries(dataStore, props)
 
         const recordProps = {
+          queryStore: (...args) => dataStore.query(...args),
           updateStore: (...args) => dataStore.update(...args),
         }
 

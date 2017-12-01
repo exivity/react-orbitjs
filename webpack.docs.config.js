@@ -1,5 +1,7 @@
 const path = require("path")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+
 
 // Webpack configuration
 module.exports = {
@@ -10,7 +12,8 @@ module.exports = {
   },
   module: {
     loaders: [
-      {test: /\.js$/, loader: "babel-loader", exclude: /node_modules/},
+      {test: /\.(?:sample|api)\.js$/, loader: "raw-loader"},
+      {test: /\.js$/, loader: "babel-loader", exclude: [/node_modules/, /\.(?:sample|api)\.js$/]},
     ],
   },
   plugins: [
@@ -19,6 +22,9 @@ module.exports = {
       filename: "index.html",
       inject: "body",
     }),
+    new CopyWebpackPlugin([
+      { from: "docs/src/index.css" }
+    ])
   ],
   devtool: "source-map",
   devServer: {
