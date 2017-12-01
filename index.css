@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css?family=Fira+Sans');
+
+:root, body {
+  min-height: 100vh;
+}
+
+:root {
+  font-family: 'Fira Sans', sans-serif;
+  font-weight: normal;
+  font-size: 112.5%;
+  --color: #00a8d8;
+}
+
+body {
+  max-width: 46rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  margin: 0 auto;
+}
+
+h1, h2, h3 {
+  font-weight: normal;
+  margin: .5rem 0;
+}
+
+h1 {
+  font-size: 4rem;
+}
+
+p, blockquote {
+  line-height: 1.7em;
+}
+blockquote {
+  border-left: .2rem solid lightgray;
+  margin-left: 0;
+  padding: 1rem;
+  color: darkgray;
+}
+
+a {
+  color: var(--color);
+}
+
+code {
+  background-color: cornsilk;
+  padding: .3rem;
+}
+
+pre code {
+  padding: 0;
+}
+
+header, main > section, footer {
+  margin: 5rem 0;
+}
+
+header, footer {
+  text-align: center;
+}
+
+.example {
+  background-color: var(--color);
+  padding: 1.5rem;
+  color: white;
+}
+
+.example select, .example input, .example button {
+  padding: .5rem;
+  font-size: 1rem;
+}
+
+.example hr {
+  border: 0;
+  background-color: white;
+  margin: 1.5rem -1.5rem;
+  height: 2px;
+}
+
+.example ul {
+  padding: 0;
+  list-style: none;
+}
+
+.example li {
+  padding: .5rem 0;
+}
+
+.example li.item {
+  cursor: pointer;
+  position: relative;
+  padding-left: 2rem;
+}
+
+.example li.item:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  height: 1rem;
+  width: 1rem;
+  border: 2px solid white;
+  line-height: 1rem;
+  text-indent: 2px;
+}
+
+.example li.done {
+  text-decoration: line-through;
+}
+
+.example li.done:before {
+  content: "✔"
+}
+
+a.button {
+  border: 2px solid var(--color);
+  display: inline-block;
+  padding: .4rem 1rem;
+  margin: .5rem;
+}
+
+a.button img {
+  height: 1rem;
+  vertical-align: middle;
+  margin-right: .5rem;
+}
+
+a.button:hover, a.button:focus, a.button:active {
+  background-color: var(--color);
+  color: white;
+}
