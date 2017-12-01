@@ -8,10 +8,10 @@ react-orbitjs
 This package attempts to make it easier to work with
 [Orbit.js](http://orbitjs.com/) in a [React](https://reactjs.org/)
 environment. In a nutshell it's a transform listener, updating
-a component props with records as they are changed. If you're already
-familiar with [redux](https://github.com/reactjs/redux/) in combination
-with [react-redux](https://github.com/reactjs/react-redux), you already
-know how to use this package.
+a component props with records as they are changed. If you're familiar
+with [redux](https://github.com/reactjs/redux/) in combination with
+[react-redux](https://github.com/reactjs/react-redux), you already know
+how to use this package.
 
 ---
 
