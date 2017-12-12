@@ -16,8 +16,8 @@
     "url": "https://github.com/exivity/react-orbitjs/issues"
   },
   "homepage": "https://github.com/exivity/react-orbitjs#readme",
-  "main": "dist/bundle/react-orbitjs.js",
-  "module": "dist/module",
+  "main": "dist/bundle/umd/react-orbitjs.js",
+  "module": "dist/module/es5/index.js",
   "files": [
     "src",
     "dist"
@@ -25,7 +25,7 @@
   "scripts": {
     "build": "yarn run build:clean && yarn run build:module && yarn run build:bundle",
     "build:clean": "rimraf dist && rimraf example/build",
-    "build:module": "babel src -d dist/es5",
+    "build:module": "babel src -d dist/module/es5",
     "build:bundle": "webpack --config webpack.bundle.config.js",
     "build:docs": "webpack --config webpack.docs.config.js && rimraf docs/dist/main.bundle.js.map",
     "publishDocs": "git subtree push --prefix docs/dist origin gh-pages",

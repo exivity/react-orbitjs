@@ -4,8 +4,10 @@ const path = require("path")
 module.exports = {
   entry: "./src/index.js",
   output: {
-    path: path.resolve(__dirname, "dist/bundle"),
+    path: path.resolve(__dirname, "dist/bundle/umd"),
     filename: "react-orbitjs.js",
+    library: "ReactOrbitjs",
+    libraryTarget: "umd",
   },
   externals: [
     "react",
