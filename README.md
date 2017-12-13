@@ -2,6 +2,7 @@ react-orbitjs
 =============
 
 [![npm](https://img.shields.io/npm/v/react-orbitjs.svg)](https://www.npmjs.com/package/react-orbitjs)
+[![Travis](https://img.shields.io/travis/exivity/react-orbitjs.svg)](https://travis-ci.org/exivity/react-orbitjs)
 
 [React](https://reactjs.org/) bindings for [Orbit](http://orbitjs.com/).
 
