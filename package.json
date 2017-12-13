@@ -1,6 +1,6 @@
 {
   "name": "react-orbitjs",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "React.js bindings for Orbit.js",
   "license": "MIT",
   "repository": {
