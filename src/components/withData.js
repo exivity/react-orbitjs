@@ -69,7 +69,12 @@ export default function withData(mapRecordsToProps, mergeProps) {
         }
 
         Object.keys(recordQueries).forEach(prop => {
-          recordProps[prop] = dataStore.cache.query(recordQueries[prop])
+          try {
+            recordProps[prop] = dataStore.cache.query(recordQueries[prop])
+          } catch (error) {
+            console.warn(error.message)
+            recordProps[prop] = undefined
+          }
         })
 
         return recordProps

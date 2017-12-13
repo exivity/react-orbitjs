@@ -95,3 +95,23 @@ test("withData receives updates", (done) => {
   ))
 
 })
+
+test("withData passes non-existing record as undefined", () => {
+  const Test = ({todo}) => {
+    expect(todo).toBeUndefined()
+
+    return <span>test</span>
+  }
+
+  const mapRecordsToProps = {
+    todos: q => q.findRecord({type: "todo", id: "non-existing"})
+  }
+
+  const TestWithData = withData(mapRecordsToProps)(Test)
+
+  const component = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData/>
+    </DataProvider>
+  )
+})
