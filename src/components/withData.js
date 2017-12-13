@@ -31,7 +31,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
   const finalMergeProps = mergeProps || defaultMergeProps
 
   return function wrapWithConnect(WrappedComponent) {
-    const componentDisplayName = `withData(${getDisplayName(WrappedComponent)})`
+    const componentDisplayName = `WithData(${getDisplayName(WrappedComponent)})`
 
     function computeMergedProps(stateProps, parentProps) {
       return finalMergeProps(stateProps, parentProps)
@@ -234,23 +234,23 @@ export default function withData(mapRecordsToProps, mergeProps) {
           throw recordPropsPrecalculationError
         }
 
-        let shouldUpdateStateProps = true
+        let shouldUpdateRecordProps = true
         if (renderedElement) {
-          shouldUpdateStateProps = hasDataStoreChanged || (
+          shouldUpdateRecordProps = hasDataStoreChanged || (
             haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps
           )
         }
 
-        let haveStatePropsChanged = false
+        let haveRecordPropsChanged = false
         if (haveRecordPropsBeenPrecalculated) {
-          haveStatePropsChanged = true
-        } else if (shouldUpdateStateProps) {
-          haveStatePropsChanged = this.updateRecordPropsIfNeeded()
+          haveRecordPropsChanged = true
+        } else if (shouldUpdateRecordProps) {
+          haveRecordPropsChanged = this.updateRecordPropsIfNeeded()
         }
 
         let haveMergedPropsChanged = true
         if (
-          haveStatePropsChanged ||
+          haveRecordPropsChanged ||
           haveOwnPropsChanged
         ) {
           haveMergedPropsChanged = this.updateMergedPropsIfNeeded()
