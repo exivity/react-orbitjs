@@ -31,13 +31,14 @@
     "publishDocs": "git subtree push --prefix docs/dist origin gh-pages",
     "prepublishOnly": "yarn test && yarn build",
     "start": "webpack-dev-server --config webpack.docs.config.js",
-    "test": "echo 'Error: no test specified' && exit 0"
+    "test": "jest"
   },
   "devDependencies": {
     "@orbit/data": "^0.15.8",
     "@orbit/store": "^0.15.8",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
+    "babel-jest": "^21.2.0",
     "babel-loader": "^7.1.2",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
@@ -51,6 +52,7 @@
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-syntax-highlighter": "^6.0.4",
+    "react-test-renderer": "^16.2.0",
     "rimraf": "^2.6.2",
     "webpack": "^3.7.1",
     "webpack-dev-server": "^2.9.1"
