@@ -4,7 +4,7 @@ react-orbitjs
 [![npm](https://img.shields.io/npm/v/react-orbitjs.svg)](https://www.npmjs.com/package/react-orbitjs)
 [![Travis](https://img.shields.io/travis/exivity/react-orbitjs.svg)](https://travis-ci.org/exivity/react-orbitjs)
 [![Codecov](https://img.shields.io/codecov/c/github/exivity/react-orbitjs.svg)](https://codecov.io/gh/exivity/react-orbitjs)
-[![Gitter](https://badges.gitter.im/react-orbitjs/Lobby.svg)](https://gitter.im/react-orbitjs/Lobby)
+[![Gitter](https://badges.gitter.im/exivity/react-orbitjs.svg)](https://gitter.im/exivity/react-orbitjs)
 
 [React](https://reactjs.org/) bindings for [Orbit](http://orbitjs.com/).
 
