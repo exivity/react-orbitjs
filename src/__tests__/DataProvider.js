@@ -27,6 +27,7 @@ test("DataProvider make dataStore available through context", () => {
 
     return <span>test context</span>
   }
+
   TestContext.contextTypes = {
     dataStore: dataStoreShape.isRequired,
   }

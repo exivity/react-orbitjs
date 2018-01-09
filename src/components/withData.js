@@ -1,4 +1,4 @@
-import { Component, createElement } from "react"
+import {Component, createElement} from "react"
 import dataStoreShape from "../utils/dataStoreShape"
 import shallowEqual from "../utils/shallowEqual"
 import hoistStatics from "hoist-non-react-statics"
@@ -107,6 +107,9 @@ export default function withData(mapRecordsToProps, mergeProps) {
 
           switch (expression.op) {
             case "findRecord":
+              this.subscribedModels.push(expression.record.type)
+              break
+
             case "findRecords":
               this.subscribedModels.push(expression.type)
               break
@@ -114,10 +117,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
             case "findRelatedRecord":
             case "findRelatedRecords":
               this.subscribedModels.push(expression.record.type)
-              // @todo map expression.record.relationship to type (from store schema)
-              // this.subscribedModels.push(...)
-              console.warn("The queries findRelatedRecord and findRelatedRecords are not fully supported yet in" +
-                " react-orbitjs.")
+              this.subscribedModels.push(this.dataStore.schema.models[expression.record.type].relationships[expression.relationship].model)
           }
         })
 
@@ -205,9 +205,24 @@ export default function withData(mapRecordsToProps, mergeProps) {
               operationModels.push(operation.record.type)
               break
 
+            case "addToRelatedRecords":
+            case "removeFromRelatedRecords":
+            case "replaceRelatedRecord":
+              // Add both record and relatedRecord to operationModels, because
+              // it can modify both its relationships and inverse relationships.
+              operationModels.push(operation.record.type)
+              operationModels.push(operation.relatedRecord.type)
+              break
+
+            case "replaceRelatedRecords":
+              operationModels.push(operation.record.type)
+              operation.relatedRecords.forEach((relatedRecord) => {
+                operationModels.push(relatedRecord.type)
+              })
+              break
+
             default:
-              // @todo handle other operations
-              console.warn("This transform operation is not yet supported in react-orbitjs.")
+              console.warn("This transform operation is not supported in react-orbitjs.")
           }
         })
 

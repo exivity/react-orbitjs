@@ -23,7 +23,8 @@ module.exports = {
       inject: "body",
     }),
     new CopyWebpackPlugin([
-      { from: "docs/src/index.css" }
+      { from: "docs/src/index.css" },
+      { from: "docs/src/favicon.png" },
     ])
   ],
   devtool: "source-map",
