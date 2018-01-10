@@ -38,6 +38,18 @@ afterEach(() => {
   // ...
 })
 
+test("withData requires a dataStore", () => {
+  const Test = () => {
+    return <span>test</span>
+  }
+
+  const TestWithData = withData()(Test)
+
+  expect(() => {
+    renderer.create(<TestWithData/>)
+  }).toThrow()
+})
+
 test("withData renders children", () => {
   const Test = () => {
     return <span>test withdata</span>
