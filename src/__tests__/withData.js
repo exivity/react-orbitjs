@@ -67,6 +67,32 @@ test("withData renders children", () => {
   expect(tree).toMatchSnapshot()
 })
 
+test("withData subscribes and unsubscribes from store event", () => {
+  const Test = () => {
+    return <span>test</span>
+  }
+
+  const mapRecordsToProps = {
+    todos: q => q.findRecords("todo"),
+  }
+
+  const TestWithData = withData(mapRecordsToProps)(Test)
+
+  expect(store.listeners("transform")).toHaveLength(0)
+
+  const component = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData/>
+    </DataProvider>,
+  )
+
+  expect(store.listeners("transform")).toHaveLength(1)
+
+  component.unmount()
+
+  expect(store.listeners("transform")).toHaveLength(0)
+})
+
 test("withData passes records as prop", () => {
   const Test = ({todos}) => {
     expect(todos).toHaveLength(0)
