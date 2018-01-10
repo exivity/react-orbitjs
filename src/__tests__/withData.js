@@ -348,3 +348,83 @@ test("withData receives updates for findRelatedRecords", (done) => {
       })
     })
 })
+
+test("withData receives updates for multiple keys", (done) => {
+  // Unfortunately, on Windows we can't use async/await for tests
+  // see https://github.com/facebook/jest/issues/3750 for more info
+  let callCount = 0
+
+  store
+    .update(t => t.addRecord({
+      type: "user",
+      id: "test-user",
+      attributes: {
+        name: "Test user",
+      },
+    }))
+    .then(() => {
+      return store.update(t => t.addRecord({
+          type: "todo",
+          id: "my-first-todo",
+          attributes: {
+            description: "Run tests",
+          },
+        },
+      ))
+    })
+    .then(() => {
+
+      const testTodos = ({todos, users}) => {
+        callCount++
+
+        if (callCount === 1) {
+          expect(todos).toHaveLength(1)
+          expect(users).toHaveLength(1)
+        } else if (callCount === 2) {
+          expect(todos).toHaveLength(2)
+          expect(users).toHaveLength(1)
+        } else if (callCount === 3) {
+          expect(todos).toHaveLength(2)
+          expect(users).toHaveLength(2)
+          done()
+        }
+      }
+
+      const Test = ({todos, users}) => {
+        testTodos({todos, users})
+
+        return <span>test</span>
+      }
+
+      const mapRecordsToProps = {
+        todos: q => q.findRecords("todo"),
+        users: q => q.findRecords("user"),
+      }
+
+      const TestWithData = withData(mapRecordsToProps)(Test)
+
+      const component = renderer.create(
+        <DataProvider dataStore={store}>
+          <TestWithData/>
+        </DataProvider>,
+      )
+
+      store.update(t => t.addRecord({
+          type: "todo",
+          id: "my-second-todo",
+          attributes: {
+            description: "Run more tests",
+          },
+        },
+      )).then(() => {
+        store.update(t => t.addRecord({
+            type: "user",
+            id: "another-user",
+            attributes: {
+              name: "Another user",
+            },
+          },
+        ))
+      })
+    })
+})
