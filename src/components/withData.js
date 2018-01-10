@@ -13,17 +13,6 @@ function getDisplayName(WrappedComponent) {
   return WrappedComponent.displayName || WrappedComponent.name || "Component"
 }
 
-let errorObject = {value: null}
-
-function tryCatch(fn, ctx) {
-  try {
-    return fn.apply(ctx)
-  } catch (e) {
-    errorObject.value = e
-    return errorObject
-  }
-}
-
 export default function withData(mapRecordsToProps, mergeProps) {
   const shouldSubscribe = Boolean(mapRecordsToProps)
 
@@ -181,8 +170,6 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.mergedProps = null
         this.haveOwnPropsChanged = true
         this.hasDataStoreChanged = true
-        this.haveRecordPropsBeenPrecalculated = false
-        this.recordPropsPrecalculationError = null
         this.renderedElement = null
         this.mapRecordsIsConfigured = false
         this.subscribedModels = []
@@ -240,19 +227,11 @@ export default function withData(mapRecordsToProps, mergeProps) {
         const {
           haveOwnPropsChanged,
           hasDataStoreChanged,
-          haveRecordPropsBeenPrecalculated,
-          recordPropsPrecalculationError,
           renderedElement,
         } = this
 
         this.haveOwnPropsChanged = false
         this.hasDataStoreChanged = false
-        this.haveRecordPropsBeenPrecalculated = false
-        this.recordPropsPrecalculationError = null
-
-        if (recordPropsPrecalculationError) {
-          throw recordPropsPrecalculationError
-        }
 
         let shouldUpdateRecordProps = true
         if (renderedElement) {
@@ -262,9 +241,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         }
 
         let haveRecordPropsChanged = false
-        if (haveRecordPropsBeenPrecalculated) {
-          haveRecordPropsChanged = true
-        } else if (shouldUpdateRecordProps) {
+        if (shouldUpdateRecordProps) {
           haveRecordPropsChanged = this.updateRecordPropsIfNeeded()
         }
 
