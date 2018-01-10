@@ -31,7 +31,8 @@
     "publishDocs": "git subtree push --prefix docs/dist origin gh-pages",
     "prepublishOnly": "yarn test && yarn build",
     "start": "webpack-dev-server --config webpack.docs.config.js",
-    "test": "jest && codecov"
+    "test": "jest && codecov",
+    "watch": "jest --watch"
   },
   "devDependencies": {
     "@orbit/data": "^0.15.8",
