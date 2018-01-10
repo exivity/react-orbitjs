@@ -115,6 +115,44 @@ test("withData passes non-existing record as empty array in findRecords", () => 
   )
 })
 
+test("withData passes queryStore", () => {
+  const Test = ({queryStore}) => {
+    expect(typeof queryStore).toEqual("function")
+
+    // queryStore should return a promise
+    expect(typeof queryStore(q => q.findRecords("todo"))).toEqual("object")
+
+    return <span>test</span>
+  }
+
+  const TestWithData = withData()(Test)
+
+  const component = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData/>
+    </DataProvider>,
+  )
+})
+
+test("withData passes updateStore", () => {
+  const Test = ({updateStore}) => {
+    expect(typeof updateStore).toEqual("function")
+
+    // updateStore should return a promise
+    expect(typeof updateStore(t => t.addRecord({}))).toEqual("object")
+
+    return <span>test</span>
+  }
+
+  const TestWithData = withData()(Test)
+
+  const component = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData/>
+    </DataProvider>,
+  )
+})
+
 test("withData receives updates for findRecord", (done) => {
   let callCount = 0
   const record = {
