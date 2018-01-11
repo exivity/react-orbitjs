@@ -557,3 +557,78 @@ test("withData keeps references for unchanged props", (done) => {
       })
     })
 })
+
+test("withData receives updates for findRecord depending on own props", (done) => {
+  const record = {
+    type: "user",
+    id: "test-user",
+    attributes: {
+      name: "Test user",
+    },
+  }
+
+  const Test = ({user}) => <span/>
+
+  const mapRecordsToProps = ({userId}) => ({
+    user: q => q.findRecord({type: "user", id: userId}),
+  })
+
+  const TestWithData = withData(mapRecordsToProps)(Test)
+
+  const componentRenderer = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData userId="test-user"/>
+    </DataProvider>,
+  )
+
+  const testComponent = componentRenderer.root.findByType(Test)
+
+  expect(testComponent.props.user).toBeUndefined()
+
+  store.update(t => t.addRecord(record)).then(() => {
+    expect(testComponent.props.user).toEqual(record)
+    done()
+  })
+})
+
+test("withData receives updates when own props change", (done) => {
+  const record = {
+    type: "user",
+    id: "test-user",
+    attributes: {
+      name: "Test user",
+    },
+  }
+
+  store
+    .update(t => t.addRecord(record))
+    .then(() => {
+      const Test = ({user}) => <span/>
+
+      const mapRecordsToProps = ({userId}) => ({
+        user: q => q.findRecord({type: "user", id: userId}),
+      })
+
+      const TestWithData = withData(mapRecordsToProps)(Test)
+
+      let testComponent
+      const componentRenderer = renderer.create(
+        <DataProvider dataStore={store}>
+          <TestWithData/>
+        </DataProvider>,
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+
+      expect(testComponent.props.user).toBeUndefined()
+
+      componentRenderer.update(
+        <DataProvider dataStore={store}>
+          <TestWithData userId="test-user"/>
+        </DataProvider>)
+      testComponent = componentRenderer.root.findByType(Test)
+
+      expect(testComponent.props.user).toEqual(record)
+
+      done()
+    })
+})

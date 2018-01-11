@@ -153,6 +153,11 @@ export default function withData(mapRecordsToProps, mergeProps) {
             ...this.getConvenienceProps(this.dataStore),
             ...this.computeAllRecordProps(this.dataStore, this.props)
           }
+        } else if (this.haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps) {
+          nextRecordProps = {
+            ...this.recordProps,
+            ...this.computeAllRecordProps(this.dataStore, this.props)
+          }
         } else {
           nextRecordProps = {
             ...this.recordProps,
@@ -277,9 +282,6 @@ export default function withData(mapRecordsToProps, mergeProps) {
           renderedElement,
         } = this
 
-        this.haveOwnPropsChanged = false
-        this.hasDataStoreChanged = false
-
         let shouldUpdateRecordProps = true
         if (renderedElement) {
           shouldUpdateRecordProps = hasDataStoreChanged || (
@@ -292,6 +294,8 @@ export default function withData(mapRecordsToProps, mergeProps) {
           haveRecordPropsChanged = this.updateRecordPropsIfNeeded()
         }
 
+        this.haveOwnPropsChanged = false
+        this.hasDataStoreChanged = false
         this.dataStoreChangedProps = []
 
         let haveMergedPropsChanged = true
