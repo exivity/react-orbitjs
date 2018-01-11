@@ -103,13 +103,14 @@ export default function withData(mapRecordsToProps, mergeProps) {
       }
 
       mapRecordsGivenOwnProps = (props) => {
-        return this.doRecordPropsDependOnOwnProps ?
+        return this.recordPropsIsFunction ?
           mapRecords(props) :
           mapRecords
       }
 
       configureMapRecords = (dataStore, props) => {
-        this.doRecordPropsDependOnOwnProps = (typeof mapRecords === "function") && mapRecords.length > 0
+        this.recordPropsIsFunction = (typeof mapRecords === "function")
+        this.doRecordPropsDependOnOwnProps = this.recordPropsIsFunction && mapRecords.length > 0
         this.mapRecordsIsConfigured = true
 
         const recordQueries = this.mapRecordsGivenOwnProps(props)

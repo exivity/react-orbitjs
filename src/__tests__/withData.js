@@ -632,3 +632,35 @@ test("withData receives updates when own props change", (done) => {
       done()
     })
 })
+
+test("withData doesn't update props if records remain the same", () => {
+  const Test = () => <span/>
+
+  const mapRecordsToProps = () => ({
+    users: q => q.findRecords("user"),
+  })
+
+  const TestWithData = withData(mapRecordsToProps)(Test)
+
+  let testComponent
+  let usersProp
+
+  const componentRenderer = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData unusedProp={1}/>
+    </DataProvider>,
+  )
+  testComponent = componentRenderer.root.findByType(Test)
+
+  expect(testComponent.props.users).toHaveLength(0)
+  usersProp = testComponent.props.users
+
+  componentRenderer.update(
+    <DataProvider dataStore={store}>
+      <TestWithData unusedProp={2}/>
+    </DataProvider>)
+  testComponent = componentRenderer.root.findByType(Test)
+
+  expect(testComponent.props.users).toHaveLength(0)
+  expect(testComponent.props.users).toBe(usersProp)
+})
