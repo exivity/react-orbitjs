@@ -509,3 +509,51 @@ test("withData receives updates for multiple keys", (done) => {
       })
     })
 })
+
+test("withData keeps references for unchanged props", (done) => {
+  store
+    .update(t => t.addRecord({
+      type: "user",
+      id: "test-user",
+      attributes: {
+        name: "Test user",
+      },
+    }))
+    .then(() => {
+      const Test = ({todos, users}) => <span/>
+
+      const mapRecordsToProps = {
+        todos: q => q.findRecords("todo"),
+        users: q => q.findRecords("user"),
+      }
+
+      const TestWithData = withData(mapRecordsToProps)(Test)
+
+      const componentRenderer = renderer.create(
+        <DataProvider dataStore={store}>
+          <TestWithData/>
+        </DataProvider>,
+      )
+
+      const testComponent = componentRenderer.root.findByType(Test)
+
+      expect(testComponent.props.todos).toHaveLength(0)
+      expect(testComponent.props.users).toHaveLength(1)
+
+      const previousUsers = testComponent.props.users
+
+      store.update(t => t.addRecord({
+          type: "todo",
+          id: "my-first-todo",
+          attributes: {
+            description: "Run tests",
+          },
+        },
+      )).then(() => {
+        expect(testComponent.props.todos).toHaveLength(1)
+        expect(testComponent.props.users).toHaveLength(1)
+        expect(testComponent.props.users).toBe(previousUsers)
+        done()
+      })
+    })
+})
