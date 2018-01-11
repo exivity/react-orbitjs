@@ -6,6 +6,9 @@ import Store from "@orbit/store"
 
 import {DataProvider, withData} from "./../index"
 
+// Unfortunately, on Windows we can't use async/await for tests
+// see https://github.com/facebook/jest/issues/3750 for more info
+
 const definition = {
   models: {
     todo: {
@@ -38,6 +41,8 @@ afterEach(() => {
   // ...
 })
 
+// This will output a message to the console (Consider adding an error boundary
+// to your tree to customize error handling behavior.)
 test("withData requires a dataStore", () => {
   const Test = () => {
     return <span>test</span>
