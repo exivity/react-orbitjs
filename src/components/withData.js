@@ -49,15 +49,28 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.clearCache()
       }
 
-      computeRecordProps = (dataStore, props) => {
-        const recordQueries = this.getRecordQueries(dataStore, props)
+      computeChangedRecordProps = (selectedRecordProps, dataStore, props) => {
+        return this.selectivelyComputeRecordProps(selectedRecordProps, dataStore, props)
+      }
 
-        const recordProps = {
-          queryStore: (...args) => dataStore.query(...args),
-          updateStore: (...args) => dataStore.update(...args),
+      computeAllRecordProps = (dataStore, props) => {
+        return this.selectivelyComputeRecordProps(true, dataStore, props)
+      }
+
+      selectivelyComputeRecordProps = (selectedRecordPropsOrAll, dataStore, props) => {
+        let recordQueries
+
+        if (selectedRecordPropsOrAll === true || selectedRecordPropsOrAll.length) {
+          recordQueries = this.getRecordQueries(dataStore, props)
         }
 
-        Object.keys(recordQueries).forEach(prop => {
+        if (selectedRecordPropsOrAll === true) {
+          selectedRecordPropsOrAll = Object.keys(recordQueries)
+        }
+
+        const recordProps = {}
+
+        selectedRecordPropsOrAll.forEach((prop) => {
           try {
             recordProps[prop] = dataStore.cache.query(recordQueries[prop])
           } catch (error) {
@@ -67,6 +80,17 @@ export default function withData(mapRecordsToProps, mergeProps) {
         })
 
         return recordProps
+      }
+
+      getConvenienceProps = (dataStore) => {
+        if (!this.convenienceProps) {
+          this.convenienceProps = {
+            queryStore: (...args) => dataStore.query(...args),
+            updateStore: (...args) => dataStore.update(...args),
+          }
+        }
+
+        return this.convenienceProps
       }
 
       getRecordQueries = (dataStore, props) => {
@@ -89,34 +113,52 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.mapRecordsIsConfigured = true
 
         const recordQueries = this.mapRecordsGivenOwnProps(props)
+        const recordQueryKeys = Object.keys(recordQueries)
+
+        recordQueryKeys.forEach((prop) => this.subscribedModels[prop] = [])
 
         // Iterate all queries, to make a list of models to listen for
-        Object.keys(recordQueries).forEach(prop => {
+        recordQueryKeys.forEach((prop) => {
           const expression = recordQueries[prop](dataStore.queryBuilder).expression
 
           switch (expression.op) {
             case "findRecord":
-              this.subscribedModels.push(expression.record.type)
+              this.subscribedModels[prop].push(expression.record.type)
               break
 
             case "findRecords":
-              this.subscribedModels.push(expression.type)
+              this.subscribedModels[prop].push(expression.type)
               break
 
             case "findRelatedRecord":
             case "findRelatedRecords":
-              this.subscribedModels.push(expression.record.type)
-              this.subscribedModels.push(this.dataStore.schema.models[expression.record.type].relationships[expression.relationship].model)
+              this.subscribedModels[prop].push(expression.record.type)
+              this.subscribedModels[prop].push(this.dataStore.schema.models[expression.record.type].relationships[expression.relationship].model)
           }
         })
 
-        this.subscribedModels = this.subscribedModels.filter((value, index, self) => self.indexOf(value) === index)
+        recordQueryKeys.forEach((prop) => {
+          this.subscribedModels[prop] = this.subscribedModels[prop].filter((value, index, self) => self.indexOf(value) === index)
+        })
 
         return recordQueries
       }
 
       updateRecordPropsIfNeeded = () => {
-        const nextRecordProps = this.computeRecordProps(this.dataStore, this.props)
+        let nextRecordProps = {}
+
+        if (this.recordProps === null) {
+          // Initial run
+          nextRecordProps = {
+            ...this.getConvenienceProps(this.dataStore),
+            ...this.computeAllRecordProps(this.dataStore, this.props)
+          }
+        } else {
+          nextRecordProps = {
+            ...this.recordProps,
+            ...this.computeChangedRecordProps(this.dataStoreChangedProps, this.dataStore, this.props)
+          }
+        }
 
         if (this.recordProps && shallowEqual(nextRecordProps, this.recordProps)) {
           return false
@@ -128,6 +170,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
 
       updateMergedPropsIfNeeded = () => {
         const nextMergedProps = computeMergedProps(this.recordProps, this.props)
+
         if (this.mergedProps && shallowEqual(nextMergedProps, this.mergedProps)) {
           return false
         }
@@ -166,13 +209,15 @@ export default function withData(mapRecordsToProps, mergeProps) {
       }
 
       clearCache = () => {
+        this.convenienceProps = null
         this.recordProps = null
         this.mergedProps = null
         this.haveOwnPropsChanged = true
+        this.dataStoreChangedProps = []
         this.hasDataStoreChanged = true
         this.renderedElement = null
         this.mapRecordsIsConfigured = false
-        this.subscribedModels = []
+        this.subscribedModels = {}
       }
 
       handleTransform = (transform) => {
@@ -213,11 +258,13 @@ export default function withData(mapRecordsToProps, mergeProps) {
           }
         })
 
-        operationModels.some(model => {
-          if (this.subscribedModels.indexOf(model) !== -1) {
-            this.hasDataStoreChanged = true
-            return true
-          }
+        operationModels.forEach((model) => {
+          Object.keys(this.subscribedModels).forEach((prop) => {
+            if (this.subscribedModels[prop].includes(model)) {
+              this.hasDataStoreChanged = true
+              this.dataStoreChangedProps.push(prop)
+            }
+          })
         })
 
         this.forceUpdate()
@@ -244,6 +291,8 @@ export default function withData(mapRecordsToProps, mergeProps) {
         if (shouldUpdateRecordProps) {
           haveRecordPropsChanged = this.updateRecordPropsIfNeeded()
         }
+
+        this.dataStoreChangedProps = []
 
         let haveMergedPropsChanged = true
         if (
