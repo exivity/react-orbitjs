@@ -249,7 +249,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
               // Add both record and relatedRecord to operationModels, because
               // it can modify both its relationships and inverse relationships.
               operationModels.push(operation.record.type)
-              operationModels.push(operation.relatedRecord.type)
+              operationModels.push(this.dataStore.schema.models[operation.record.type].relationships[operation.relationship].model)
               break
 
             case "replaceRelatedRecords":

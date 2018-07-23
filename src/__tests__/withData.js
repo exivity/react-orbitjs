@@ -310,6 +310,8 @@ test("withData receives updates for findRelatedRecord", (done) => {
           expect(owner).toMatchObject(user)
         } else if (callCount === 3) {
           expect(owner.attributes.name).toEqual(updatedName)
+        } else if (callCount === 4) {
+          expect(owner).toBeNull()
           done()
         }
       }
@@ -343,6 +345,12 @@ test("withData receives updates for findRelatedRecord", (done) => {
         store.update(t => t.replaceAttribute(
           {type: "user", id: "test-user"},
           "name", updatedName,
+        ))
+      }).then(() => {
+        store.update(t => t.replaceRelatedRecord(
+          {type: "todo", id: "my-first-todo"},
+          "owner",
+          null,
         ))
       })
     })
