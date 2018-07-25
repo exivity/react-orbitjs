@@ -236,8 +236,28 @@ export default function withData(mapRecordsToProps, mergeProps) {
         transform.operations.forEach(operation => {
           switch (operation.op) {
             case "addRecord":
-            case "removeRecord":
             case "replaceRecord":
+              // operation.record may contains some relationships, in this case
+              // its inverse relationships are modified too, we add them to operationModels.
+              operationModels.push(operation.record.type)
+              if (operation.record.relationships === undefined) break;
+              Object.keys(operation.record.relationships).forEach((relationship) => {
+                operationModels.push(this.dataStore.schema.models[operation.record.type].relationships[relationship].model)
+              })
+              break
+
+            case "removeRecord":
+              // If the removed record had some relationships, inverse relationships
+              // are modified too. As operation.record does not contain any relationships
+              // we have to assume that all its inverse relationships defined
+              // in the schema could be impacted and must be added to operationModels.
+              operationModels.push(operation.record.type)
+              const relationships = this.dataStore.schema.models[operation.record.type].relationships;
+              Object.keys(relationships).map(k => relationships[k]).forEach((relationship) => {
+                operationModels.push(relationship.model)
+              })
+              break
+
             case "replaceKey":
             case "replaceAttribute":
               operationModels.push(operation.record.type)
