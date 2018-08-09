@@ -198,6 +198,7 @@ test("withData passes updateStore", () => {
 
 test("withData receives updates for findRecord", (done) => {
   let callCount = 0
+
   const record = {
     type: "todo",
     id: "my-first-todo",
@@ -382,29 +383,39 @@ test("withData receives updates for findRelatedRecords", (done) => {
     })
     .then(() => {
 
-      const testTodos = (todos) => {
+      const testTodos = (todos, user) => {
         callCount++
 
         if (callCount === 1) {
           expect(todos).toHaveLength(0)
         } else if (callCount === 2) {
           expect(todos).toHaveLength(1)
+          expect(user.relationships.todos.data).toHaveLength(1)
         } else if (callCount === 3) {
           expect(todos).toHaveLength(1)
           expect(todos[0].attributes.description).toEqual(updatedDescription)
+          expect(user.relationships.todos.data).toHaveLength(1)
         } else if (callCount === 4) {
           expect(todos).toHaveLength(0)
+          expect(user.relationships.todos.data).toHaveLength(0)
+        } else if (callCount === 5) {
+          expect(todos).toHaveLength(1)
+          expect(user.relationships.todos.data).toHaveLength(1)
+        } else if (callCount === 6) {
+          expect(todos).toHaveLength(0)
+          expect(user.relationships.todos.data).toHaveLength(0)
           done()
         }
       }
 
-      const Test = ({todos}) => {
-        testTodos(todos)
+      const Test = ({todos, user}) => {
+        testTodos(todos, user)
 
         return <span>test</span>
       }
 
       const mapRecordsToProps = {
+        user: q => q.findRecord({type: "user", id: "test-user"}),
         todos: q => q.findRelatedRecords({
           type: "user",
           id: "test-user",
@@ -434,6 +445,24 @@ test("withData receives updates for findRelatedRecords", (done) => {
           "todos",
           {type: "todo", id: "my-first-todo"},
         ))
+      }).then(() => {
+        store.update(t => t.addRecord({
+          type: "todo",
+          id: "my-second-todo",
+          attributes: {
+            description: "Run more tests",
+          },
+          relationships: {
+            owner: {
+              data: {type: "user", id: "test-user"},
+            }
+          }
+        }))
+      }).then(() => {
+        store.update(t => t.removeRecord({
+          type: "todo",
+          id: "my-second-todo"
+        }))
       })
     })
 })
