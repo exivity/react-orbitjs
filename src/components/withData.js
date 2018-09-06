@@ -87,6 +87,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
           this.convenienceProps = {
             queryStore: (...args) => dataStore.query(...args),
             updateStore: (...args) => dataStore.update(...args),
+            dataStore
           }
         }
 
