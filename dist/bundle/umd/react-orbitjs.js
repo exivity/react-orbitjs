@@ -7,7 +7,7 @@
 		exports["ReactOrbitjs"] = factory(require("react"));
 	else
 		root["ReactOrbitjs"] = factory(root["react"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_4__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_5__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -267,6 +267,41 @@ process.umask = function() { return 0; };
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
+/* WEBPACK VAR INJECTION */(function(process) {/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+if (process.env.NODE_ENV !== 'production') {
+  var REACT_ELEMENT_TYPE = (typeof Symbol === 'function' &&
+    Symbol.for &&
+    Symbol.for('react.element')) ||
+    0xeac7;
+
+  var isValidElement = function(object) {
+    return typeof object === 'object' &&
+      object !== null &&
+      object.$$typeof === REACT_ELEMENT_TYPE;
+  };
+
+  // By explicitly using `prop-types` you are opting into new development behavior.
+  // http://fb.me/prop-types-in-prod
+  var throwOnDirectAccess = true;
+  module.exports = __webpack_require__(10)(isValidElement, throwOnDirectAccess);
+} else {
+  // By explicitly using `prop-types` you are opting into new production behavior.
+  // http://fb.me/prop-types-in-prod
+  module.exports = __webpack_require__(13)();
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 
 
@@ -306,7 +341,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 module.exports = emptyFunction;
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -366,7 +401,7 @@ module.exports = invariant;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -385,45 +420,10 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(process) {/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-if (process.env.NODE_ENV !== 'production') {
-  var REACT_ELEMENT_TYPE = (typeof Symbol === 'function' &&
-    Symbol.for &&
-    Symbol.for('react.element')) ||
-    0xeac7;
-
-  var isValidElement = function(object) {
-    return typeof object === 'object' &&
-      object !== null &&
-      object.$$typeof === REACT_ELEMENT_TYPE;
-  };
-
-  // By explicitly using `prop-types` you are opting into new development behavior.
-  // http://fb.me/prop-types-in-prod
-  var throwOnDirectAccess = true;
-  module.exports = __webpack_require__(10)(isValidElement, throwOnDirectAccess);
-} else {
-  // By explicitly using `prop-types` you are opting into new production behavior.
-  // http://fb.me/prop-types-in-prod
-  module.exports = __webpack_require__(13)();
-}
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
 
 /***/ }),
 /* 6 */
@@ -440,7 +440,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 
-var emptyFunction = __webpack_require__(1);
+var emptyFunction = __webpack_require__(2);
 
 /**
  * Similar to invariant but only logs a warning if the condition is not met.
@@ -505,7 +505,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _propTypes = __webpack_require__(5);
+var _propTypes = __webpack_require__(1);
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
@@ -556,9 +556,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(4);
+var _react = __webpack_require__(5);
 
-var _propTypes = __webpack_require__(5);
+var _propTypes = __webpack_require__(1);
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
@@ -583,13 +583,14 @@ var DataProvider = function (_Component) {
     var _this = _possibleConstructorReturn(this, (DataProvider.__proto__ || Object.getPrototypeOf(DataProvider)).call(this, props, context));
 
     _this.dataStore = props.dataStore;
+    _this.sources = props.sources;
     return _this;
   }
 
   _createClass(DataProvider, [{
     key: "getChildContext",
     value: function getChildContext() {
-      return { dataStore: this.dataStore };
+      return { dataStore: this.dataStore, sources: this.sources };
     }
   }, {
     key: "render",
@@ -603,11 +604,13 @@ var DataProvider = function (_Component) {
 
 DataProvider.propTypes = {
   dataStore: _dataStoreShape2.default.isRequired,
+  sources: _propTypes2.default.object,
   children: _propTypes2.default.element.isRequired
 };
 
 DataProvider.childContextTypes = {
-  dataStore: _dataStoreShape2.default.isRequired
+  dataStore: _dataStoreShape2.default.isRequired,
+  sources: _propTypes2.default.object
 };
 
 exports.default = DataProvider;
@@ -626,12 +629,12 @@ exports.default = DataProvider;
 
 
 
-var emptyFunction = __webpack_require__(1);
-var invariant = __webpack_require__(2);
+var emptyFunction = __webpack_require__(2);
+var invariant = __webpack_require__(3);
 var warning = __webpack_require__(6);
 var assign = __webpack_require__(11);
 
-var ReactPropTypesSecret = __webpack_require__(3);
+var ReactPropTypesSecret = __webpack_require__(4);
 var checkPropTypes = __webpack_require__(12);
 
 module.exports = function(isValidElement, throwOnDirectAccess) {
@@ -1274,9 +1277,9 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 
 if (process.env.NODE_ENV !== 'production') {
-  var invariant = __webpack_require__(2);
+  var invariant = __webpack_require__(3);
   var warning = __webpack_require__(6);
-  var ReactPropTypesSecret = __webpack_require__(3);
+  var ReactPropTypesSecret = __webpack_require__(4);
   var loggedTypeFailures = {};
 }
 
@@ -1340,9 +1343,9 @@ module.exports = checkPropTypes;
 
 
 
-var emptyFunction = __webpack_require__(1);
-var invariant = __webpack_require__(2);
-var ReactPropTypesSecret = __webpack_require__(3);
+var emptyFunction = __webpack_require__(2);
+var invariant = __webpack_require__(3);
+var ReactPropTypesSecret = __webpack_require__(4);
 
 module.exports = function() {
   function shim(props, propName, componentName, location, propFullName, secret) {
@@ -1408,7 +1411,11 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 exports.default = withData;
 
-var _react = __webpack_require__(4);
+var _propTypes = __webpack_require__(1);
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
+var _react = __webpack_require__(5);
 
 var _dataStoreShape = __webpack_require__(7);
 
@@ -1470,6 +1477,7 @@ function withData(mapRecordsToProps, mergeProps) {
         _initialiseProps.call(_this);
 
         _this.dataStore = props.dataStore || context.dataStore;
+        _this.sources = props.sources || context.sources;
 
         if (!_this.dataStore) {
           throw new Error("Could not find \"dataStore\" in either the context or " + ("props of \"" + componentDisplayName + "\". ") + "Either wrap the root component in a <DataProvider>, " + ("or explicitly pass \"dataStore\" as a prop to \"" + componentDisplayName + "\"."));
@@ -1577,7 +1585,7 @@ function withData(mapRecordsToProps, mergeProps) {
         return recordProps;
       };
 
-      this.getConvenienceProps = function (dataStore) {
+      this.getConvenienceProps = function (dataStore, sources) {
         if (!_this2.convenienceProps) {
           _this2.convenienceProps = {
             queryStore: function queryStore() {
@@ -1586,7 +1594,8 @@ function withData(mapRecordsToProps, mergeProps) {
             updateStore: function updateStore() {
               return dataStore.update.apply(dataStore, arguments);
             },
-            dataStore: dataStore
+            dataStore: dataStore,
+            sources: sources
           };
         }
 
@@ -1651,7 +1660,7 @@ function withData(mapRecordsToProps, mergeProps) {
 
         if (_this2.recordProps === null) {
           // Initial run
-          nextRecordProps = _extends({}, _this2.getConvenienceProps(_this2.dataStore), _this2.computeAllRecordProps(_this2.dataStore, _this2.props));
+          nextRecordProps = _extends({}, _this2.getConvenienceProps(_this2.dataStore, _this2.sources), _this2.computeAllRecordProps(_this2.dataStore, _this2.props));
         } else if (_this2.haveOwnPropsChanged && _this2.doRecordPropsDependOnOwnProps) {
           nextRecordProps = _extends({}, _this2.recordProps, _this2.computeAllRecordProps(_this2.dataStore, _this2.props));
         } else {
@@ -1779,10 +1788,12 @@ function withData(mapRecordsToProps, mergeProps) {
     WithData.displayName = componentDisplayName;
     WithData.WrappedComponent = WrappedComponent;
     WithData.contextTypes = {
-      dataStore: _dataStoreShape2.default
+      dataStore: _dataStoreShape2.default,
+      sources: _propTypes2.default.object
     };
     WithData.propTypes = {
-      dataStore: _dataStoreShape2.default
+      dataStore: _dataStoreShape2.default,
+      sources: _propTypes2.default.object
     };
 
     return (0, _hoistNonReactStatics2.default)(WithData, WrappedComponent);

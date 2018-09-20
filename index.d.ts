@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Store from '@orbit/store';
-import { TransformOrOperations, QueryBuilder } from '@orbit/data';
+import { TransformOrOperations, QueryBuilder, Source } from '@orbit/data';
 
 
 export interface DataProviderProps {
@@ -13,6 +13,7 @@ export interface RecordsToProps {
 
 export interface WithData {
   dataStore: Store;
+  sources: { [sourceName: string]: Source };
 }
 
 export type WithDataProps =
@@ -20,6 +21,7 @@ export type WithDataProps =
     queryStore: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => any;
     updateStore: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => any;
     dataStore: Store;
+    sources: { [sourceName: string]: Source };
   }
   & WithData
 
@@ -36,4 +38,4 @@ export class DataProvider extends React.Component<DataProviderProps> {}
 export function withData<TWrappedProps>(mapRecordsToProps: MapRecordsToProps):
   <Props, State>(
     WrappedComponent: React.Component<any, any, any> & { setState(): void}
-  ) => React.Component<TWRappedProps & Props, State>;
+  ) => React.Component<TWrappedProps & Props, State>;

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import {Component, createElement} from "react"
 import dataStoreShape from "../utils/dataStoreShape"
 import shallowEqual from "../utils/shallowEqual"
@@ -34,6 +35,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
       constructor(props, context) {
         super(props, context)
         this.dataStore = props.dataStore || context.dataStore
+        this.sources = props.sources || context.sources
 
         if (!this.dataStore) {
           throw new Error(
@@ -82,12 +84,13 @@ export default function withData(mapRecordsToProps, mergeProps) {
         return recordProps
       }
 
-      getConvenienceProps = (dataStore) => {
+      getConvenienceProps = (dataStore, sources) => {
         if (!this.convenienceProps) {
           this.convenienceProps = {
             queryStore: (...args) => dataStore.query(...args),
             updateStore: (...args) => dataStore.update(...args),
-            dataStore
+            dataStore,
+            sources
           }
         }
 
@@ -152,7 +155,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         if (this.recordProps === null) {
           // Initial run
           nextRecordProps = {
-            ...this.getConvenienceProps(this.dataStore),
+            ...this.getConvenienceProps(this.dataStore, this.sources),
             ...this.computeAllRecordProps(this.dataStore, this.props)
           }
         } else if (this.haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps) {
@@ -346,9 +349,11 @@ export default function withData(mapRecordsToProps, mergeProps) {
     WithData.WrappedComponent = WrappedComponent
     WithData.contextTypes = {
       dataStore: dataStoreShape,
+      sources: PropTypes.object,
     }
     WithData.propTypes = {
       dataStore: dataStoreShape,
+      sources: PropTypes.object,
     }
 
     return hoistStatics(WithData, WrappedComponent)
