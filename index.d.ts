@@ -35,5 +35,5 @@ export class DataProvider extends React.Component<DataProviderProps> {}
 
 export function withData<TWrappedProps>(mapRecordsToProps: MapRecordsToProps<TWrappedProps>):
   <Props, State>(
-    WrappedComponent: React.Component<any, any, any> & { setState(): void}
-  ) => React.Component<TWrappedProps & Props, State>;
+    WrappedComponent: React.Component<any, any, any>
+  ) => React.Component<TWrappedProps & Props>;
