@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Store from '@orbit/store';
-import { TransformOrOperations, QueryBuilder, Source } from '@orbit/data';
+import { TransformOrOperations, QueryOrExpression, QueryBuilder, Source } from '@orbit/data';
 
 
 export interface DataProviderProps {
@@ -18,24 +18,22 @@ export interface WithData {
 
 export type WithDataProps =
   & {
-    queryStore: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => any;
-    updateStore: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => any;
-    dataStore: Store;
-    sources: { [sourceName: string]: Source };
+    queryStore: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => any
+    updateStore: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => any
   }
   & WithData
 
 
-type MapRecordsToPropsFn = (...args: any[]) => RecordsToProps;
+type MapRecordsToPropsFn<TWrappedProps> = (props: TWrappedProps) => RecordsToProps;
 
-export type MapRecordsToProps =
+export type MapRecordsToProps<TWrappedProps> =
   | RecordsToProps
-  | MapRecordsToPropsFn
+  | MapRecordsToPropsFn<TWrappedProps>
 
 export class DataProvider extends React.Component<DataProviderProps> {}
 
 
-export function withData<TWrappedProps>(mapRecordsToProps: MapRecordsToProps):
+export function withData<TWrappedProps>(mapRecordsToProps: MapRecordsToProps<TWrappedProps>):
   <Props, State>(
     WrappedComponent: React.Component<any, any, any> & { setState(): void}
   ) => React.Component<TWrappedProps & Props, State>;

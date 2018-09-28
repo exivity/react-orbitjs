@@ -65,6 +65,8 @@
   },
   "peerDependencies": {
     "@orbit/core": "^0.15.0",
+    "@orbit/store": "^0.15.0",
+    "@orbit/data": "^0.15.0",
     "react": ">=15"
   },
   "jest": {
