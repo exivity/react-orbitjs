@@ -1,6 +1,6 @@
 {
   "name": "react-orbitjs",
-  "version": "0.1.8",
+  "version": "0.1.10",
   "description": "React.js bindings for Orbit.js",
   "license": "MIT",
   "repository": {
@@ -19,6 +19,7 @@
   "main": "dist/bundle/umd/react-orbitjs.js",
   "module": "dist/module/es5/index.js",
   "files": [
+    "index.d.ts",
     "src",
     "dist"
   ],
@@ -65,6 +66,8 @@
   },
   "peerDependencies": {
     "@orbit/core": "^0.15.0",
+    "@orbit/store": "^0.15.0",
+    "@orbit/data": "^0.15.0",
     "react": ">=15"
   },
   "jest": {
