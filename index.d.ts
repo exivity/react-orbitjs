@@ -13,7 +13,6 @@ export interface RecordsToProps {
 
 export interface WithData {
   dataStore: Store;
-  sources: { [sourceName: string]: Source };
 }
 
 export type WithDataProps =
