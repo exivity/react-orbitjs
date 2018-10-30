@@ -13,12 +13,15 @@ export interface RecordsToProps {
 
 export interface WithData {
   dataStore: Store;
+  sources: { [sourceName: string]: Source };
 }
 
 export type WithDataProps =
   & {
     queryStore: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => any
-    updateStore: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => any
+    updateStore: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => any;
+    dataStore: Store;
+    sources: { [sourceName: string]: Source };
   }
   & WithData
 
