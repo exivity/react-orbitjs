@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types'
+// import PropTypes from 'prop-types'
 import {Component, createElement} from "react"
-import dataStoreShape from "../utils/dataStoreShape"
+// import dataStoreShape from "../utils/dataStoreShape"
 import shallowEqual from "../utils/shallowEqual"
-import hoistStatics from "hoist-non-react-statics"
+import * as hoistStatics from "hoist-non-react-statics"
 
 const defaultMapRecordsToProps = {}
 const defaultMergeProps = (recordProps, parentProps) => ({
@@ -347,14 +347,14 @@ export default function withData(mapRecordsToProps, mergeProps) {
 
     WithData.displayName = componentDisplayName
     WithData.WrappedComponent = WrappedComponent
-    WithData.contextTypes = {
-      dataStore: dataStoreShape,
-      sources: PropTypes.object,
-    }
-    WithData.propTypes = {
-      dataStore: dataStoreShape,
-      sources: PropTypes.object,
-    }
+    // WithData.contextTypes = {
+    //   dataStore: dataStoreShape,
+    //   sources: PropTypes.object,
+    // }
+    // WithData.propTypes = {
+    //   dataStore: dataStoreShape,
+    //   sources: PropTypes.object,
+    // }
 
     return hoistStatics(WithData, WrappedComponent)
   }

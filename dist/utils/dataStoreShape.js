@@ -1,5 +1,4 @@
 // import PropTypes from 'prop-types'
-
 // export default PropTypes.shape({
 //   query: PropTypes.func.isRequired,
 //   on: PropTypes.func.isRequired,

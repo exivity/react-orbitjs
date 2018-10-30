@@ -5,7 +5,6 @@ import {Schema} from "@orbit/data"
 import Store from "@orbit/store"
 
 import {DataProvider} from "./../index"
-import dataStoreShape from "./../utils/dataStoreShape"
 
 const schema = new Schema({})
 const store = new Store({schema})
@@ -26,10 +25,6 @@ test("DataProvider make dataStore available through context", () => {
     expect(context.dataStore).toBe(store)
 
     return <span>test context</span>
-  }
-
-  TestContext.contextTypes = {
-    dataStore: dataStoreShape.isRequired,
   }
 
   const component = renderer.create(
