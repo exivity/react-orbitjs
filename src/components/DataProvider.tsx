@@ -4,7 +4,7 @@ import React, { Component } from 'react';
 import Store from '@orbit/store';
 import { Source, QueryOrExpression, TransformOrOperations } from '@orbit/data';
 
-import { OrbitProvider } from './contexts/orbit';
+import { OrbitProvider } from '~/contexts/orbit';
 
 export interface IProps {
   dataStore: Store;

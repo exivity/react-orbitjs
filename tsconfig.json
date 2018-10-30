@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "src",
+    "baseUrl": ".",
     "outDir": "dist",
     "target": "es5",
     "jsx": "react",
@@ -18,21 +18,18 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "paths": {
+      "~*": ["src*"],
+      "*": ["types/*"]
+    }
   },
   "include": [
-    "src/**/*"
+    "src",
+    "types"
   ],
   "exclude": [
     "node_modules",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "src/setupTests.ts"
-  ],
-  "types": [
-    "typePatches"
+    "dist"
   ]
 }
