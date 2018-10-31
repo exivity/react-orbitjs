@@ -1,8 +1,8 @@
 import * as React from 'react';
 import Store from '@orbit/store';
 import { compose, withProps } from 'recompose';
-import { ResourceObject } from 'jsonapi-typescript';
-import { withData as withOrbit, WithDataProps } from 'react-orbitjs';
+import { Resource } from '@orbit/jsonapi';
+import { withOrbit, IOrbitProviderProps } from '../index';
 
 interface MapFnResult {
   [propKey: string]: [any, string, string];
@@ -12,6 +12,11 @@ interface IState {
   isLoading: boolean;
   error?: any;
   result: object;
+}
+
+interface IProvidedProps {
+  isLoading: boolean;
+  error?: any;
 }
 
 // NOTE: all relationships should already be fetched / in the cache
@@ -35,8 +40,8 @@ interface IState {
 //   }
 // })
 export function withRelationships<T>(mappingFn: (props: T) => MapFnResult) {
-  return WrappedComponent => {
-    class WithRelationship extends React.PureComponent<T & MapFnResult & WithDataProps, IState> {
+  return (WrappedComponent: React.ComponentType<T & IProvidedProps>) => {
+    class WithRelationship extends React.PureComponent<T & MapFnResult & IOrbitProviderProps, IState> {
       state = { isLoading: false, error: undefined, result: {} };
 
       fetchRelationships = async (): Promise<object> => {
@@ -69,7 +74,7 @@ export function withRelationships<T>(mappingFn: (props: T) => MapFnResult) {
           const result = await this.fetchRelationships();
 
           this.setState({ result, isLoading: false, error: undefined });
-        } catch (error: any) {
+        } catch (error) {
           this.setState({ isLoading: false, error });
         }
       }
@@ -107,10 +112,10 @@ export function withRelationships<T>(mappingFn: (props: T) => MapFnResult) {
 
 
 type RelationshipArgs =
-| [ResourceObject, string, string]
-| [ResourceObject, string];
+| [Resource, string, string]
+| [Resource, string];
 
-async function retrieveRelation(dataStore: Store, relationshipArgs: RelationshipArgs): any {
+async function retrieveRelation(dataStore: Store, relationshipArgs: RelationshipArgs): Promise<any> {
   const sourceModel = relationshipArgs[0];
   const relationshipPath = relationshipArgs.slice(1) as [string, string] | [string];
 
@@ -121,14 +126,14 @@ async function retrieveRelation(dataStore: Store, relationshipArgs: Relationship
   return await retriveDirectRelationship(dataStore, sourceModel, relationshipPath[0]);
 }
 
-async function retrieveManyToMany(dataStore: Store, sourceModel: ResourceObject, relationshipPath: [string, string]) {
+async function retrieveManyToMany(dataStore: Store, sourceModel: Resource, relationshipPath: [string, string]) {
   const [joinRelationship, targetRelationship] = relationshipPath;
 
   const joins = dataStore.cache.query(q => q.findRelatedRecords(sourceModel, joinRelationship));
 
   // for each join record....
-  const targets = [];
-  const promises = joins.map(async (joinRecord) => {
+  const targets: Resource[] = [];
+  const promises = joins.map(async (joinRecord: Resource) => {
     const target = await dataStore.cache.query(q => q.findRelatedRecord(joinRecord, targetRelationship));
 
     targets.push(target);
@@ -139,7 +144,7 @@ async function retrieveManyToMany(dataStore: Store, sourceModel: ResourceObject,
   return targets;
 }
 
-async function retriveDirectRelationship(dataStore: Store, sourceModel: ResourceObject, relationshipName: string) {
+async function retriveDirectRelationship(dataStore: Store, sourceModel: Resource, relationshipName: string) {
   // TODO: add detection for hasOne vs hasMany, via lookup of the schema from dataStore
   throw new Error('not implemented');
 

@@ -5,6 +5,9 @@ export {
 
 export { 
   withOrbit, 
-  withData, 
-  MapRecordsToProps 
+  withData 
 } from './components/withData';
+
+export {
+  MapRecordsToProps
+} from './components/shared';

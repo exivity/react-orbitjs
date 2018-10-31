@@ -14,31 +14,24 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var react_1 = require("react");
-// import PropTypes from "prop-types"
-// import dataStoreShape from "../utils/dataStoreShape"
+var orbit_1 = require("../contexts/orbit");
 var DataProvider = /** @class */ (function (_super) {
     __extends(DataProvider, _super);
-    function DataProvider(props, context) {
-        var _this = _super.call(this, props, context) || this;
-        _this.dataStore = props.dataStore;
-        _this.sources = props.sources;
+    function DataProvider(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = {
+            dataStore: props.dataStore,
+            sources: props.sources,
+            // legacy API
+            updateStore: props.dataStore.update,
+            queryStore: props.dataStore.cache.query
+        };
         return _this;
     }
-    DataProvider.prototype.getChildContext = function () {
-        return { dataStore: this.dataStore, sources: this.sources };
-    };
     DataProvider.prototype.render = function () {
-        return react_1.Children.only(this.props.children);
+        return (react_1.default.createElement(orbit_1.OrbitProvider, { value: this.state }, this.props.children));
     };
     return DataProvider;
 }(react_1.Component));
-// DataProvider.propTypes = {
-//   dataStore: dataStoreShape.isRequired,
-//   sources: PropTypes.object,
-//   children: PropTypes.element.isRequired,
-// }
-DataProvider.childContextTypes = {
-    dataStore: {},
-    sources: {}
-};
+exports.DataProvider = DataProvider;
 exports.default = DataProvider;

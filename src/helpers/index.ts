@@ -1,0 +1,1 @@
+export { withRelationships } from './with-relationship';

@@ -1,6 +1,6 @@
 import React, { PureComponent, ComponentType } from 'react';
 
-import { getDisplayName } from '~/utils/getDisplayName';
+import { getDisplayName } from '../utils/getDisplayName';
 
 import { IProps as IProviderProps } from './DataProvider';
 import { MapRecordsToPropsFn, RecordsToProps } from './shared';
@@ -17,8 +17,8 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
 
         if (!this.props.dataStore) {
           throw new Error(
-            `Could not find "dataStore" in props of "${componentDisplayName}". ` +
-            `Either wrap the root component in a <DataProvider>, ` +
+            `Could not find "dataStore" in props of "${componentDisplayName}". \n` +
+            `Either wrap the root component in a <DataProvider>, \n` +
             `or explicitly pass "dataStore" as a prop to "${componentDisplayName}".`,
           )
         }

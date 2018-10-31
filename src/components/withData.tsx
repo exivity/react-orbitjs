@@ -1,8 +1,8 @@
 import React, { PureComponent, ComponentType } from 'react';
 
-import { getDisplayName } from '~/utils/getDisplayName';
+import { getDisplayName } from '../utils/getDisplayName';
 
-import { OrbitConsumer } from '~/contexts/orbit';
+import { OrbitConsumer } from '../contexts/orbit';
 import { IProps as IProviderProps } from './DataProvider';
 import { withDataSubscription } from './DataSubscriber';
 import { MapRecordsToProps, MapRecordsToPropsFn } from './shared';

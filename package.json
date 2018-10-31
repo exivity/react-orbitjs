@@ -65,7 +65,10 @@
     "webpack-dev-server": "^2.9.1"
   },
   "dependencies": {
-    "hoist-non-react-statics": "^2.3.1"
+    "@orbit/jsonapi": "^0.15.24",
+    "@types/recompose": "^0.27.0",
+    "hoist-non-react-statics": "^2.3.1",
+    "recompose": "^0.30.0"
   },
   "peerDependencies": {
     "@orbit/core": "^0.15.0",

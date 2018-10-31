@@ -61,7 +61,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = require("react");
 var recompose_1 = require("recompose");
-var react_orbitjs_1 = require("react-orbitjs");
+var index_1 = require("../index");
 // NOTE: all relationships should already be fetched / in the cache
 //
 // example:
@@ -169,7 +169,7 @@ function withRelationships(mappingFn) {
             return {
                 relationshipsToFind: mapResult,
             };
-        }), react_orbitjs_1.withData({}))(WithRelationship);
+        }), index_1.withOrbit({}))(WithRelationship);
     };
 }
 exports.withRelationships = withRelationships;
