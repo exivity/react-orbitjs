@@ -284,7 +284,9 @@ export default function withData(mapRecordsToProps, mergeProps) {
           }
         })
 
-        operationModels.forEach((model) => {
+        const uniqueOperationModels = new Set(operationModels)
+
+        uniqueOperationModels.forEach((model) => {
           Object.keys(this.subscribedModels).forEach((prop) => {
             if (this.subscribedModels[prop].includes(model)) {
               this.hasDataStoreChanged = true
