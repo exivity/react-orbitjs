@@ -284,7 +284,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
           }
         })
 
-        const uniqueOperationModels = [...new Set(operationModels)]
+        const uniqueOperationModels = new Set(operationModels)
 
         uniqueOperationModels.forEach((model) => {
           Object.keys(this.subscribedModels).forEach((prop) => {
