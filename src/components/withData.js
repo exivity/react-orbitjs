@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import PropTypes from 'prop-types'
 import {Component, createElement} from "react"
 import dataStoreShape from "../utils/dataStoreShape"
 import shallowEqual from "../utils/shallowEqual"
