@@ -6,10 +6,11 @@ class DataProvider extends Component {
   constructor(props, context) {
     super(props, context)
     this.dataStore = props.dataStore
+    this.sources = props.sources
   }
 
   getChildContext() {
-    return {dataStore: this.dataStore}
+    return {dataStore: this.dataStore, sources: this.sources}
   }
 
   render() {
@@ -19,11 +20,13 @@ class DataProvider extends Component {
 
 DataProvider.propTypes = {
   dataStore: dataStoreShape.isRequired,
+  sources: PropTypes.object,
   children: PropTypes.element.isRequired,
 }
 
 DataProvider.childContextTypes = {
   dataStore: dataStoreShape.isRequired,
+  sources: PropTypes.object,
 }
 
 export default DataProvider
