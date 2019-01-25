@@ -63,7 +63,6 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
       getDataFromCache = async () => {
         const { dataStore } = this.props;
         const recordsToGet = mapRecordsToProps(this.props) || {};
-        console.log(recordsToGet, mapRecordsToProps, this.props);
 
         let results = {};
         const promises = Object.keys(recordsToGet).map(async key => {
@@ -83,7 +82,6 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
           ...this.state,
         };
 
-        console.log('subscriber', recordProps, this.props);
         return (
           <WrappedComponent
             { ...this.props }

@@ -1,3 +1,4 @@
+export const withRelationships = null;
 // import * as React from 'react';
 // import Store from '@orbit/store';
 // import { compose, withProps } from 'recompose';
