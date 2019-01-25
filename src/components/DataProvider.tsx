@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import * as React from 'react';
 
 
 import Store from '@orbit/store';
@@ -20,7 +20,7 @@ export interface IState {
   queryStore: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => any;
 }
 
-export class DataProvider extends Component<IProps, IState> {
+export class DataProvider extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
 

@@ -1,4 +1,4 @@
-import React, { PureComponent, ComponentType } from 'react';
+import * as React from 'react';
 
 import { getDisplayName } from '../utils/getDisplayName';
 
@@ -8,10 +8,10 @@ import { Operation } from '@orbit/data';
 import Store from '@orbit/store';
 
 export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T>) {
-  return function wrapSubscription(WrappedComponent: ComponentType<T>) {
+  return function wrapSubscription(WrappedComponent: React.ComponentType<T>) {
     const componentDisplayName = `WithDataSubscription(${getDisplayName(WrappedComponent)})`;
 
-    return class DataSubscriber extends PureComponent<T & IProviderProps, RecordsToProps> {
+    return class DataSubscriber extends React.PureComponent<T & IProviderProps, RecordsToProps> {
       static displayName = componentDisplayName;
 
       dataStore: Store;
@@ -28,6 +28,7 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
         }
 
         this.dataStore = this.props.dataStore;
+        this.state = {};
       }
 
       /**
@@ -35,16 +36,17 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
        * eventual record / record array values
        * @param props 
        */
-      static getDerivedStateFromProps(props: T & IProviderProps /*, state */) {
-        return mapRecordsToProps(props);
-      };
+      // static getDerivedStateFromProps(props: T & IProviderProps /*, state */) {
+      //   return mapRecordsToProps(props);
+      // };
 
       componentDidMount() {
-        this.dataStore.on('transform', this.handleTransform);
+        // this.dataStore.on('transform', this.handleTransform);
+        this.getDataFromCache();
       }
 
       componentWillUnmount() {
-        this.dataStore.off('transform', this.handleTransform);
+        // this.dataStore.off('transform', this.handleTransform);
       }
 
       handleTransform = (transform: Operation) => {
@@ -60,7 +62,8 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
 
       getDataFromCache = async () => {
         const { dataStore } = this.props;
-        const recordsToGet = mapRecordsToProps(this.props);
+        const recordsToGet = mapRecordsToProps(this.props) || {};
+        console.log(recordsToGet, mapRecordsToProps, this.props);
 
         let results = {};
         const promises = Object.keys(recordsToGet).map(async key => {
@@ -80,6 +83,7 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
           ...this.state,
         };
 
+        console.log('subscriber', recordProps, this.props);
         return (
           <WrappedComponent
             { ...this.props }

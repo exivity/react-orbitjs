@@ -1,4 +1,4 @@
-import React, { PureComponent, ComponentType } from 'react';
+import * as React from 'react';
 
 import { getDisplayName } from '../utils/getDisplayName';
 
@@ -13,12 +13,12 @@ export function withData<T>(mapRecordsToProps?: MapRecordsToProps<T>) {
   const isMapFunction = typeof mapRecords === 'function';
   const mapRecordsFunction = isMapFunction ? mapRecords : () => mapRecords;
 
-  return (WrappedComponent: ComponentType<T & IProviderProps>) => {
+  return (WrappedComponent: React.ComponentType<T & IProviderProps>) => {
     const ConnectedSubscription = withDataSubscription<T>(
       mapRecordsFunction as MapRecordsToPropsFn<T>
-    )(WrappedComponent) as ComponentType<T & IProviderProps>; // TODO: ComponentType is probably wrong?
+    )(WrappedComponent) as React.ComponentType<T & IProviderProps>; // TODO: ComponentType is probably wrong?
 
-    return class WithOrbit extends PureComponent<T> {
+    return class WithOrbit extends React.PureComponent<T> {
       static displayName = `WithDataProvider(${getDisplayName(WrappedComponent)})`;
 
       render() {
