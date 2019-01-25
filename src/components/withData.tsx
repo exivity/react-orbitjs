@@ -2,7 +2,7 @@ import React, { PureComponent, ComponentType } from 'react';
 
 import { getDisplayName } from '../utils/getDisplayName';
 
-import { OrbitConsumer } from '../contexts/orbit';
+import { OrbitContext } from './orbit-context';
 import { IProps as IProviderProps } from './DataProvider';
 import { withDataSubscription } from './DataSubscriber';
 import { MapRecordsToProps, MapRecordsToPropsFn } from './shared';
@@ -13,7 +13,7 @@ export function withData<T>(mapRecordsToProps?: MapRecordsToProps<T>) {
   const isMapFunction = typeof mapRecords === 'function';
   const mapRecordsFunction = isMapFunction ? mapRecords : () => mapRecords;
 
-  return function WrapWithData(WrappedComponent: ComponentType<T & IProviderProps>) {
+  return (WrappedComponent: ComponentType<T & IProviderProps>) => {
     const ConnectedSubscription = withDataSubscription<T>(
       mapRecordsFunction as MapRecordsToPropsFn<T>
     )(WrappedComponent) as ComponentType<T & IProviderProps>; // TODO: ComponentType is probably wrong?
@@ -23,11 +23,11 @@ export function withData<T>(mapRecordsToProps?: MapRecordsToProps<T>) {
 
       render() {
         return (
-          <OrbitConsumer>
+          <OrbitContext.Consumer>
             {(dataProps: IProviderProps) => {
               return <ConnectedSubscription {...this.props} { ...dataProps } />;
             }}  
-          </OrbitConsumer>
+          </OrbitContext.Consumer>
         );
       }
     }

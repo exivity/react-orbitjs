@@ -4,6 +4,8 @@ import { getDisplayName } from '../utils/getDisplayName';
 
 import { IProps as IProviderProps } from './DataProvider';
 import { MapRecordsToPropsFn, RecordsToProps } from './shared';
+import { Operation } from '@orbit/data';
+import Store from '@orbit/store';
 
 export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T>) {
   return function wrapSubscription(WrappedComponent: ComponentType<T>) {
@@ -11,6 +13,8 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
 
     return class DataSubscriber extends PureComponent<T & IProviderProps, RecordsToProps> {
       static displayName = componentDisplayName;
+
+      dataStore: Store;
 
       constructor(props: T & IProviderProps) {
         super(props);
@@ -22,6 +26,8 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
             `or explicitly pass "dataStore" as a prop to "${componentDisplayName}".`,
           )
         }
+
+        this.dataStore = this.props.dataStore;
       }
 
       /**
@@ -33,9 +39,45 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
         return mapRecordsToProps(props);
       };
 
+      componentDidMount() {
+        this.dataStore.on('transform', this.handleTransform);
+      }
+
+      componentWillUnmount() {
+        this.dataStore.off('transform', this.handleTransform);
+      }
+
+      handleTransform = (transform: Operation) => {
+        const record = transform.record;
+        switch (transform.op) {
+           // TODO: if transformed record matches one of our records, 
+           //       cause a refresh
+        }
+
+        console.log('handleTransform', transform, this.state);
+        this.forceUpdate();
+      }
+
+      getDataFromCache = async () => {
+        const { dataStore } = this.props;
+        const recordsToGet = mapRecordsToProps(this.props);
+
+        let results = {};
+        const promises = Object.keys(recordsToGet).map(async key => {
+          const result = await dataStore.cache.query(recordsToGet[key]);
+          results[key] = result;
+        });
+
+        await Promise.all(promises);
+
+        this.setState({ ...results });
+
+        return results;
+      }
+
       render() {
         const recordProps = {
-
+          ...this.state,
         };
 
         return (

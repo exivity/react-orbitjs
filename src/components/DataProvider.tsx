@@ -4,7 +4,7 @@ import React, { Component } from 'react';
 import Store from '@orbit/store';
 import { Source, QueryOrExpression, TransformOrOperations } from '@orbit/data';
 
-import { OrbitProvider } from '../contexts/orbit';
+import { OrbitContext } from './orbit-context';
 
 export interface IProps {
   dataStore: Store;
@@ -36,9 +36,9 @@ export class DataProvider extends Component<IProps, IState> {
 
   render() {
     return (
-      <OrbitProvider value={this.state}>
+      <OrbitContext.Provider value={this.state}>
         {this.props.children}
-      </OrbitProvider>
+      </OrbitContext.Provider>
     );
   }
 }
