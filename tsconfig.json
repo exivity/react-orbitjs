@@ -21,11 +21,15 @@
     "noUnusedLocals": true,
     "paths": {
       "~*": ["src*"],
+      "react-orbitjs": ["src/index.ts"],
+      "dummy-app*": ["tests/-dummy-app*"],
+      "tests*": ["tests*"],
       "*": ["types/*"]
     }
   },
   "include": [
     "src",
+    "tests",
     "types"
   ],
   "exclude": [
