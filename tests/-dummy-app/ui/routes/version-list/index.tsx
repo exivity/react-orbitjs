@@ -5,14 +5,17 @@ import { query, withLoader } from 'dummy-app/data';
 
 export default compose<any, any>(
   query(() => {
+    console.log('hopefully querying projects?');
     return {
       projects: q => q.findRecord('project'),
     };
   }),
   withLoader(({ loading }) => loading)
-)((props) => {
-  console.log(props);
+)(({ projects }) => {
   return (
-    "hello"
+    <div>
+      Projects JSON:
+      {JSON.stringify(projects)}
+    </div>
   );
 })

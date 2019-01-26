@@ -47,6 +47,7 @@
     "@orbit/jsonapi": "^0.15.25",
     "@orbit/local-storage-bucket": "^0.15.23",
     "@orbit/store": "^0.15.8",
+    "@types/chai": "^4.1.7",
     "@types/react": "^16.4.18",
     "@types/react-dom": "^16.0.9",
     "chai": "^4.2.0",

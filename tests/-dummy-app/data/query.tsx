@@ -1,7 +1,5 @@
 import * as React from 'react';
-import { withData as withOrbit, WithDataProps } from 'react-orbitjs';
-
-import { defaultSourceOptions } from 'dummy-app/data';
+import { withData as withOrbit } from 'react-orbitjs';
 
 import { ErrorMessage } from 'dummy-app/ui/components/errors';
 
@@ -114,6 +112,7 @@ export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
 
         const responses = {};
         const resultingKeys = Object.keys(result).filter((k) => k !== 'cacheKey');
+        console.log(resultingKeys, querier, result);
         const requestPromises = resultingKeys.map(async (key: string) => {
           const query = result[key];
           const args = typeof query === 'function' ? [query] : query;
@@ -140,7 +139,7 @@ export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
       };
 
       tryFetch = async (force: boolean = false) => {
-        if (!this.isFetchNeeded() && !force) {
+        if (this.state.isLoading) {
           return;
         }
 
@@ -155,18 +154,6 @@ export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
             this.setState({ error: e, isLoading: false });
           }
         });
-      };
-
-      isFetchNeeded = () => {
-        const result = map(this.props);
-
-        if (areCollectionsRoughlyEqual(result, this.mapResult)) {
-          return false;
-        }
-
-        this.mapResult = result;
-
-        return true;
       };
 
       render() {
