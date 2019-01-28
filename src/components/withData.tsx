@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { getDisplayName } from '../utils/getDisplayName';
+import { getDisplayName } from './-utils/getDisplayName';
 
 import { OrbitContext } from './orbit-context';
 import { IProps as IProviderProps } from './DataProvider';

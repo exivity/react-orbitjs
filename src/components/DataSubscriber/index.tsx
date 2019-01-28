@@ -1,9 +1,9 @@
 import * as React from 'react';
 
-import { getDisplayName } from '../utils/getDisplayName';
+import { getDisplayName } from '../-utils/getDisplayName';
 
-import { IProps as IProviderProps } from './DataProvider';
-import { MapRecordsToPropsFn, RecordsToProps } from './shared';
+import { IProps as IProviderProps } from '../DataProvider';
+import { MapRecordsToPropsFn, RecordsToProps } from '../shared';
 import { Operation, Transform, AddRecordOperation, ReplaceRecordOperation, RemoveRecordOperation, ReplaceKeyOperation, ReplaceAttributeOperation, AddToRelatedRecordsOperation, RemoveFromRelatedRecordsOperation, ReplaceRelatedRecordOperation, ReplaceRelatedRecordsOperation, RecordOperation } from '@orbit/data';
 import Store from '@orbit/store';
 import { modelForRelationOf } from './helpers';
