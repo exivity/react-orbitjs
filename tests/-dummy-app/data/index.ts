@@ -23,8 +23,6 @@ export { schema, keyMap } from './schema';
 export { withLoader } from './containers/with-loader';
 export { withError } from './containers/with-error';
 
-export { queryApi as query } from './query';
-
 export { pushPayload } from './push-payload';
 
 // TODO: change to 20, or remove.

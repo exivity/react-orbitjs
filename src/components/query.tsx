@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { withData as withOrbit, ILegacyProvidedProps } from 'react-orbitjs';
 
-import { ErrorMessage } from 'dummy-app/ui/components/errors';
+import { ErrorMessage } from '~/components/errors';
 
 interface IProvidedDefaultProps {
   error?: Error;
@@ -73,7 +73,7 @@ export function timeoutablePromise(timeoutMs, promise) {
 //
 // TODO: tie in to react-orbitjs' cache handling.
 // TODO: what if we just use orbit directly? do we need react-orbitjs?
-export function queryApi<T>(mapRecordsToProps: any, options?: IQueryOptions) {
+export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
   let map: any;
   const opts = options || { passthroughError: false, useRemoteDirectly: false, mapResultsFn: null };
   const { passthroughError, useRemoteDirectly, mapResultsFn } = opts;

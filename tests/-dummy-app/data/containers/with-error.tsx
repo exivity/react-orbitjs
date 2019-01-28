@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { ErrorMessage } from 'dummy-app/ui/components/errors';
+import { ErrorMessage } from 'react-orbitjs';
 
 export function withError<TWrappedProps>(
   key: string,
   hasErrored: (props: TWrappedProps) => boolean
 ) {
-  return (WrappedComponent) => {
+  return (WrappedComponent: any) => {
     class ErrorWrapper extends React.Component<TWrappedProps> {
       render() {
         const isErrorPresent = hasErrored(this.props);

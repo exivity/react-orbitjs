@@ -12,9 +12,9 @@ interface IQueriedProps {
 export default compose<any, any>(
   query(() => {
     return {
-      requests: (q: QueryBuilder) => q.findRecords('request'),
+      requests: (q: QueryBuilder) => q.findRecords('requests'),
     };
-  }, { useRemoteDirectly: true }),
+  }),
   withLoader((props: IQueryProps<IQueriedProps>) => {
     return props.isLoading || !props.requests;
   })

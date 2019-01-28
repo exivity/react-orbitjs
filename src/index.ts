@@ -25,4 +25,11 @@ export {
   MapRecordsToProps
 } from './components/shared';
 
+export {
+  query,
+  IProvidedProps as IQueryProps
+} from './components/query';
+
 export { default as strategies } from './strategies';
+
+export * from './components/errors';

@@ -8,7 +8,7 @@ import {
 
 import app from 'tests/helpers/pages/app';
 
-describe('Acceptance | Authentication', () => {
+describe('Acceptance | Basic Fetching', () => {
   setupApplicationTest();
 
   beforeEach(async function() {
@@ -30,3 +30,15 @@ describe('Acceptance | Authentication', () => {
     }).timeout(5000);
   });
 });
+
+describe('Acceptance | Errors', () => {
+  setupApplicationTest();
+
+  beforeEach(async function() {
+    await visit('/deliberate-error');
+  });
+
+  it('renders an error', () => {
+    expect(app.pageText).to.include('NetworkError');
+  }).timeout(5000);
+})

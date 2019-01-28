@@ -80,11 +80,25 @@ export function doesTransformCauseUpdate(dataStore: Store, transform: Transform,
    })
 
 
-   updatedRecords.forEach((model) => {
+   updatedRecords.forEach((record) => {
      Object.keys(subscriptions).forEach((prop) => {
-       if (subscriptions[prop].includes(model)) {
-         shouldUpdate = true;
-       }
+       const subscribedForProp = subscriptions[prop];
+
+        for (let i = 0; i < subscribedForProp.length; i++) {
+          let sfp = subscribedForProp[i];
+
+          if (sfp.relatedTo) {
+            if (sfp.relatedTo.type === record.type && sfp.relatedTo.id === record.id) {
+              shouldUpdate = true;
+              return;
+            }
+          }
+
+          if (sfp.type === record.type && sfp.id === record.id) {
+            shouldUpdate = true;
+            return;
+          }
+        }
      })
    })
 
