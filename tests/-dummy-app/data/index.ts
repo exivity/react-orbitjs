@@ -1,15 +1,6 @@
-export { default as DataProvider } from './provider';
-
 export {
-  create,
-  update,
-  buildNew,
   recordIdentityFrom,
   idFromRecordIdentity,
-  buildFindRecord,
-  buildOptions,
-  buildFindRelatedRecords,
-  buildFindRelatedRecord,
   localIdFromRecordIdentity,
   recordIdentityFromKeys,
 } from './store-helpers';
@@ -27,13 +18,14 @@ export {
   recordsWithIdIn,
 } from './helpers';
 
+export { schema, keyMap } from './schema';
+
 export { withLoader } from './containers/with-loader';
 export { withError } from './containers/with-error';
 
 export { queryApi as query } from './query';
 
 export { pushPayload } from './push-payload';
-export { PUSH_PAYLOAD_OPERATION } from './push-payload-operations';
 
 // TODO: change to 20, or remove.
 //       currently, we don't have a way to see what the total

@@ -1,4 +1,4 @@
-import { Schema, KeyMap } from '@orbit/data';
+import { Schema, KeyMap, Source } from '@orbit/data';
 import Store from '@orbit/store';
 import Coordinator, {
   SyncStrategy,
@@ -8,7 +8,7 @@ import Coordinator, {
 
 import JSONAPISource, { JSONAPISerializer } from '@orbit/jsonapi';
 
-class CustomJSONAPISerializer extends JSONAPISerializer {
+export class RemoteIdJSONAPISerializer extends JSONAPISerializer {
   // remoteId is used to track the difference between local ids and the
   // real id of the server.  This is done so that orbit can maintain
   // relationships before persisting them to the remote host.
@@ -23,8 +23,20 @@ class CustomJSONAPISerializer extends JSONAPISerializer {
   }
 }
 
-export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMap, logging = false) {
-  const serializer = new JSONAPISerializer({ schema, keyMap });
+export interface ICreateStoreOptions {
+  logging?: boolean;
+}
+
+export interface ICreateStoreResult {
+  sources: { [sourceName: string]: Source};
+  store: Store;
+}
+
+export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMap, options: ICreateStoreOptions = {}): Promise<ICreateStoreResult> {
+  const opts = {
+    logging: false,
+    ...options,
+  };
 
   const inMemory = new Store({
     keyMap,
@@ -37,7 +49,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
     schema,
     name: 'remote',
     host: baseUrl,
-    SerializerClass: CustomJSONAPISerializer,
+    SerializerClass: RemoteIdJSONAPISerializer,
     defaultFetchSettings: {
       headers: {
         Accept: 'application/vnd.api+json',
@@ -68,7 +80,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
       action: 'pull',
       blocking: true,
 
-      filter(query) {
+      filter(query: any) {
         const options = (query || {}).options || {};
         const keep = !options.skipRemote;
 
@@ -95,7 +107,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
       action: 'push',
       blocking: true,
 
-      filter(query) {
+      filter(query: any) {
         const options = (query || {}).options || {};
         const keep = !options.skipRemote;
 
@@ -112,7 +124,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
     })
   );
 
-  if (logging) {
+  if (opts.logging) {
     this.coordinator.addStrategy(new EventLoggingStrategy({
       sources: ['remote', 'inMemory']
     }));  
@@ -130,5 +142,5 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
 
   await this.coordinator.activate();
 
-  return { store: inMemory, sources: { remote, inMemory }, serializer };
+  return { store: inMemory, sources: { remote, inMemory }, };
 }

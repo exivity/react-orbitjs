@@ -3,10 +3,11 @@ import * as React from 'react';
 import { getDisplayName } from './-utils/getDisplayName';
 
 import { OrbitContext } from './orbit-context';
-import { IProps as IProviderProps } from './DataProvider';
+import { IProps as IProviderProps, IProvidedProps as IDataProviderProps } from './DataProvider';
 import { withDataSubscription } from './DataSubscriber';
 import { MapRecordsToProps, MapRecordsToPropsFn } from './shared';
 
+export type IProvidedProps = IDataProviderProps;
 
 export function withData<T>(mapRecordsToProps?: MapRecordsToProps<T>) {
   const mapRecords = mapRecordsToProps || {};

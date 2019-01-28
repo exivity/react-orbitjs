@@ -8,17 +8,19 @@ import { OrbitContext } from './orbit-context';
 
 export interface IProps {
   dataStore: Store;
-  sources: Source[];
+  sources: { [sourceName: string]: Source };
 }
 
 export interface IState {
   dataStore: Store;
-  sources: Source[];
+  sources: { [sourceName: string]: Source };
 
   // legacy API
   updateStore: (queryOrExpression: TransformOrOperations, options?: object, id?: string) => any; 
   queryStore: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => any;
 }
+
+export type IProvidedProps = IState;
 
 export class DataProvider extends React.Component<IProps, IState> {
   constructor(props: IProps) {

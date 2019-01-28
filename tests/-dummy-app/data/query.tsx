@@ -1,7 +1,15 @@
 import * as React from 'react';
-import { withData as withOrbit } from 'react-orbitjs';
+import { withData as withOrbit, ILegacyProvidedProps } from 'react-orbitjs';
 
 import { ErrorMessage } from 'dummy-app/ui/components/errors';
+
+interface IProvidedDefaultProps {
+  error?: Error;
+  isLoading: boolean;
+  refetch: () => Promise<void>;
+}
+
+export type IProvidedProps<T> = IProvidedDefaultProps & T;
 
 interface IState {
   result: object;
@@ -18,7 +26,8 @@ export interface IQueryOptions {
 // But it kinda works.
 // Functions are omitted from the comparison
 export function areCollectionsRoughlyEqual(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
+  const sameLength = Object.keys(a).length === Object.keys(b).length;
+  return sameLength && JSON.stringify(a) === JSON.stringify(b);
 }
 export function isEmpty(data) {
   return (
@@ -64,8 +73,8 @@ export function timeoutablePromise(timeoutMs, promise) {
 //
 // TODO: tie in to react-orbitjs' cache handling.
 // TODO: what if we just use orbit directly? do we need react-orbitjs?
-export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
-  let map;
+export function queryApi<T>(mapRecordsToProps: any, options?: IQueryOptions) {
+  let map: any;
   const opts = options || { passthroughError: false, useRemoteDirectly: false, mapResultsFn: null };
   const { passthroughError, useRemoteDirectly, mapResultsFn } = opts;
 
@@ -78,8 +87,8 @@ export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
     map = mapRecordsToProps;
   }
 
-  return (InnerComponent) => {
-    class DataWrapper extends React.Component<T & WithDataProps, IState> {
+  return InnerComponent => {
+    class DataWrapper extends React.Component<T & ILegacyProvidedProps, IState> {
       state = { result: {}, error: undefined, isLoading: false };
       // tslint:disable-next-line:variable-name
       _isMounted: boolean = false;
@@ -93,14 +102,18 @@ export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
       componentDidUpdate() {
         this.tryFetch();
       }
+
       componentWillUnmount() {
         this._isMounted = false;
       }
+
       setState(state, callback?) {
+        console.log('setState', this._isMounted, state);
         if (this._isMounted) {
           super.setState(state, callback);
         }
       }
+
       fetchData = async () => {
         const result = map(this.props);
 
@@ -111,8 +124,8 @@ export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
         const querier = useRemoteDirectly ? remote : dataStore;
 
         const responses = {};
-        const resultingKeys = Object.keys(result).filter((k) => k !== 'cacheKey');
-        console.log(resultingKeys, querier, result);
+        const resultingKeys = Object.keys(result).filter(k => k !== 'cacheKey');
+
         const requestPromises = resultingKeys.map(async (key: string) => {
           const query = result[key];
           const args = typeof query === 'function' ? [query] : query;
@@ -139,7 +152,9 @@ export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
       };
 
       tryFetch = async (force: boolean = false) => {
-        if (this.state.isLoading) {
+        const needsFetch = force || (!this.isFetchNeeded() || this.state.isLoading);
+
+        if (needsFetch) {
           return;
         }
 
@@ -154,6 +169,20 @@ export function queryApi<T>(mapRecordsToProps, options?: IQueryOptions) {
             this.setState({ error: e, isLoading: false });
           }
         });
+      };
+
+      isFetchNeeded = () => {
+        const result = map(this.props);
+
+        const dataPropsChanged = areCollectionsRoughlyEqual(result, this.mapResult);
+
+        if (dataPropsChanged) {
+          return false;
+        }
+
+        this.mapResult = result;
+
+        return true;
       };
 
       render() {

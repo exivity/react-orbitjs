@@ -1,33 +1,43 @@
 import * as React from 'react';
+import { RouterProps } from 'react-router';
 import { BrowserRouter, Router as GenericRouter } from 'react-router-dom';
+import { APIProvider } from 'react-orbitjs';
 
-import { DataProvider } from 'dummy-app/data';
+import { schema, keyMap } from 'dummy-app/data';
 
 import RootRoute from 'dummy-app/ui/routes/root';
+import { strategies } from 'react-orbitjs';
 
 interface IProps {
-  initialState: any;
   history: any;
 }
 
 export default class Application extends React.Component<IProps> {
-
   render() {
-    const { initialState, history } = this.props;
+    const { history } = this.props;
 
     const Router = history ? GenericRouter : BrowserRouter;
-    const routerProps = {};
+    const routerProps: Partial<RouterProps> = {};
 
     if (history) {
       routerProps.history = history;
     }
 
+    const dataProps = {
+      storeCreator: () =>
+        strategies.pessimisticWithRemoteIds.createStore(
+          'https://private-anon-29c50a7894-accountjsonapi.apiary-mock.com/',
+          schema,
+          keyMap
+        ),
+    };
+
     return (
-      <DataProvider>
-        <Router {...routerProps}>
+      <APIProvider {...dataProps}>
+        <Router {...(routerProps as RouterProps)}>
           <RootRoute />
         </Router>
-      </DataProvider>
+      </APIProvider>
     );
   }
 }

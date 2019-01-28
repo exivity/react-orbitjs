@@ -20,13 +20,13 @@ describe('Acceptance | Authentication', () => {
   });
 
   it ('shows the loader initially', () => {
-    expect(app.pageText).to.not.include('Projects JSON');
+    expect(app.pageText).to.not.include('fetch result');
     expect(app.pageText).to.include('Loading');
   });
 
   describe('data is finished loading', () => {
     it('shows a list of ember versions', () => {
-      expect(app.pageText).to.include('Projects JSON');
-    });
+      expect(app.pageText).to.include('fetch result');
+    }).timeout(5000);
   });
 });

@@ -1,21 +1,28 @@
 import * as React from 'react';
 import { compose } from 'recompose';
 
+import { IProvidedProps as IQueryProps} from 'dummy-app/data/query';
 import { query, withLoader } from 'dummy-app/data';
+import { QueryBuilder } from '@orbit/data';
+
+interface IQueriedProps {
+  requests: any[];
+}
 
 export default compose<any, any>(
   query(() => {
-    console.log('hopefully querying projects?');
     return {
-      projects: q => q.findRecord('project'),
+      requests: (q: QueryBuilder) => q.findRecords('request'),
     };
-  }),
-  withLoader(({ loading }) => loading)
-)(({ projects }) => {
+  }, { useRemoteDirectly: true }),
+  withLoader((props: IQueryProps<IQueriedProps>) => {
+    return props.isLoading || !props.requests;
+  })
+)(({ requests }: IQueriedProps) => {
   return (
     <div>
-      Projects JSON:
-      {JSON.stringify(projects)}
+      fetch result:
+      {JSON.stringify(requests)}
     </div>
   );
 })

@@ -7,8 +7,14 @@
 export { 
   OrbitProvider,
   DataProvider, 
-  IProps as IOrbitProviderProps 
+  IProps as IOrbitProviderProps,
+  IProvidedProps as ILegacyProvidedProps
 } from './components/DataProvider';
+
+export {
+  APIProvider,
+  IProps as IAPIProps
+} from './components/api-provider';
 
 export { 
   withOrbit, 
@@ -18,3 +24,5 @@ export {
 export {
   MapRecordsToProps
 } from './components/shared';
+
+export { default as strategies } from './strategies';
