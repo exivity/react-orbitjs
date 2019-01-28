@@ -2,9 +2,7 @@ import Store from "@orbit/store";
 import { assert } from "@orbit/utils";
 
 export function modelForRelationOf(dataStore: Store, type: string, relationship: string) {
-    const model = dataStore.schema.models[type];
-
-    assert(`model was not found for ${type}`, model !== undefined);
+    const model = modelOfType(dataStore, type);
 
     const modelRelationship = model!.relationships![relationship];
 
@@ -15,4 +13,18 @@ export function modelForRelationOf(dataStore: Store, type: string, relationship:
     assert(`there is no model for the relationship ${relationship} on ${type}`, relatedModel !== undefined);
 
     return relatedModel;
+}
+
+export function modelOfType(dataStore: Store, type: string) {
+  const model = dataStore.schema.models[type];
+
+  assert(`model was not found for ${type}`, model !== undefined);
+
+  return model;
+}
+
+export function relationshipsForType(dataStore: Store, type: string) {
+  const relationships = modelOfType(dataStore, type).relationships;
+
+  return relationships || {};
 }

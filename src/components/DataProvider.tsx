@@ -44,3 +44,4 @@ export class DataProvider extends React.Component<IProps, IState> {
 }
 
 export default DataProvider;
+export const OrbitProvider = DataProvider;
