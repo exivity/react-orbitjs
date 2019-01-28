@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { withData as withOrbit, ILegacyProvidedProps } from 'react-orbitjs';
 
-import { ErrorMessage } from '~/components/errors';
+import { ErrorMessage } from './errors';
 
 interface IProvidedDefaultProps {
   error?: Error;
