@@ -133,6 +133,9 @@ export function withDataSubscription<TWrappedProps, TResultingProps>(
           this.subscriptions
         );
 
+        console.log(componentDisplayName, 'transform received: ', transform, shouldUpdate, this.subscriptions);
+
+
         if (shouldUpdate) {
           this.refreshSubscriptionsData();
         }
