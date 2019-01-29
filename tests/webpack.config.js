@@ -1,4 +1,6 @@
 /* eslint-disable */
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+
 const {
   locate, plugins, moduleRules, resolver,
   environment, isProduction, isDevelopment
@@ -21,9 +23,40 @@ module.exports = {
   context: process.cwd(),
   entry: locate('tests/index.ts'),
   module: {
-    rules: moduleRules
+    rules: [
+      {
+        test: /\.(t|j)sx?$/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true,
+              context: process.cwd(),
+              configFile: locate('tests/tsconfig.json'),
+            },
+          },
+        ],
+        exclude: [/node_modules/, /\.cache/],
+      },
+      {
+        test: /\.s?css$/,
+        include: [/node_modules/, /src/],
+        use: [
+          'style-loader', // creates style nodes from JS strings
+          'css-loader', // translates CSS into CommonJS
+          'sass-loader', // compiles Sass to CSS
+        ],
+      },
+    ],
   },
-  resolve: resolver,
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js', '.jsx'],
+    plugins: [
+      new TsconfigPathsPlugin({
+        configFile: locate('tests/tsconfig.json'),
+      }),
+    ],
+  },
   output: {
     filename: 'test-bundle-[name].js',
     path: process.cwd() + '/dist'

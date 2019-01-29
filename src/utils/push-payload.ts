@@ -1,7 +1,7 @@
-import { schema, keyMap } from './schema';
 import { recordIdentityFrom } from './store-helpers';
 import Store from '@orbit/store';
 import { JSONAPISerializer } from '@orbit/jsonapi';
+import { KeyMap, Schema } from '@orbit/data';
 
 // NOTE: more may be added here
 export enum PAYLOAD_OPERATION {
@@ -11,17 +11,17 @@ export enum PAYLOAD_OPERATION {
 
 // TODO: payload should be a valid `{ json:api }` payload
 export async function pushPayload(store: Store, payload: any, op = PAYLOAD_OPERATION.ADD_RECORD) {
-  const serializer = new JSONAPISerializer({ schema: store.schema, keyMap: store.keyMap });
+  const { keyMap, schema } = store;
+  const serializer = new JSONAPISerializer({ schema, keyMap });
   const normalized = serializer.deserializeDocument(payload);
 
   const datas = buildDatas(normalized);
   const included = buildIncluded(normalized);
   const resources = datas.concat(included);
 
-  fixRelationships(resources);
-  assignIdsToResources(resources);
+  fixRelationships(store, resources);
+  assignIdsToResources(resources, keyMap, schema);
 
-  // TODO: verify that this pushes to cache instead across the network
   await store.update(
     (q) =>
       resources.map((resource) => {
@@ -44,7 +44,7 @@ function buildDatas(normalized: any) {
   return records;
 }
 
-function fixRelationships(resources: any[]) {
+function fixRelationships(store: Store, resources: any[]) {
   resources.forEach((resource) => {
     Object.keys(resource.relationships || {}).forEach((relationName) => {
       const relation = resource.relationships[relationName] || {};
@@ -57,7 +57,7 @@ function fixRelationships(resources: any[]) {
       const datas = isHasMany ? relation.data : [relation.data];
 
       datas.forEach((d: any) => {
-        const recordIdentity = recordIdentityFrom(d.id, d.type);
+        const recordIdentity = recordIdentityFrom(store, d.id, d.type);
         const localId = recordIdentity.id;
 
         d.id = localId;
@@ -66,11 +66,11 @@ function fixRelationships(resources: any[]) {
   });
 }
 
-function assignIdsToResources(resources: any[]) {
-  resources.forEach(assignIds);
+function assignIdsToResources(resources: any[], keyMap: KeyMap, schema: Schema) {
+  resources.forEach(resource => assignIds(resource, keyMap, schema));
 }
 
-function assignIds(resource: any) {
+function assignIds(resource: any, keyMap: KeyMap, schema: Schema) {
   resource.keys = { remoteId: resource.id };
   resource.id = keyMap.idFromKeys(resource.type, resource.keys) || schema.generateId(resource.type);
 }

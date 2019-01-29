@@ -1,9 +1,3 @@
-import { attributesFor } from '~/data';
-
-import { strict } from 'assert';
-
-import { string } from 'prop-types';
-
 export function interactor<T>(WrappedClass: T): Interactor & T;
 export function text(selector?: string): any;
 export function clickable(selector?: string): () => Promise<Interactor>;
@@ -17,17 +11,17 @@ export function collection(selector: string, interactors?: any): (index?: number
 export function value(selector: string): string;
 export function is(selector: string): boolean;
 export function scoped<T>(selector: string, interactors?: T): Interactor & T;
-export function attribute(selector: string, otherSelector?: string);
+export function attribute(selector: string, otherSelector?: string): string;
 
 export class Interactor {
   constructor(selector?: string);
   isVisible: boolean;
   isPresent: boolean;
   text: string;
-  $$(selector): [HTMLElement];
+  $$(selector: string): [HTMLElement];
   when<T>(condition: (element?: HTMLElement) => T): this;
   scoped(selector?: string): Interactor;
-  do<T>(doFn: (element: Interactor) => void);
+  do<T>(doFn: (element: Interactor) => void): void;
 
   click(selector?: string): Promise<void>;
   find(findFn: (element: HTMLElement) => boolean): HTMLElement;

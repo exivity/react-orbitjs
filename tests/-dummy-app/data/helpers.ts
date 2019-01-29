@@ -1,12 +1,3 @@
-import {
-  SingleResourceDoc,
-  AttributesObject,
-  ResourceObject,
-  RelationshipsObject,
-  RelationshipsWithData,
-  ErrorObject,
-  ResourceLinkage,
-} from 'jsonapi-typescript';
 import Store from '@orbit/store';
 import { QueryBuilder, QueryOrExpression } from '@orbit/data';
 
@@ -15,7 +6,7 @@ import {
   localIdFromRecordIdentity,
   IIdentityFromKeys,
   modelNameFromRelationship,
-} from './store-helpers';
+} from 'react-orbitjs/utils';
 
 type IJsonApiPayload<TType extends string, TAttrs extends AttributesObject> =
   | SingleResourceDoc<TType, TAttrs>

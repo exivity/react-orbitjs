@@ -69,6 +69,7 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
         if (this.shouldSubscribe && !this.isListening) {
           this.isListening = true;
           this.dataStore.on('transform', this.handleTransform);
+          this.getDataFromCache();
         }
       };
 
@@ -102,6 +103,10 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
       }
 
       getDataFromCache = async () => {
+        if (!this.hasSubscriptions) {
+          return;
+        }
+
         const { dataStore } = this.props;
         const recordsToGet = mapRecordsToProps(this.props) || {};
 

@@ -2,6 +2,8 @@ import * as React from 'react';
 import { withData as withOrbit, ILegacyProvidedProps } from 'react-orbitjs';
 
 import { ErrorMessage } from './errors';
+import JSONAPISource from '@orbit/jsonapi';
+import { QueryBuilder, QueryExpression } from '@orbit/data';
 
 interface IProvidedDefaultProps {
   error?: Error;
@@ -20,23 +22,23 @@ interface IState {
 export interface IQueryOptions {
   passthroughError?: boolean;
   useRemoteDirectly?: boolean;
-  mapResultsFn?: (props, result) => Promise<any>;
+  mapResultsFn?: (props: any, result: any) => Promise<any>;
 }
 // This is a stupid way to 'deeply' compare things.
 // But it kinda works.
 // Functions are omitted from the comparison
-export function areCollectionsRoughlyEqual(a, b) {
+export function areCollectionsRoughlyEqual(a: any, b: any) {
   const sameLength = Object.keys(a).length === Object.keys(b).length;
   return sameLength && JSON.stringify(a) === JSON.stringify(b);
 }
-export function isEmpty(data) {
+export function isEmpty(data: any) {
   return (
     !data ||
     (Array.isArray(data) && data.length === 0) ||
     (typeof data === 'string' && data.length === 0)
   );
 }
-export function timeoutablePromise(timeoutMs, promise) {
+export function timeoutablePromise(timeoutMs: number, promise: Promise<any>) {
   const timeout = new Promise((resolve, reject) => {
     const id = setTimeout(() => {
       clearTimeout(id);
@@ -87,7 +89,7 @@ export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
     map = mapRecordsToProps;
   }
 
-  return InnerComponent => {
+  return (InnerComponent: any) => {
     class DataWrapper extends React.Component<T & ILegacyProvidedProps, IState> {
       state = { result: {}, error: undefined, isLoading: false };
       // tslint:disable-next-line:variable-name
@@ -107,10 +109,9 @@ export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
         this._isMounted = false;
       }
 
-      setState(state, callback?) {
-        console.log('setState', this._isMounted, state);
+      setState(state: Partial<IState>, callback?: any) {
         if (this._isMounted) {
-          super.setState(state, callback);
+          super.setState(state as IState, callback);
         }
       }
 
@@ -128,10 +129,10 @@ export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
 
         const requestPromises = resultingKeys.map(async (key: string) => {
           const query = result[key];
-          const args = typeof query === 'function' ? [query] : query;
+          const args: [(q: QueryBuilder) => QueryExpression] = typeof query === 'function' ? [query] : query;
 
           try {
-            const queryResult = await querier.query(...args);
+            const queryResult = await (querier as JSONAPISource).query(...args);
             responses[key] = queryResult;
 
             return Promise.resolve(queryResult);

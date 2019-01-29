@@ -12,18 +12,6 @@ const isProduction = environment === 'production';
 const isDevelopment = environment === 'development';
 const isTesting = environment === 'test' || environment === 'testing';
 
-const tsLoaderExclude = [];
-
-if (!isTesting) {
-  tsLoaderExclude.concat([
-    /__tests__/,
-    /(\.|-)test/,
-    /\/-page.ts/,
-    /\/-(\w+)\.tsx?/,
-    /^\/?tests\//,
-  ]);
-}
-
 const moduleRules = [
   {
     test: /\.(t|j)sx?$/,
@@ -39,7 +27,7 @@ const moduleRules = [
   },
   {
     test: /\.s?css$/,
-    include: [/node_modules/, /src/, ...tsLoaderExclude],
+    include: [/node_modules/, /src/],
     use: [
       'style-loader', // creates style nodes from JS strings
       'css-loader', // translates CSS into CommonJS

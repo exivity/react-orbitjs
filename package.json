@@ -16,22 +16,17 @@
     "url": "https://github.com/exivity/react-orbitjs/issues"
   },
   "homepage": "https://github.com/exivity/react-orbitjs#readme",
-  "main": "dist/index.js",
+  "main": "dist",
   "files": [
-    "index.d.ts",
-    "src",
     "dist"
   ],
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "tsc",
-    "build:docs": "webpack --config webpack.docs.config.js && rimraf docs/dist/main.bundle.js.map",
-    "publishDocs": "git subtree push --prefix docs/dist origin gh-pages",
     "start": "webpack-dev-server --config webpack.docs.config.js",
-    "karma:start": "yarn karma start ./tests/karma.conf.js --fail-on-empty-test-suite",
+    "karma:start": "yarn build && yarn karma start ./tests/karma.conf.js --fail-on-empty-test-suite",
     "test:watch:detached": "DETACHED=true yarn karma:start",
-    "test": "CI=true yarn karma:start --single-run",
-    "watch": "jest --watch"
+    "test": "CI=true yarn karma:start --single-run"
   },
   "devDependencies": {
     "@bigtest/convergence": "^1.1.1",

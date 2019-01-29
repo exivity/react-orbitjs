@@ -1,7 +1,7 @@
 
-import { schema, keyMap } from './schema';
 import { RecordIdentity } from '@orbit/data';
 import { assert } from '@orbit/utils';
+import Store from '@orbit/store';
 
 export interface IBuildNewOptions<TAttrs, TRelationships> {
   attributes?: TAttrs;
@@ -21,7 +21,8 @@ interface IOrbitRemoteIdTracking {
 
 type IRecordIdentity = RecordIdentity & IOrbitRemoteIdTracking;
 
-export function localIdFromRecordIdentity(recordIdentity: any) {
+export function localIdFromRecordIdentity(store: Store, recordIdentity: any) {
+  const keyMap = store.keyMap;
   const { keys, type, id: maybeLocalId } = recordIdentity;
 
   if (keys) {
@@ -32,7 +33,8 @@ export function localIdFromRecordIdentity(recordIdentity: any) {
 }
 
 // this should return the remoteId, always.
-export function idFromRecordIdentity(recordIdentity: IRecordIdentity): string {
+export function idFromRecordIdentity(store: Store, recordIdentity: IRecordIdentity): string {
+  const keyMap = store.keyMap;
   const keys = recordIdentity.keys;
 
   if (!keys) {
@@ -47,15 +49,15 @@ export function idFromRecordIdentity(recordIdentity: IRecordIdentity): string {
   return remoteId || recordIdentity.id;
 }
 
-export function recordIdentityFrom(id: string, type: string) {
-  return recordIdentityFromKeys({ keys: { remoteId: id }, type });
+export function recordIdentityFrom(store: Store, id: string, type: string) {
+  return recordIdentityFromKeys(store, { keys: { remoteId: id }, type });
 }
 
-export function remoteIdentityFrom(resource: any) {
+export function remoteIdentityFrom(store: Store, resource: any) {
   if (!resource.keys) {
     // the returned id is a local id
     // resource id becomes the keys.remoteId
-    return recordIdentityFrom(resource.id, resource.type);
+    return recordIdentityFrom(store, resource.id, resource.type);
   }
 
   return resource;
@@ -67,9 +69,11 @@ export interface IIdentityFromKeys {
   keys?: any;
 }
 
-export function recordIdentityFromKeys({ type, id, keys }: IIdentityFromKeys) {
-  assert(`type (${type}) and id (${id}) must be specified`, type !== undefined && id !== undefined);
+export function recordIdentityFromKeys(store: Store, { type, id, keys }: IIdentityFromKeys) {
+  assert(`type (${type}) and either id or keys must be specified`, type !== undefined && (id !== undefined || keys !== undefined));
 
+  const { keyMap, schema } = store;
+  
   const recordIdentity: any = {
     type,
     keys: keys || { remoteId: keyMap.idToKey(type!, 'remoteId', id!) },

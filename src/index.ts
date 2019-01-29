@@ -32,4 +32,6 @@ export {
 
 export { default as strategies } from './strategies';
 
+// TODO: why can't I import from subdirectories in the built package?
 export * from './components/errors';
+export * from './utils';
