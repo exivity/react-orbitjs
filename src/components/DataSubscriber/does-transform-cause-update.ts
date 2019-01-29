@@ -7,101 +7,111 @@ import { modelForRelationOf, relationshipsForType } from './helpers';
 /**
  * 1. Generate a list of changed records, and potentially changed related records
  * 2. Match against our list of subscriptions
- * 
- * @param dataStore 
- * @param transform 
- * @param subscriptions 
+ *
+ * @param dataStore
+ * @param transform
+ * @param subscriptions
  */
-export function doesTransformCauseUpdate(dataStore: Store, transform: Transform, subscriptions: IQuerySubscriptions) { 
+export function doesTransformCauseUpdate(
+  dataStore: Store,
+  transform: Transform,
+  subscriptions: IQuerySubscriptions
+) {
   let shouldUpdate = false;
 
-   // Iterate all transforms, to see if any of those matches a model in the list of queries
-   const updatedRecords: any[] = []
+  // Iterate all transforms, to see if any of those matches a model in the list of queries
+  const updatedRecords: any[] = [];
 
-   transform.operations.forEach((operation: RecordOperation) => {
-     switch (operation.op) {
-       case "addRecord":
-       case "replaceRecord":
-         // operation.record may contains some relationships, in this case
-         // its inverse relationships are modified too, we add them to updatedRecords.
-         updatedRecords.push(operation.record.type)
-         if (operation.record.relationships === undefined) break;
+  transform.operations.forEach((operation: RecordOperation) => {
+    switch (operation.op) {
+      case 'addRecord':
+      case 'replaceRecord':
+        // operation.record may contains some relationships, in this case
+        // its inverse relationships are modified too, we add them to updatedRecords.
+        updatedRecords.push(operation.record.type);
+        if (operation.record.relationships === undefined) break;
 
-         const { record: { type }} = operation;
-         Object.keys(operation.record.relationships).forEach((relationship) => {
-           // is this operation one on one of our watched relationships?
-           const model = modelForRelationOf(this.dataStore, type, relationship);
+        const {
+          record: { type },
+        } = operation;
+        Object.keys(operation.record.relationships).forEach(relationship => {
+          // is this operation one on one of our watched relationships?
+          const model = modelForRelationOf(this.dataStore, type, relationship);
 
-           updatedRecords.push(model)
-         })
-         break
+          updatedRecords.push(model);
+        });
+        break;
 
-       case "removeRecord":
-         // If the removed record had some relationships, inverse relationships
-         // are modified too. As operation.record does not contain any relationships
-         // we have to assume that all its inverse relationships defined
-         // in the schema could be impacted and must be added to updatedRecords.
-         updatedRecords.push(operation.record.type);
-         
-         const relationships = relationshipsForType(this.dataStore, operation.record.type);
+      case 'removeRecord':
+        // If the removed record had some relationships, inverse relationships
+        // are modified too. As operation.record does not contain any relationships
+        // we have to assume that all its inverse relationships defined
+        // in the schema could be impacted and must be added to updatedRecords.
+        updatedRecords.push(operation.record.type);
 
-         Object.keys(relationships).map(k => relationships[k]).forEach((relationship) => {
-           updatedRecords.push(relationship.model)
-         })
-         break
+        const relationships = relationshipsForType(this.dataStore, operation.record.type);
 
-       case "replaceKey":
-       case "replaceAttribute":
-         updatedRecords.push(operation.record.type)
-         break
+        Object.keys(relationships)
+          .map(k => relationships[k])
+          .forEach(relationship => {
+            updatedRecords.push(relationship.model);
+          });
+        break;
 
-       case "addToRelatedRecords":
-       case "removeFromRelatedRecords":
-       case "replaceRelatedRecord":
-         // Add both record and relatedRecord to updatedRecords, because
-         // it can modify both its relationships and inverse relationships.
-         updatedRecords.push(operation.record.type)
+      case 'replaceKey':
+      case 'replaceAttribute':
+        updatedRecords.push(operation.record.type);
+        break;
 
-         const related = modelForRelationOf(this.dataStore, operation.record.type, operation.relationship);
-         updatedRecords.push(related)
-         break
+      case 'addToRelatedRecords':
+      case 'removeFromRelatedRecords':
+      case 'replaceRelatedRecord':
+        // Add both record and relatedRecord to updatedRecords, because
+        // it can modify both its relationships and inverse relationships.
+        updatedRecords.push(operation.record.type);
 
-       case "replaceRelatedRecords":
-         updatedRecords.push(operation.record.type)
+        const related = modelForRelationOf(
+          this.dataStore,
+          operation.record.type,
+          operation.relationship
+        );
+        updatedRecords.push(related);
+        break;
 
-         operation.relatedRecords.forEach((relatedRecord) => {
-           updatedRecords.push(relatedRecord.type)
-         })
-         break
+      case 'replaceRelatedRecords':
+        updatedRecords.push(operation.record.type);
 
-       default:
-         console.warn("This transform operation is not supported in react-orbitjs.")
-     }
-   })
+        operation.relatedRecords.forEach(relatedRecord => {
+          updatedRecords.push(relatedRecord.type);
+        });
+        break;
 
+      default:
+        console.warn('This transform operation is not supported in react-orbitjs.');
+    }
+  });
 
-   updatedRecords.forEach((record) => {
-     Object.keys(subscriptions).forEach((prop) => {
-       const subscribedForProp = subscriptions[prop];
+  updatedRecords.forEach(record => {
+    Object.keys(subscriptions).forEach(prop => {
+      const subscribedForProp = subscriptions[prop];
 
-        for (let i = 0; i < subscribedForProp.length; i++) {
-          let sfp = subscribedForProp[i];
+      for (let i = 0; i < subscribedForProp.length; i++) {
+        let sfp = subscribedForProp[i];
 
-          if (sfp.relatedTo) {
-            if (sfp.relatedTo.type === record.type && sfp.relatedTo.id === record.id) {
-              shouldUpdate = true;
-              return;
-            }
-          }
-
-          if (sfp.type === record.type && sfp.id === record.id) {
+        if (sfp.relatedTo) {
+          if (sfp.relatedTo.type === record.type && sfp.relatedTo.id === record.id) {
             shouldUpdate = true;
             return;
           }
         }
-     })
-   })
 
+        if (sfp.type === record.type && sfp.id === record.id) {
+          shouldUpdate = true;
+          return;
+        }
+      }
+    });
+  });
 
   return shouldUpdate;
 }
