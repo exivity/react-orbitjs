@@ -28,3 +28,20 @@ export function relationshipsForType(dataStore: Store, type: string) {
 
   return relationships || {};
 }
+
+export function areArraysShallowlyEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  let eachContainsAllValues = true;
+
+  for(let i = 0; i < a.length; i++) {
+    if (!b.includes(a[i])) {
+      eachContainsAllValues = false;
+      break;
+    }
+  }
+
+  return eachContainsAllValues;
+}

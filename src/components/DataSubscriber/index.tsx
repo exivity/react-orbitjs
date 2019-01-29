@@ -7,24 +7,34 @@ import { MapRecordsToPropsFn, RecordsToProps } from '../shared';
 import { Transform } from '@orbit/data';
 import Store from '@orbit/store';
 import { assert } from '@orbit/utils';
-import { IQuerySubscriptions } from './determine-subscriptions';
+import { IQuerySubscriptions, determineSubscriptions } from './determine-subscriptions';
 import { doesTransformCauseUpdate } from './does-transform-cause-update';
+// import { areArraysShallowlyEqual } from './helpers';
+import { IWithOrbitOptions } from '../shared';
 
-interface IState {}
+export function withDataSubscription<TWrappedProps, TResultingProps>(
+  mapRecordsToProps: MapRecordsToPropsFn<TWrappedProps>,
+  options: IWithOrbitOptions
+) {
+  return function wrapSubscription(
+    WrappedComponent: React.ComponentType<TWrappedProps & TResultingProps>
+  ) {
+    const componentDisplayName = `WithDataSubscription:${options.label}(${getDisplayName(
+      WrappedComponent
+    )})`;
 
-export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T>) {
-  return function wrapSubscription(WrappedComponent: React.ComponentType<T>) {
-    const componentDisplayName = `WithDataSubscription(${getDisplayName(WrappedComponent)})`;
-
-    return class DataSubscriber extends React.PureComponent<
-      T & IProviderProps,
-      RecordsToProps,
-      IState
+    // TODO:
+    //  when the props change, we need to re-evaluate the subscriptions
+    return class DataSubscriber extends React.Component<
+      TWrappedProps & IProviderProps,
+      TResultingProps
     > {
       static displayName = componentDisplayName;
 
       dataStore!: Store;
       isListening = false;
+
+      // any changes to these records / record-lists will cause a re-render
       subscriptions: IQuerySubscriptions = {};
 
       // the list of queries to pass in as mapRecordsToProps
@@ -42,7 +52,7 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
         return this.hasSubscriptions;
       }
 
-      constructor(props: T & IProviderProps) {
+      constructor(props: TWrappedProps & IProviderProps) {
         super(props);
 
         assert(
@@ -53,8 +63,8 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
         );
 
         this.dataStore = props.dataStore;
-        this.state = {};
-        this.passedQueries = mapRecordsToProps(props);
+        this.computeSubscriptions();
+        this.state = this.getDataFromCache();
       }
 
       componentDidMount() {
@@ -65,11 +75,43 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
         this.tryUnsubscribe();
       }
 
+      // shouldComponentUpdate(nextProps: T & IProviderProps /*, nextState */) {
+      //   if (this.isListening) {
+      //     const newQueries = mapRecordsToProps(nextProps);
+      //     const newKeys = Object.keys(newQueries);
+
+      //     if (!areArraysShallowlyEqual(newKeys, this.recordProps)) {
+      //       this.computeSubscriptions();
+      //       this.refreshSubscriptionsData(); // causes update
+      //       return false;
+      //     }
+
+      //   }
+
+      //   // default
+      //   return true;
+      // }
+
+      render() {
+        return <WrappedComponent {...this.props} {...this.state} />;
+      }
+
+      /**
+       *
+       * helper / private functions for querying / refreshing data
+       * from the data store
+       *
+       */
+
+      computeSubscriptions = () => {
+        this.passedQueries = mapRecordsToProps(this.props);
+        this.subscriptions = determineSubscriptions(this.dataStore, this.passedQueries);
+      };
+
       trySubscribe = () => {
         if (this.shouldSubscribe && !this.isListening) {
           this.isListening = true;
           this.dataStore.on('transform', this.handleTransform);
-          this.getDataFromCache();
         }
       };
 
@@ -92,40 +134,36 @@ export function withDataSubscription<T>(mapRecordsToProps: MapRecordsToPropsFn<T
         );
 
         if (shouldUpdate) {
-          this.refreshSubscriptions();
+          this.refreshSubscriptionsData();
         }
       };
 
-      refreshSubscriptions = async () => {
-        const results = await this.getDataFromCache();
+      refreshSubscriptionsData = () => {
+        const results = this.getDataFromCache();
 
         this.setState({ ...results });
-      }
+      };
 
-      getDataFromCache = async () => {
+      getDataFromCache = (): TResultingProps => {
         if (!this.hasSubscriptions) {
-          return;
+          return {} as TResultingProps;
         }
 
         const { dataStore } = this.props;
-        const recordsToGet = mapRecordsToProps(this.props) || {};
+        const queryForProps = mapRecordsToProps(this.props) || {};
 
         let results = {};
-        const promises = Object.keys(recordsToGet).map(async key => {
-          const result = await dataStore.cache.query(recordsToGet[key]);
-          results[key] = result;
+
+        Object.keys(queryForProps).forEach((propName: string) => {
+          const query = queryForProps[propName](dataStore.queryBuilder);
+          const result = dataStore.cache.query(query);
+
+          results[propName] = result;
         });
 
-        await Promise.all(promises);
-
-        this.setState({ ...results });
-
-        return results;
+        console.log('getDataFromCache', componentDisplayName, results);
+        return results as TResultingProps;
       };
-
-      render() {
-        return <WrappedComponent {...this.props} {...this.state} />;
-      }
     };
   };
 }

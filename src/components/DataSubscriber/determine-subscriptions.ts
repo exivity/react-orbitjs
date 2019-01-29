@@ -1,13 +1,7 @@
 import Store from '@orbit/store';
 import { RecordsToProps } from '../shared';
-import { FindRecord, FindRelatedRecord, FindRelatedRecords, FindRecords, RecordIdentity } from '@orbit/data';
+import { RecordIdentity } from '@orbit/data';
 import { modelForRelationOf } from './helpers';
-
-export type QueryRecordExpression =
-  | FindRecord
-  | FindRelatedRecord
-  | FindRelatedRecords
-  | FindRecords;
 
 export interface IQuerySubscription {
   type: string;
@@ -29,24 +23,24 @@ export function determineSubscriptions(
   // Iterate all queries, to make a list of models to listen for
   recordQueryKeys.forEach(prop => {
     let expression;
-    const queryExpression: QueryRecordExpression = recordQueries[prop](dataStore.queryBuilder).expression;
+    const queryExpression = recordQueries[prop](dataStore.queryBuilder).expression;
 
     subscriptions[prop] = [];
 
     switch (queryExpression.op) {
       case 'findRecord':
-        expression = queryExpression as FindRecord;
+        expression = queryExpression;
         subscriptions[prop].push({ type: expression.record.type, id: expression.record.id });
         break;
 
       case 'findRecords':
-        expression = queryExpression as FindRecords;
+        expression = queryExpression;
         subscriptions[prop].push({ type: expression.type! });
         break;
 
       case 'findRelatedRecord':
       case 'findRelatedRecords':
-        expression = queryExpression as FindRelatedRecord | FindRelatedRecords;
+        expression = queryExpression;
 
         subscriptions[prop].push({ type: expression.record.type});
 

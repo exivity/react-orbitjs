@@ -22,6 +22,7 @@ export function doesTransformCauseUpdate(
   // Iterate all transforms, to see if any of those matches a model in the list of queries
   const updatedRecords: any[] = [];
 
+  // debugger;
   transform.operations.forEach((operation: RecordOperation) => {
     switch (operation.op) {
       case 'addRecord':
@@ -36,7 +37,7 @@ export function doesTransformCauseUpdate(
         } = operation;
         Object.keys(operation.record.relationships).forEach(relationship => {
           // is this operation one on one of our watched relationships?
-          const model = modelForRelationOf(this.dataStore, type, relationship);
+          const model = modelForRelationOf(dataStore, type, relationship);
 
           updatedRecords.push(model);
         });
@@ -49,7 +50,7 @@ export function doesTransformCauseUpdate(
         // in the schema could be impacted and must be added to updatedRecords.
         updatedRecords.push(operation.record.type);
 
-        const relationships = relationshipsForType(this.dataStore, operation.record.type);
+        const relationships = relationshipsForType(dataStore, operation.record.type);
 
         Object.keys(relationships)
           .map(k => relationships[k])
@@ -71,7 +72,7 @@ export function doesTransformCauseUpdate(
         updatedRecords.push(operation.record.type);
 
         const related = modelForRelationOf(
-          this.dataStore,
+          dataStore,
           operation.record.type,
           operation.relationship
         );

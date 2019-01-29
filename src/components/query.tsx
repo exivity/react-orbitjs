@@ -22,6 +22,7 @@ interface IState {
 export interface IQueryOptions {
   passthroughError?: boolean;
   useRemoteDirectly?: boolean;
+  timeout?: number;
   mapResultsFn?: (props: any, result: any) => Promise<any>;
 }
 // This is a stupid way to 'deeply' compare things.
@@ -53,18 +54,14 @@ export function timeoutablePromise(timeoutMs: number, promise: Promise<any>) {
 //
 // import { query } from '@data';
 //
-// const mapRecordsToProps = (passedProps) => {
-//
-//   return {
-//     someKey: q => q.findRecord(...),
-//     someOtherKey: [q => q.findRecord, { /* source options */ }]
-//   }
-// }
-//
-// // ......
-//
 // export default compose(
-//    query(mapRecordsToProps)
+//   query((passedProps) => {
+//
+//     return {
+//       someKey: q => q.findRecord(...),
+//       someOtherKey: [q => q.findRecord, { /* source options */ }]
+//     }
+//   })
 // )(SomeComponent);
 //
 //
@@ -146,7 +143,8 @@ export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
         });
 
         if (requestPromises.length > 0) {
-          await timeoutablePromise(5000, Promise.all(requestPromises));
+          await Promise.all(requestPromises);
+          // await timeoutablePromise(5000, Promise.all(requestPromises));
         }
 
         return responses;
@@ -188,6 +186,7 @@ export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
 
       render() {
         const { result, error, isLoading } = this.state;
+        const { dataStore, updateStore, queryStore, sources, ...remainingProps } = this.props;
         const dataProps = {
           ...result,
           error,
@@ -199,7 +198,7 @@ export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
           return <ErrorMessage error={error} />;
         }
 
-        return <InnerComponent {...this.props} {...dataProps} />;
+        return <InnerComponent {...remainingProps} {...dataProps} />;
       }
     }
 
