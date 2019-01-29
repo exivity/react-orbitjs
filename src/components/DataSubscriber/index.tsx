@@ -133,7 +133,10 @@ export function withDataSubscription<TWrappedProps, TResultingProps>(
           this.subscriptions
         );
 
-        console.log(componentDisplayName, 'transform received: ', transform, shouldUpdate, this.subscriptions);
+        if (componentDisplayName.includes('user-roles-for-dropdown')) {
+          console.log(componentDisplayName, shouldUpdate, 'transform received: ', transform);
+        }
+        
 
 
         if (shouldUpdate) {
@@ -164,7 +167,6 @@ export function withDataSubscription<TWrappedProps, TResultingProps>(
           results[propName] = result;
         });
 
-        console.log('getDataFromCache', componentDisplayName, results);
         return results as TResultingProps;
       };
     };
