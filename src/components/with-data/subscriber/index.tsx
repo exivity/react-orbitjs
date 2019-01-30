@@ -126,10 +126,11 @@ export function withDataSubscription<TWrappedProps, TResultingProps>(
           return;
         }
 
-        const shouldUpdate = doesTransformCauseUpdate(
+        const shouldUpdate = doesTransformCauseUpdate<TResultingProps>(
           this.dataStore,
           transform,
-          this.subscriptions
+          this.subscriptions,
+          this.state
         );
 
         if (componentDisplayName.includes('user-roles-for-dropdown')) {

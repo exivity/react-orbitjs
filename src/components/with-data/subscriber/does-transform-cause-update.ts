@@ -2,7 +2,7 @@ import Store from '@orbit/store';
 import { Transform, Operation } from '@orbit/data';
 
 import { IQuerySubscriptions } from './determine-subscriptions';
-
+import { QueryRecordExpression } from '../../shared';
 
 export enum Op {
   // Queries
@@ -20,9 +20,8 @@ export enum Op {
   ADD_TO_RELATED_RECORDS = 'addToRelatedRecords',
   REMOVE_FROM_RELATED_RECORDS = 'removeFromRelatedRecords',
   REPLACE_RELATED_RECORD = 'replaceRelatedRecord',
-  REPLACE_RELATED_RECORDS = 'replaceRelatedRecords'
+  REPLACE_RELATED_RECORDS = 'replaceRelatedRecords',
 }
-
 
 /**
  * 1. Generate a list of changed records, and potentially changed related records
@@ -32,17 +31,23 @@ export enum Op {
  * @param transform
  * @param subscriptions
  */
-export function doesTransformCauseUpdate(
+export function doesTransformCauseUpdate<TQueryResults>(
   dataStore: Store,
   transform: Transform,
-  subscriptions: IQuerySubscriptions
+  subscriptions: IQuerySubscriptions,
+  previousResults: TQueryResults
 ) {
   let shouldUpdate = false;
 
-  for(let i = 0; i < transform.operations.length; i++) {
+  for (let i = 0; i < transform.operations.length; i++) {
     let operation = transform.operations[i];
 
-    const isRelevant = isOperationRelevantToSubscriptions(dataStore, operation, subscriptions);
+    const isRelevant = isOperationRelevantToSubscriptions(
+      dataStore,
+      operation,
+      subscriptions,
+      previousResults
+    );
 
     if (isRelevant) {
       shouldUpdate = true;
@@ -53,55 +58,20 @@ export function doesTransformCauseUpdate(
   return shouldUpdate;
 }
 
-function isRecordRelevantToAnySubscription(dataStore: Store, record: any, subscriptions: IQuerySubscriptions) {
-  const props = Object.keys(subscriptions);
-  let maybeRelevant;
-
-  for (let i = 0; i < props.length; i++) {
-    let prop = props[i];
-    let qExp = subscriptions[prop];
-
-    if (Op.FIND_RECORD === qExp.op) {
-      maybeRelevant = qExp.record.id === record.id && qExp.record.type === record.type;
-
-      if (maybeRelevant) return true;
-    } else if (Op.FIND_RELATED_RECORD === qExp.op) {
-      const relatedHasOne = dataStore.cache.query(qExp);
-
-      maybeRelevant = relatedHasOne.id === record.id && relatedHasOne.type === record.type;
-
-      if (maybeRelevant) return true;
-    } else if (Op.FIND_RELATED_RECORDS === qExp.op) {
-      const relatedHasMany = dataStore.cache.query(qExp);
-
-      maybeRelevant = relatedHasMany.find((r: any) => r.id === record.id && r.type === record.type);
-
-      if (maybeRelevant) return true;
-    } else if (Op.FIND_RECORDS === qExp.op) {
-      const recordList = dataStore.cache.query(qExp);
-
-      maybeRelevant = recordList.find((r: any) => r.id === record.id && r.type === record.type);
-
-      if (maybeRelevant) return true;
-    } else {
-      throw new Error(`query expression's op was not recognized for tracking data updates`);
-    }
-  }
-
-  return false;
-}
-
-
-function isOperationRelevantToSubscriptions(dataStore: Store, operation: Operation, subscriptions: IQuerySubscriptions) {
+function isOperationRelevantToSubscriptions<TQueryResults>(
+  dataStore: Store,
+  operation: Operation,
+  subscriptions: IQuerySubscriptions,
+  previousResults: TQueryResults
+) {
   switch (operation.op) {
     case Op.ADD_RECORD:
     case Op.REPLACE_RECORD:
-    case Op.REMOVE_RECORD:
+
     case Op.REPLACE_KEY:
     case Op.REPLACE_ATTRIBUTE:
 
     case Op.ADD_TO_RELATED_RECORDS:
-    case Op.REMOVE_FROM_RELATED_RECORDS:
     case Op.REPLACE_RELATED_RECORD:
     case Op.REPLACE_RELATED_RECORDS:
       // Are we watching this record in anyway?
@@ -109,32 +79,142 @@ function isOperationRelevantToSubscriptions(dataStore: Store, operation: Operati
         return true;
       }
 
-    // case 'addToRelatedRecords':
-    // case 'removeFromRelatedRecords':
-    // case 'replaceRelatedRecord':
-    //   // Add both record and relatedRecord to updatedRecords, because
-    //   // it can modify both its relationships and inverse relationships.
-    //   updatedRecords.push(operation.record.type);
+      break;
+    case Op.REMOVE_RECORD:
+    case Op.REMOVE_FROM_RELATED_RECORDS:
+      if (
+        wasRecordRemovedFromAnySubscription(
+          dataStore,
+          (operation as any).record,
+          subscriptions,
+          previousResults
+        )
+      ) {
+        return true;
+      }
 
-    //   const related = modelForRelationOf(
-    //     dataStore,
-    //     operation.record.type,
-    //     operation.relationship
-    //   );
-    //   updatedRecords.push(related);
-    //   break;
-
-    // case 'replaceRelatedRecords':
-    //   updatedRecords.push(operation.record.type);
-
-    //   operation.relatedRecords.forEach(relatedRecord => {
-    //     updatedRecords.push(relatedRecord.type);
-    //   });
-    //   break;
-
+      break;
     default:
       console.warn('This transform operation is not supported in react-orbitjs.');
   }
 
   return false;
+}
+
+function wasRecordRemovedFromAnySubscription<TQueryResults>(
+  dataStore: Store,
+  record: any,
+  subscriptions: IQuerySubscriptions,
+  previousResults: TQueryResults
+) {
+  // NOTE: we can't query for the record, because it was removed.
+  return findInSubscription(subscriptions, (qExp: QueryRecordExpression, propName: string) => {
+    let previousResult = previousResults[propName];
+    let maybeRelevant;
+    let queryResult;
+
+    // if the record was removed, and if it was already in our result list,
+    // we don't need to check any of the query expressions
+    let wasInPreviousResult = isRecordInList(
+      record,
+      Array.isArray(previousResult) ? previousResult : [previousResult],
+    );
+
+    if (wasInPreviousResult) {
+      return true;
+    }
+
+    switch (qExp.op) {
+      case Op.FIND_RECORD:
+        maybeRelevant = qExp.record.id === record.id && qExp.record.type === record.type;
+
+        if (maybeRelevant) return true;
+        break;
+      case Op.FIND_RELATED_RECORD:
+      case Op.FIND_RELATED_RECORDS:
+        // is the TransformRecordOperation related to the same thing as qExp.record via the relationship?
+        let parentRecord = dataStore.cache.query(q => q.findRecord(qExp.record));
+        let relationData = parentRecord.relationships[qExp.relationship].data;
+        let relationDatas = Array.isArray(relationData) ? relationData : [relationData];
+        let relationToRecordExists = isRecordInList(record, relationDatas);
+
+        if (!relationToRecordExists) return true;
+        break;
+      case Op.FIND_RECORDS:
+        // running the query should not have the `record`, but that doesn't mean that it _was_ in the result
+        // TODO: will the type here ever be plural?
+        if (qExp.type === record.type) {
+          queryResult = dataStore.cache.query(qExp);
+
+          if (!isRecordInList(record, queryResult)) {
+            return true;
+          }
+        }
+
+        break;
+      default:
+        throw new Error(`query expression's op was not recognized for tracking data updates`);
+    }
+
+    return false;
+  });
+}
+
+function findInSubscription(
+  subscriptions: IQuerySubscriptions,
+  func: (query: QueryRecordExpression, propName?: string) => boolean
+) {
+  const props = Object.keys(subscriptions);
+
+  for (let i = 0; i < props.length; i++) {
+    let prop = props[i];
+    let qExp = subscriptions[prop];
+
+    if (func(qExp, prop)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isRecordRelevantToAnySubscription(
+  dataStore: Store,
+  record: any,
+  subscriptions: IQuerySubscriptions
+) {
+  return findInSubscription(subscriptions, (qExp: QueryRecordExpression) => {
+    let maybeRelevant;
+    let queryResult = dataStore.cache.query(qExp);
+
+    switch (qExp.op) {
+      case Op.FIND_RECORD:
+      case Op.FIND_RELATED_RECORD:
+        maybeRelevant = isSameRecord(queryResult, record);
+
+        if (maybeRelevant) return true;
+        break;
+
+      case Op.FIND_RELATED_RECORDS:
+      case Op.FIND_RECORDS:
+        maybeRelevant = isRecordInList(record, queryResult);
+
+        if (maybeRelevant) return true;
+        break;
+      default:
+        throw new Error(`query expression's op was not recognized for tracking data updates`);
+    }
+
+    return false;
+  });
+}
+
+function isSameRecord(a: any, b: any) {
+  return a.id === b.id && a.type === b.type;
+}
+
+function isRecordInList(a: any, list: any[]) {
+  let result = list.find((l: any) => isSameRecord(a, l));
+
+  return !!result;
 }
