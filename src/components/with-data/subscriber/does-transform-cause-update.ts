@@ -78,7 +78,9 @@ function isRecordRelevantToAnySubscription(dataStore: Store, record: any, subscr
 
       if (maybeRelevant) return true;
     } else if (Op.FIND_RECORDS === qExp.op) {
-      maybeRelevant = qExp.type === record.type;
+      const recordList = dataStore.cache.query(qExp);
+
+      maybeRelevant = recordList.find((r: any) => r.id === record.id && r.type === record.type);
 
       if (maybeRelevant) return true;
     } else {
@@ -91,8 +93,6 @@ function isRecordRelevantToAnySubscription(dataStore: Store, record: any, subscr
 
 
 function isOperationRelevantToSubscriptions(dataStore: Store, operation: Operation, subscriptions: IQuerySubscriptions) {
-  let result = false;
-
   switch (operation.op) {
     case Op.ADD_RECORD:
     case Op.REPLACE_RECORD:
@@ -106,10 +106,8 @@ function isOperationRelevantToSubscriptions(dataStore: Store, operation: Operati
     case Op.REPLACE_RELATED_RECORDS:
       // Are we watching this record in anyway?
       if (isRecordRelevantToAnySubscription(dataStore, (operation as any).record, subscriptions)) {
-        result = true;
+        return true;
       }
-
-      break;
 
     // case 'addToRelatedRecords':
     // case 'removeFromRelatedRecords':
@@ -138,5 +136,5 @@ function isOperationRelevantToSubscriptions(dataStore: Store, operation: Operati
       console.warn('This transform operation is not supported in react-orbitjs.');
   }
 
-  return result;
+  return false;
 }
