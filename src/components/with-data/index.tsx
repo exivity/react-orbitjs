@@ -2,10 +2,10 @@ import * as React from 'react';
 
 import { getDisplayName } from './-utils/getDisplayName';
 
-import { OrbitContext } from './orbit-context';
-import { IProps as IProviderProps, IProvidedProps as IDataProviderProps } from './DataProvider';
-import { withDataSubscription } from './DataSubscriber';
-import { MapRecordsToProps, MapRecordsToPropsFn, IWithOrbitOptions } from './shared';
+import { OrbitContext } from '../orbit-context';
+import { IProps as IProviderProps, IProvidedProps as IDataProviderProps } from '../data-provider';
+import { withDataSubscription } from './subscriber';
+import { MapRecordsToProps, MapRecordsToPropsFn, IWithOrbitOptions } from '../shared';
 
 export type IProvidedProps = IDataProviderProps;
 

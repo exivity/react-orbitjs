@@ -6,3 +6,5 @@ export {
   idFromRecordIdentity,
   remoteIdentityFrom,
 } from './store-helpers';
+
+export * from './record-helpers';

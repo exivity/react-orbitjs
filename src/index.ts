@@ -1,25 +1,25 @@
 // NOTE: for legacy reasons / compatibility with upstream,
 //       all the data* names need to be maintained
-//       a major version update will remove those in favor of 
+//       a major version update will remove those in favor of
 //       - OrbitProvider
 //       - withOrbit
 
-export { 
+export {
   OrbitProvider,
-  DataProvider, 
+  DataProvider,
   IProps as IOrbitProviderProps,
   IProvidedProps as ILegacyProvidedProps
-} from './components/DataProvider';
+} from './components/data-provider';
 
 export {
   APIProvider,
   IProps as IAPIProps
 } from './components/api-provider';
 
-export { 
-  withOrbit, 
-  withData 
-} from './components/withData';
+export {
+  withOrbit,
+  withData
+} from './components/with-data';
 
 export {
   MapRecordsToProps

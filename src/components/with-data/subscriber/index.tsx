@@ -2,15 +2,14 @@ import * as React from 'react';
 
 import { getDisplayName } from '../-utils/getDisplayName';
 
-import { IProps as IProviderProps } from '../DataProvider';
-import { MapRecordsToPropsFn, RecordsToProps } from '../shared';
+import { IProps as IProviderProps } from '../../data-provider';
+import { MapRecordsToPropsFn, RecordsToProps, IWithOrbitOptions } from '../../shared';
 import { Transform } from '@orbit/data';
 import Store from '@orbit/store';
 import { assert } from '@orbit/utils';
 import { IQuerySubscriptions, determineSubscriptions } from './determine-subscriptions';
 import { doesTransformCauseUpdate } from './does-transform-cause-update';
 // import { areArraysShallowlyEqual } from './helpers';
-import { IWithOrbitOptions } from '../shared';
 
 export function withDataSubscription<TWrappedProps, TResultingProps>(
   mapRecordsToProps: MapRecordsToPropsFn<TWrappedProps>,
@@ -136,7 +135,7 @@ export function withDataSubscription<TWrappedProps, TResultingProps>(
         if (componentDisplayName.includes('user-roles-for-dropdown')) {
           console.log(componentDisplayName, shouldUpdate, 'transform received: ', transform);
         }
-        
+
 
 
         if (shouldUpdate) {

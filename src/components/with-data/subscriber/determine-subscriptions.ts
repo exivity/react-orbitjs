@@ -1,5 +1,5 @@
 import Store from '@orbit/store';
-import { RecordsToProps, QueryRecordExpression } from '../shared';
+import { RecordsToProps, QueryRecordExpression } from '../../shared';
 
 export interface IQuerySubscriptions {
   [propName: string]: QueryRecordExpression;
