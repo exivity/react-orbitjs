@@ -133,12 +133,6 @@ export function withDataSubscription<TWrappedProps, TResultingProps>(
           this.state
         );
 
-        if (componentDisplayName.includes('user-roles-for-dropdown')) {
-          console.log(componentDisplayName, shouldUpdate, 'transform received: ', transform);
-        }
-
-
-
         if (shouldUpdate) {
           this.refreshSubscriptionsData();
         }

@@ -39,7 +39,7 @@ export function withData<TWrappedProps, TResultingProps>(
       options
     )(WrappedComponent);
 
-    return class WithOrbit extends React.Component<TWrappedProps & TResultingProps> {
+    return class WithOrbit extends React.Component<TWrappedProps> {
       static displayName = `WithOrbitData:${options.label}(${getDisplayName(WrappedComponent)})`;
 
       render() {
