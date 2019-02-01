@@ -10,11 +10,11 @@ class DataProvider extends React.Component {
             sources: props.sources,
             // legacy API
             updateStore: (...args) => props.dataStore.update(...args),
-            queryStore: (...args) => props.dataStore.query(...args)
+            queryStore: (...args) => props.dataStore.query(...args),
         };
     }
     render() {
-        return (React.createElement(orbit_context_1.OrbitContext.Provider, { value: this.state }, this.props.children));
+        return React.createElement(orbit_context_1.OrbitContext.Provider, { value: this.state }, this.props.children);
     }
 }
 exports.DataProvider = DataProvider;

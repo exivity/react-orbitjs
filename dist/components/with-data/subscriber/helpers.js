@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("@orbit/utils");
 function modelForRelationOf(dataStore, type, relationship) {
     const model = modelOfType(dataStore, type);
+    utils_1.assert(`model or relationship could not be found for the ${type}'s ${relationship}`, !!(model && model.relationships));
     const modelRelationship = model.relationships[relationship];
     utils_1.assert(`relationship ${relationship} was not found in model ${type}`, modelRelationship !== undefined);
     const relatedModel = modelRelationship.model;

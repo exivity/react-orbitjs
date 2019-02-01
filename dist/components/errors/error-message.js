@@ -10,9 +10,9 @@ class ErrorMessage extends React.Component {
         }
         // title is required, but body is not.
         const { title, body } = parse_error_1.parseError(error);
-        return (React.createElement("div", { className: 'react-orbitjs__error-message-wrapper' },
-            React.createElement("div", { className: 'react-orbitjs__error-message-title' }, title),
-            (body && React.createElement("p", { className: 'react-orbitjs__error-message-body' }, body)) || null));
+        return (React.createElement("div", { className: "react-orbitjs__error-message-wrapper" },
+            React.createElement("div", { className: "react-orbitjs__error-message-title" }, title),
+            (body && React.createElement("p", { className: "react-orbitjs__error-message-body" }, body)) || null));
     }
 }
 exports.default = ErrorMessage;

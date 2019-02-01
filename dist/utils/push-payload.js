@@ -27,7 +27,7 @@ function pushPayload(store, payload, op = PAYLOAD_OPERATION.ADD_RECORD) {
         const resources = datas.concat(included);
         fixRelationships(store, resources);
         assignIdsToResources(resources, keyMap, schema);
-        yield store.update((q) => resources.map((resource) => {
+        yield store.update(q => resources.map(resource => {
             return q[op](resource);
         }), { skipRemote: true });
     });
@@ -43,8 +43,8 @@ function buildDatas(normalized) {
     return records;
 }
 function fixRelationships(store, resources) {
-    resources.forEach((resource) => {
-        Object.keys(resource.relationships || {}).forEach((relationName) => {
+    resources.forEach(resource => {
+        Object.keys(resource.relationships || {}).forEach(relationName => {
             const relation = resource.relationships[relationName] || {};
             if (!relation.data) {
                 relation.data = [];

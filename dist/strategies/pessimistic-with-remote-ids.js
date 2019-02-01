@@ -49,16 +49,13 @@ function createStore(baseUrl, schema, keyMap, options = {}) {
             },
         });
         // We don't want to have to query the API everytime we want data
-        this.coordinator = new coordinator_1.default({
-            sources: [
-                inMemory,
-                remote,
-            ],
+        const coordinator = new coordinator_1.default({
+            sources: [inMemory, remote],
         });
         // TODO: when there is a network error:
         // https://github.com/dgeb/test-ember-orbit/blob/master/app/data-strategies/remote-push-fail.js
         // Pull query results from the server
-        this.coordinator.addStrategy(new coordinator_1.RequestStrategy({
+        coordinator.addStrategy(new coordinator_1.RequestStrategy({
             name: 'inMemory-remote-query-pessimistic',
             source: 'inMemory',
             on: 'beforeQuery',
@@ -71,14 +68,13 @@ function createStore(baseUrl, schema, keyMap, options = {}) {
                 return keep;
             },
             catch(e) {
-                console.error('Could not pull from remote', e);
                 this.target.requestQueue.skip();
                 this.source.requestQueue.skip();
                 throw e;
             },
         }));
         // Push updates to the server
-        this.coordinator.addStrategy(new coordinator_1.RequestStrategy({
+        coordinator.addStrategy(new coordinator_1.RequestStrategy({
             name: 'inMemory-remote-update-pessimistic',
             source: 'inMemory',
             on: 'beforeUpdate',
@@ -91,25 +87,24 @@ function createStore(baseUrl, schema, keyMap, options = {}) {
                 return keep;
             },
             catch(e) {
-                console.error('Could not push to remote', e);
                 this.target.requestQueue.skip();
                 this.source.requestQueue.skip();
                 throw e;
             },
         }));
         if (opts.logging) {
-            this.coordinator.addStrategy(new coordinator_1.EventLoggingStrategy({
-                sources: ['remote', 'inMemory']
+            coordinator.addStrategy(new coordinator_1.EventLoggingStrategy({
+                sources: ['remote', 'inMemory'],
             }));
         }
         // sync all remote changes with the inMemory store
-        this.coordinator.addStrategy(new coordinator_1.SyncStrategy({
+        coordinator.addStrategy(new coordinator_1.SyncStrategy({
             source: 'remote',
             target: 'inMemory',
             blocking: true,
         }));
-        yield this.coordinator.activate();
-        return { store: inMemory, sources: { remote, inMemory }, };
+        yield coordinator.activate();
+        return { store: inMemory, sources: { remote, inMemory }, coordinator };
     });
 }
 exports.createStore = createStore;

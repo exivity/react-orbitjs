@@ -59,8 +59,6 @@ function isOperationRelevantToSubscriptions(dataStore, operation, subscriptions,
                 return true;
             }
             break;
-        default:
-            console.warn('This transform operation is not supported in react-orbitjs.');
     }
     return false;
 }
