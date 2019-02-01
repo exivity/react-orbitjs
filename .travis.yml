@@ -35,7 +35,7 @@ jobs:
         yarn: true
 
       # TODO: upload coverage to somewhere
-      script: COVERAGE=true ./run yarn && ./run yarn test:ci
+      script: COVERAGE=true yarn && yarn test
 
     - stage: "External Partner Tests"
       name: "SIL International: Scriptoria"
