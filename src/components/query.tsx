@@ -50,6 +50,13 @@ export function timeoutablePromise(timeoutMs: number, promise: Promise<any>) {
   return Promise.race([promise, timeout]);
 }
 
+const defaultOptions = {
+  passthroughError: false,
+  useRemoteDirectly: false,
+  mapResultsFn: null,
+  timeout: 5000,
+};
+
 // Example Usage
 //
 // import { query } from '@data';
@@ -74,7 +81,11 @@ export function timeoutablePromise(timeoutMs: number, promise: Promise<any>) {
 // TODO: what if we just use orbit directly? do we need react-orbitjs?
 export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
   let map: any;
-  const opts = options || { passthroughError: false, useRemoteDirectly: false, mapResultsFn: null };
+  const opts = {
+    ...defaultOptions,
+    ...(options || {}),
+  };
+
   const { passthroughError, useRemoteDirectly, mapResultsFn } = opts;
 
   if (typeof mapRecordsToProps !== 'function') {
@@ -144,8 +155,7 @@ export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
         });
 
         if (requestPromises.length > 0) {
-          await Promise.all(requestPromises);
-          // await timeoutablePromise(5000, Promise.all(requestPromises));
+          await timeoutablePromise(opts.timeout, Promise.all(requestPromises));
         }
 
         return responses;

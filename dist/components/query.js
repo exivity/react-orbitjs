@@ -106,8 +106,8 @@ function query(mapRecordsToProps, options) {
                         }
                     }));
                     if (requestPromises.length > 0) {
-                        yield Promise.all(requestPromises);
-                        // await timeoutablePromise(5000, Promise.all(requestPromises));
+                        // await Promise.all(requestPromises);
+                        yield timeoutablePromise(5000, Promise.all(requestPromises));
                     }
                     return responses;
                 });
