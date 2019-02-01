@@ -37,6 +37,6 @@ describe('Acceptance | Errors', () => {
   });
 
   it('renders an error', () => {
-    expect(app.pageText).to.include('NetworkError');
+    expect(app.pageText).to.include('error');
   }).timeout(5000);
 });
