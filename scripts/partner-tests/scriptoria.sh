@@ -5,7 +5,7 @@
 set -ex
 
 project_path="$TRAVIS_BUILD_DIR/tmp/partner-tests/sil/scriptoria"
-git_url="git@github.com:sillsdev/appbuilder-portal.git"
+git_url="https://github.com/sillsdev/appbuilder-portal.git"
 frontend_directory="$project_path/appbuilder-portal/source/SIL.AppBuilder.Portal.Frontend"
 
 mkdir -p $project_path
