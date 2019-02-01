@@ -15,7 +15,7 @@ git clone $git_url
 cd $frontend_directory
 
 # swap out react-orbitjs with the latest commit
-jq ".\"react-orbitjs\" = \"${TRAVIS_REPO_SLUG}#${TRAVIS_COMMIT}\""
+jq ".\"react-orbitjs\" = \"${TRAVIS_REPO_SLUG}#${TRAVIS_COMMIT}\"" package.json > package.tmp && mv package.tmp package.json
 
 yarn install
 yarn test:ci
