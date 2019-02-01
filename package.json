@@ -26,7 +26,8 @@
     "start": "webpack-dev-server --config webpack.docs.config.js",
     "karma:start": "yarn build && yarn karma start ./tests/karma.conf.js --fail-on-empty-test-suite",
     "test:watch:detached": "DETACHED=true yarn karma:start",
-    "test": "CI=true yarn karma:start --single-run"
+    "test": "CI=true yarn karma:start --single-run",
+    "lint:js": "yarn eslint . --ext .js --ext .ts --ext .jsx --ext .tsx"
   },
   "devDependencies": {
     "@bigtest/convergence": "^1.1.1",
@@ -47,9 +48,15 @@
     "@types/react-dom": "^16.0.9",
     "@types/react-router": "^4.4.3",
     "@types/react-router-dom": "^4.3.1",
+    "@typescript-eslint/eslint-plugin": "^1.2.0",
+    "@typescript-eslint/parser": "^1.2.0",
     "chai": "^4.2.0",
     "chai-subset": "^1.6.0",
     "copy-webpack-plugin": "^4.2.3",
+    "eslint": "^5.13.0",
+    "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-prettier": "^3.0.1",
     "html-webpack-plugin": "3.2.0",
     "karma": "^4.0.0",
     "karma-chai": "^0.1.0",
@@ -60,6 +67,7 @@
     "karma-mocha-reporter": "^2.2.5",
     "karma-webpack": "^3.0.5",
     "mocha": "^5.2.0",
+    "prettier": "^1.16.3",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-router-dom": "^4.3.1",

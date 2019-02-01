@@ -40,7 +40,7 @@ export function idFor(payload: any): string {
 
 export function idsForRelationship(collection, relationshipName) {
   const localIds = collection
-    .map((record) => {
+    .map(record => {
       const relationData = relationshipFor(record, relationshipName).data;
 
       if (!relationData) {
@@ -49,13 +49,13 @@ export function idsForRelationship(collection, relationshipName) {
 
       return localIdFromRecordIdentity(relationData);
     })
-    .filter((id) => id);
+    .filter(id => id);
 
   return localIds;
 }
 
 export function recordsWithIdIn(collection, ids) {
-  return collection.filter((record) => ids.includes(record.id));
+  return collection.filter(record => ids.includes(record.id));
 }
 
 export function relationshipsFor<TType extends string, TAttrs extends AttributesObject>(
@@ -95,7 +95,7 @@ export function isRelatedTo(payload: any, relationshipName: string, id: string):
   const relationData = relation.data || ({} as ResourceLinkage);
 
   if (Array.isArray(relationData)) {
-    return !!relationData.find((r) => {
+    return !!relationData.find(r => {
       return r.id === id || idFromRecordIdentity(r) === id;
     });
   }
@@ -132,7 +132,7 @@ export async function cachedWithRelationThrough(
 ) {
   const cacheResultsFromQuery = await store.cache.query(query);
   // if something doesn't have attributes, it hasn't been fetched from the remote
-  const cacheResults = cacheResultsFromQuery.filter((r) => r.attributes);
+  const cacheResults = cacheResultsFromQuery.filter(r => r.attributes);
 
   if (cacheResults.length === 0) {
     return [];
@@ -145,7 +145,7 @@ export async function cachedWithRelationThrough(
 
   const results: any = [];
 
-  const filterPromise = cacheResults.map(async (cacheResult) => {
+  const filterPromise = cacheResults.map(async cacheResult => {
     const relation = relationshipFor(cacheResult, throughRelationshipName);
     const { data: relationData } = relation;
 
@@ -153,7 +153,7 @@ export async function cachedWithRelationThrough(
       return false;
     }
 
-    const joinRecords = await store.cache.query((q) =>
+    const joinRecords = await store.cache.query(q =>
       q.findRelatedRecords(cacheResult, throughModelName)
     );
 
@@ -163,7 +163,7 @@ export async function cachedWithRelationThrough(
 
     // TODO: make this lookup the other side of the relationship in case the
     //       relationship name does not match the model name / type
-    const joinPromises = joinRecords.map((joinRecord) => {
+    const joinPromises = joinRecords.map(joinRecord => {
       const isRelated = isRelatedRecord(joinRecord, to as any);
 
       if (isRelated) {

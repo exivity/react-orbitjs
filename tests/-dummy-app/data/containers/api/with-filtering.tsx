@@ -39,19 +39,19 @@ const defaultOptions = {
 const validKeys = ['op', 'attribute', 'value'];
 
 export function withoutFilter(filters: IFilter[], filter: IFilter) {
-  const result = filters.filter((currentFilter) => {
+  const result = filters.filter(currentFilter => {
     const keys = Object.keys(filter);
     // ignore the value key, and make sure we only pull out
     // the existing filter(s) that are the same as the target filter
     const matches = keys
-      .map((key) => {
+      .map(key => {
         if (key === 'value') {
           return true;
         }
 
         return currentFilter[key] === filter[key];
       })
-      .every((b) => b);
+      .every(b => b);
 
     return !matches;
   });
@@ -72,12 +72,12 @@ export function withFiltering<TPassedProps>(opts: FnOrObject<TPassedProps, IFilt
   let optionsFunction;
 
   if (typeof opts !== 'function') {
-    optionsFunction = (props) => opts;
+    optionsFunction = props => opts;
   } else {
     optionsFunction = opts;
   }
 
-  return (WrappedComponent) => {
+  return WrappedComponent => {
     class FilterWrapper extends React.Component<{}, IState> {
       constructor(props) {
         super(props);
@@ -135,9 +135,9 @@ export function withFiltering<TPassedProps>(opts: FnOrObject<TPassedProps, IFilt
         const allFilters = [...filters, ...required];
         const filtersToApply = onCache ? allFilters.map(this._filterOperationMap) : allFilters;
 
-        const withMetaRemoved = filtersToApply.map((filter) => {
+        const withMetaRemoved = filtersToApply.map(filter => {
           const scrubbed = {};
-          validKeys.forEach((key) => {
+          validKeys.forEach(key => {
             if (filter[key]) {
               scrubbed[key] = filter[key];
             }

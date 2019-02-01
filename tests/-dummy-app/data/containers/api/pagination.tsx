@@ -41,7 +41,7 @@ export function withPagination<TPassedProps>(opts: IOptions = {}) {
     ...opts,
   };
 
-  return (WrappedComponent) => {
+  return WrappedComponent => {
     class PaginationWrapper extends React.Component<IProps & TPassedProps, IState> {
       state: IState = {};
 

@@ -94,8 +94,6 @@ function isOperationRelevantToSubscriptions<TQueryResults>(
       }
 
       break;
-    default:
-      console.warn('This transform operation is not supported in react-orbitjs.');
   }
 
   return false;
@@ -117,7 +115,7 @@ function wasRecordRemovedFromAnySubscription<TQueryResults>(
     // we don't need to check any of the query expressions
     let wasInPreviousResult = isRecordInList(
       record,
-      Array.isArray(previousResult) ? previousResult : [previousResult],
+      Array.isArray(previousResult) ? previousResult : [previousResult]
     );
 
     if (wasInPreviousResult) {

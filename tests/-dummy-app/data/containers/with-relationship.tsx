@@ -35,7 +35,7 @@ interface IState {
 //   }
 // })
 export function withRelationships<T>(mappingFn: (props: T) => MapFnResult) {
-  return (WrappedComponent) => {
+  return WrappedComponent => {
     class WithRelationship extends React.PureComponent<T & MapFnResult & WithDataProps, IState> {
       state = { isLoading: false, error: undefined, result: {} };
       isFetchingRelationships = false;
@@ -45,7 +45,7 @@ export function withRelationships<T>(mappingFn: (props: T) => MapFnResult) {
 
         const resultingRelationshipProps = {};
 
-        const promises = Object.keys(relationshipsToFind).map(async (resultKey) => {
+        const promises = Object.keys(relationshipsToFind).map(async resultKey => {
           const relationshipArgs = relationshipsToFind[resultKey];
 
           const relation = await retrieveRelation(dataStore, relationshipArgs);
@@ -140,12 +140,12 @@ async function retrieveManyToMany(
 ) {
   const [joinRelationship, targetRelationship] = relationshipPath;
 
-  const joins = dataStore.cache.query((q) => q.findRelatedRecords(sourceModel, joinRelationship));
+  const joins = dataStore.cache.query(q => q.findRelatedRecords(sourceModel, joinRelationship));
 
   // for each join record....
   const targets = [];
-  const promises = joins.map(async (joinRecord) => {
-    const target = await dataStore.cache.query((q) =>
+  const promises = joins.map(async joinRecord => {
+    const target = await dataStore.cache.query(q =>
       q.findRelatedRecord(joinRecord, targetRelationship)
     );
 

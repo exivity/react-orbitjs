@@ -2,7 +2,6 @@ import { beforeEach, afterEach } from '@bigtest/mocha';
 import { setupAppForTesting } from '@bigtest/react';
 import createHistory from 'history/createMemoryHistory';
 
-
 import Application from 'dummy-app/ui/application';
 
 import 'dummy-app/ui/styles/app.scss';

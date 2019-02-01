@@ -1,4 +1,3 @@
-
 import { RecordIdentity } from '@orbit/data';
 import { assert } from '@orbit/utils';
 import Store from '@orbit/store';
@@ -13,7 +12,6 @@ export interface IQueryOptions {
   fields?: { [key: string]: string[] | any };
   settings?: any;
 }
-
 
 interface IOrbitRemoteIdTracking {
   keys?: { remoteId: string };
@@ -70,10 +68,13 @@ export interface IIdentityFromKeys {
 }
 
 export function recordIdentityFromKeys(store: Store, { type, id, keys }: IIdentityFromKeys) {
-  assert(`type (${type}) and either id or keys must be specified`, type !== undefined && (id !== undefined || keys !== undefined));
+  assert(
+    `type (${type}) and either id or keys must be specified`,
+    type !== undefined && (id !== undefined || keys !== undefined)
+  );
 
   const { keyMap, schema } = store;
-  
+
   const recordIdentity: any = {
     type,
     keys: keys || { remoteId: keyMap.idToKey(type!, 'remoteId', id!) },

@@ -12,8 +12,7 @@ const schemaDefinition: SchemaSettings = {
         email: { type: 'string' },
         expires: { type: 'string' },
       },
-      relationships: {
-      }
+      relationships: {},
     },
   },
 };

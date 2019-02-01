@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export function waitFor<TWrappedProps>(resultKey: string, asyncFn: (props) => Promise<any>) {
-  return (WrappedComponent) => {
+  return WrappedComponent => {
     class WaitForWrapper extends React.Component<TWrappedProps> {
       constructor(props) {
         super(props);

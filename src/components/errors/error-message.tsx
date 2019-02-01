@@ -22,10 +22,10 @@ export default class ErrorMessage extends React.Component<IProps> {
     const { title, body } = parseError(error);
 
     return (
-      <div className='react-orbitjs__error-message-wrapper'>
-        <div className='react-orbitjs__error-message-title'>{title}</div>
+      <div className="react-orbitjs__error-message-wrapper">
+        <div className="react-orbitjs__error-message-title">{title}</div>
 
-        {(body && <p className='react-orbitjs__error-message-body'>{body}</p>) || null}
+        {(body && <p className="react-orbitjs__error-message-body">{body}</p>) || null}
       </div>
     );
   }

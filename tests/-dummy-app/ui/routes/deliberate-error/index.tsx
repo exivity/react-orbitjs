@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { compose } from 'recompose';
 
-import { IQueryProps, query} from 'react-orbitjs';
+import { IQueryProps, query } from 'react-orbitjs';
 import { withLoader } from 'dummy-app/data';
 import { QueryBuilder } from '@orbit/data';
 
@@ -25,4 +25,4 @@ export default compose<any, any>(
       {JSON.stringify(requests)}
     </div>
   );
-})
+});

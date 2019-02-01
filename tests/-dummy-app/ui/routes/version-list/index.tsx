@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { compose } from 'recompose';
 
-import { IQueryProps, query} from 'react-orbitjs';
+import { IQueryProps, query } from 'react-orbitjs';
 import { withLoader } from 'dummy-app/data';
 import { QueryBuilder } from '@orbit/data';
 
@@ -10,11 +10,14 @@ interface IQueriedProps {
 }
 
 export default compose<any, any>(
-  query(() => {
-    return {
-      requests: (q: QueryBuilder) => q.findRecords('request'),
-    };
-  }, { useRemoteDirectly: true }),
+  query(
+    () => {
+      return {
+        requests: (q: QueryBuilder) => q.findRecords('request'),
+      };
+    },
+    { useRemoteDirectly: true }
+  ),
   withLoader((props: IQueryProps<IQueriedProps>) => {
     return props.isLoading || !props.requests;
   })
@@ -25,4 +28,4 @@ export default compose<any, any>(
       {JSON.stringify(requests)}
     </div>
   );
-})
+});

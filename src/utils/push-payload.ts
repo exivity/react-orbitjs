@@ -23,8 +23,8 @@ export async function pushPayload(store: Store, payload: any, op = PAYLOAD_OPERA
   assignIdsToResources(resources, keyMap, schema);
 
   await store.update(
-    (q) =>
-      resources.map((resource) => {
+    q =>
+      resources.map(resource => {
         return q[op](resource);
       }),
     { skipRemote: true }
@@ -45,8 +45,8 @@ function buildDatas(normalized: any) {
 }
 
 function fixRelationships(store: Store, resources: any[]) {
-  resources.forEach((resource) => {
-    Object.keys(resource.relationships || {}).forEach((relationName) => {
+  resources.forEach(resource => {
+    Object.keys(resource.relationships || {}).forEach(relationName => {
       const relation = resource.relationships[relationName] || {};
 
       if (!relation.data) {

@@ -126,7 +126,8 @@ export function query<T>(mapRecordsToProps: any, options?: IQueryOptions) {
 
         const requestPromises = resultingKeys.map(async (key: string) => {
           const query = result[key];
-          const args: [(q: QueryBuilder) => QueryExpression] = typeof query === 'function' ? [query] : query;
+          const args: [(q: QueryBuilder) => QueryExpression] =
+            typeof query === 'function' ? [query] : query;
 
           try {
             const queryResult = await (querier as JSONAPISource).query(...args);

@@ -1,0 +1,8 @@
+/node_modules
+/scripts
+/src/public
+/src/locales
+/dist
+/coverage
+.git
+/tests/-dummy-app

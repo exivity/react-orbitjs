@@ -2,9 +2,7 @@ import { describe, it, beforeEach } from '@bigtest/mocha';
 import { visit, location } from '@bigtest/react';
 import { when } from '@bigtest/convergence';
 import { expect } from 'chai';
-import {
-  setupApplicationTest,
-} from 'tests/helpers';
+import { setupApplicationTest } from 'tests/helpers';
 
 import app from 'tests/helpers/pages/app';
 
@@ -19,7 +17,7 @@ describe('Acceptance | Basic Fetching', () => {
     expect(location().pathname).to.equal('/');
   });
 
-  it ('shows the loader initially', () => {
+  it('shows the loader initially', () => {
     expect(app.pageText).to.not.include('fetch result');
     expect(app.pageText).to.include('Loading');
   });
@@ -41,4 +39,4 @@ describe('Acceptance | Errors', () => {
   it('renders an error', () => {
     expect(app.pageText).to.include('NetworkError');
   }).timeout(5000);
-})
+});

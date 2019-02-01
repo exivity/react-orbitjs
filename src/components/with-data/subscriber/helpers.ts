@@ -1,18 +1,29 @@
-import Store from "@orbit/store";
-import { assert } from "@orbit/utils";
+import Store from '@orbit/store';
+import { assert } from '@orbit/utils';
 
 export function modelForRelationOf(dataStore: Store, type: string, relationship: string) {
-    const model = modelOfType(dataStore, type);
+  const model = modelOfType(dataStore, type);
 
-    const modelRelationship = model!.relationships![relationship];
+  assert(
+    `model or relationship could not be found for the ${type}'s ${relationship}`,
+    !!(model && model.relationships)
+  );
 
-    assert(`relationship ${relationship} was not found in model ${type}`, modelRelationship !== undefined);
+  const modelRelationship = model!.relationships![relationship];
 
-    const relatedModel = modelRelationship.model;
+  assert(
+    `relationship ${relationship} was not found in model ${type}`,
+    modelRelationship !== undefined
+  );
 
-    assert(`there is no model for the relationship ${relationship} on ${type}`, relatedModel !== undefined);
+  const relatedModel = modelRelationship.model;
 
-    return relatedModel;
+  assert(
+    `there is no model for the relationship ${relationship} on ${type}`,
+    relatedModel !== undefined
+  );
+
+  return relatedModel;
 }
 
 export function modelOfType(dataStore: Store, type: string) {
@@ -36,7 +47,7 @@ export function areArraysShallowlyEqual<T>(a: T[], b: T[]): boolean {
 
   let eachContainsAllValues = true;
 
-  for(let i = 0; i < a.length; i++) {
+  for (let i = 0; i < a.length; i++) {
     if (!b.includes(a[i])) {
       eachContainsAllValues = false;
       break;

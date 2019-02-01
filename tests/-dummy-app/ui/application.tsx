@@ -34,7 +34,7 @@ export default class Application extends React.Component<IProps> {
 
     return (
       <APIProvider {...dataProps}>
-        <Router {...(routerProps as RouterProps)}>
+        <Router {...routerProps as RouterProps}>
           <RootRoute />
         </Router>
       </APIProvider>

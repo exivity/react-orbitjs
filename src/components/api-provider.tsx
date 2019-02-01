@@ -28,7 +28,7 @@ export class APIProvider extends React.Component<IProps, IState> {
   }
 
   async initDataStore() {
-    const { store, sources } = await this.props.storeCreator()
+    const { store, sources } = await this.props.storeCreator();
 
     this.setState({ store, sources });
   }

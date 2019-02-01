@@ -26,7 +26,7 @@ export interface ISortOptions {
 export function withSorting(options) {
   const { defaultSort } = options;
 
-  return (WrappedComponent) => {
+  return WrappedComponent => {
     class SortWrapper extends React.Component<any, { sortProperty: string }> {
       state = { sortProperty: defaultSort || '' };
 

@@ -11,7 +11,7 @@ import {
 } from '@bigtest/interactor';
 
 class App {
-  pageText = text()
+  pageText = text();
 }
 
 export type TAppInteractor = App & Interactor;

@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-
 import Store from '@orbit/store';
 import { Source, QueryOrExpression, TransformOrOperations } from '@orbit/data';
 
@@ -16,7 +15,7 @@ export interface IState {
   sources: { [sourceName: string]: Source };
 
   // legacy API
-  updateStore: (queryOrExpression: TransformOrOperations, options?: object, id?: string) => any; 
+  updateStore: (queryOrExpression: TransformOrOperations, options?: object, id?: string) => any;
   queryStore: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => any;
 }
 
@@ -29,19 +28,15 @@ export class DataProvider extends React.Component<IProps, IState> {
     this.state = {
       dataStore: props.dataStore,
       sources: props.sources,
-      
+
       // legacy API
       updateStore: (...args) => props.dataStore.update(...args),
-      queryStore: (...args) => props.dataStore.query(...args)
+      queryStore: (...args) => props.dataStore.query(...args),
     };
   }
 
   render() {
-    return (
-      <OrbitContext.Provider value={this.state}>
-        {this.props.children}
-      </OrbitContext.Provider>
-    );
+    return <OrbitContext.Provider value={this.state}>{this.props.children}</OrbitContext.Provider>;
   }
 }
 

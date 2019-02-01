@@ -8,10 +8,10 @@ export default class RootPage extends React.Component {
   render() {
     return (
       <div>
-          <Switch>
-            <Route exact path='/' component={VersionList} />
-            <Route path='/deliberate-error' component={DeliberateError} />
-          </Switch>
+        <Switch>
+          <Route exact path="/" component={VersionList} />
+          <Route path="/deliberate-error" component={DeliberateError} />
+        </Switch>
       </div>
     );
   }

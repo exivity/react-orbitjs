@@ -1,8 +1,6 @@
 import * as React from 'react';
 
-export function withLoader<TWrappedProps>(
-  isLoading: (props: TWrappedProps) => boolean,
-) {
+export function withLoader<TWrappedProps>(isLoading: (props: TWrappedProps) => boolean) {
   const Loader = () => <div>Loading...</div>;
 
   return WrappedComponent => {

@@ -14,8 +14,7 @@ jobs:
       node_js: "8"
       cache:
         yarn: true
-
-      script: ./run yarn && ./run yarn lint --quiet
+      script: yarn && yarn lint:js --quiet
 
     - stage: "Quality"
       name: "Frontend Typechecking"
@@ -23,8 +22,7 @@ jobs:
       node_js: "8"
       cache:
         yarn: true
-
-      script: ./run yarn && ./run yarn tsc --noEmit
+      script: .yarn && yarn tsc --noEmit
 
     - stage: "Tests"
       name: "Frontend Tests"

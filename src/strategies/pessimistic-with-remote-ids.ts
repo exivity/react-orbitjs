@@ -28,12 +28,17 @@ export interface ICreateStoreOptions {
 }
 
 export interface ICreateStoreResult {
-  sources: { [sourceName: string]: Source};
+  sources: { [sourceName: string]: Source };
   store: Store;
-  coordinator: Coordinator
+  coordinator: Coordinator;
 }
 
-export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMap, options: ICreateStoreOptions = {}): Promise<ICreateStoreResult> {
+export async function createStore(
+  baseUrl: string,
+  schema: Schema,
+  keyMap: KeyMap,
+  options: ICreateStoreOptions = {}
+): Promise<ICreateStoreResult> {
   const opts = {
     logging: false,
     ...options,
@@ -62,10 +67,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
 
   // We don't want to have to query the API everytime we want data
   const coordinator = new Coordinator({
-    sources: [
-      inMemory,
-      remote,
-    ],
+    sources: [inMemory, remote],
   });
 
   // TODO: when there is a network error:
@@ -89,7 +91,6 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
       },
 
       catch(e: Error) {
-        console.error('Could not pull from remote', e);
         this.target.requestQueue.skip();
         this.source.requestQueue.skip();
 
@@ -116,7 +117,6 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
       },
 
       catch(e: Error) {
-        console.error('Could not push to remote', e);
         this.target.requestQueue.skip();
         this.source.requestQueue.skip();
 
@@ -126,11 +126,12 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
   );
 
   if (opts.logging) {
-    coordinator.addStrategy(new EventLoggingStrategy({
-      sources: ['remote', 'inMemory']
-    }));  
+    coordinator.addStrategy(
+      new EventLoggingStrategy({
+        sources: ['remote', 'inMemory'],
+      })
+    );
   }
-
 
   // sync all remote changes with the inMemory store
   coordinator.addStrategy(
@@ -143,5 +144,5 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
 
   await coordinator.activate();
 
-  return { store: inMemory, sources: { remote, inMemory }, coordinator, };
+  return { store: inMemory, sources: { remote, inMemory }, coordinator };
 }
