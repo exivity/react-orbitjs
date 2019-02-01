@@ -30,6 +30,7 @@ export interface ICreateStoreOptions {
 export interface ICreateStoreResult {
   sources: { [sourceName: string]: Source};
   store: Store;
+  coordinator: Coordinator
 }
 
 export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMap, options: ICreateStoreOptions = {}): Promise<ICreateStoreResult> {
@@ -60,7 +61,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
   });
 
   // We don't want to have to query the API everytime we want data
-  this.coordinator = new Coordinator({
+  const coordinator = new Coordinator({
     sources: [
       inMemory,
       remote,
@@ -71,7 +72,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
   // https://github.com/dgeb/test-ember-orbit/blob/master/app/data-strategies/remote-push-fail.js
 
   // Pull query results from the server
-  this.coordinator.addStrategy(
+  coordinator.addStrategy(
     new RequestStrategy({
       name: 'inMemory-remote-query-pessimistic',
       source: 'inMemory',
@@ -98,7 +99,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
   );
 
   // Push updates to the server
-  this.coordinator.addStrategy(
+  coordinator.addStrategy(
     new RequestStrategy({
       name: 'inMemory-remote-update-pessimistic',
       source: 'inMemory',
@@ -125,14 +126,14 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
   );
 
   if (opts.logging) {
-    this.coordinator.addStrategy(new EventLoggingStrategy({
+    coordinator.addStrategy(new EventLoggingStrategy({
       sources: ['remote', 'inMemory']
     }));  
   }
 
 
   // sync all remote changes with the inMemory store
-  this.coordinator.addStrategy(
+  coordinator.addStrategy(
     new SyncStrategy({
       source: 'remote',
       target: 'inMemory',
@@ -140,7 +141,7 @@ export async function createStore(baseUrl: string, schema: Schema, keyMap: KeyMa
     })
   );
 
-  await this.coordinator.activate();
+  await coordinator.activate();
 
-  return { store: inMemory, sources: { remote, inMemory }, };
+  return { store: inMemory, sources: { remote, inMemory }, coordinator, };
 }
