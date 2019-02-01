@@ -22,7 +22,7 @@ jobs:
       node_js: "8"
       cache:
         yarn: true
-      script: .yarn && yarn tsc --noEmit
+      script: yarn && yarn tsc --noEmit
 
     - stage: "Tests"
       name: "Frontend Tests"
