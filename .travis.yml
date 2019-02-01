@@ -9,7 +9,7 @@ stages:
 jobs:
   include:
     - stage: "Quality"
-      name: "Frontend Linting"
+      name: "Linting"
       language: node_js
       node_js: "8"
       cache:
@@ -17,7 +17,7 @@ jobs:
       script: yarn && yarn lint:js --quiet
 
     - stage: "Quality"
-      name: "Frontend Typechecking"
+      name: "Typechecking"
       language: node_js
       node_js: "8"
       cache:
