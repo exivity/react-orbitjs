@@ -9,8 +9,8 @@ class DataProvider extends React.Component {
             dataStore: props.dataStore,
             sources: props.sources,
             // legacy API
-            updateStore: (...args) => props.dataStore.update(...args),
-            queryStore: (...args) => props.dataStore.query(...args),
+            updateStore: props.dataStore.update.bind(props.dataStore),
+            queryStore: props.dataStore.query.bind(props.dataStore),
         };
     }
     render() {
