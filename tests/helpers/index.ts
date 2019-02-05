@@ -1,0 +1,1 @@
+export { setupApplicationTest } from './mounting';

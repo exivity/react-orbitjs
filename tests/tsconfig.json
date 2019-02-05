@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist/tests",
+    "target": "es6",
+    "jsx": "react",
+    "module": "commonjs",
+    "lib": ["es2018", "dom"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": false,
+    "experimentalDecorators": true,
+    "sourceMap": false,
+    "allowJs": true,
+    "noResolve": false,
+    "noImplicitReturns": true,
+    "noEmit": true,
+    "noImplicitThis": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "paths": {
+      // TODO: why doesn't the dist directory work?
+      "react-orbitjs*": ["../src*"],
+      "react-orbitjs": ["../src"],
+      "dummy-app*": ["../tests/-dummy-app*"],
+      "tests*": ["../tests*"],
+      "*": ["../types/*"]
+    }
+  },
+  "include": [
+    "types",
+    "tests",
+    "src",
+    "dist"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

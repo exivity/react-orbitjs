@@ -1,3 +1,7 @@
+### build
+# disabled for now, because we aren't publishing an npm package yet
+# /dist
+
 ### IDEs
 /.idea/
 

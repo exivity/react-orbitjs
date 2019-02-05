@@ -1,13 +1,48 @@
-language: node_js
-node_js:
-  - "6"
-  - "7"
-  - "8"
-  - "9"
-cache: yarn
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+env:
+  global:
+    - MOZ_HEADLESS=1
+
+stages:
+  - "Quality"
+  - "Tests"
+
+jobs:
+  include:
+    - stage: "Quality"
+      name: "Linting"
+      language: node_js
+      node_js: "8"
+      cache:
+        yarn: true
+      script: yarn && yarn lint:js --quiet
+
+    - stage: "Quality"
+      name: "Typechecking"
+      language: node_js
+      node_js: "8"
+      cache:
+        yarn: true
+      script: yarn && yarn tsc --noEmit
+
+    - stage: "Tests"
+      name: "Frontend Tests"
+      addons:
+        chrome: stable
+
+      language: node_js
+      node_js: "8"
+      cache:
+        yarn: true
+
+      # TODO: upload coverage to somewhere
+      script: COVERAGE=true yarn && yarn test
+
+    - stage: "External Partner Tests"
+      name: "SIL International: Scriptoria"
+      language: node_js
+      node_js: "8"
+      addons:
+        apt:
+          packages:
+            - jq
+      script: ./scripts/partner-tests/scriptoria.sh
