@@ -1,13 +1,10 @@
 react-orbitjs
 =============
 
-[![npm](https://img.shields.io/npm/v/react-orbitjs.svg)](https://www.npmjs.com/package/react-orbitjs)
-[![Travis](https://img.shields.io/travis/exivity/react-orbitjs.svg)](https://travis-ci.org/exivity/react-orbitjs)
-[![Codecov](https://img.shields.io/codecov/c/github/exivity/react-orbitjs.svg)](https://codecov.io/gh/exivity/react-orbitjs)
-[![Code Climate](https://img.shields.io/codeclimate/maintainability/exivity/react-orbitjs.svg)](https://codeclimate.com/github/exivity/react-orbitjs)
-[![Gitter](https://badges.gitter.im/exivity/react-orbitjs.svg)](https://gitter.im/exivity/react-orbitjs)
+[![Travis](https://img.shields.io/travis/developertown/react-orbitjs.svg)](https://travis-ci.org/developertown/react-orbitjs)
+[![Maintainability](https://api.codeclimate.com/v1/badges/9755e12c66ccc470efad/maintainability)](https://codeclimate.com/github/developertown/react-orbitjs/maintainability)
 
-[React](https://reactjs.org/) bindings for [Orbit](http://orbitjs.com/).
+[React](https://reactjs.org/) bindings for [Orbit.js](http://orbitjs.com/).
 
 This package attempts to make it easier to work with
 [Orbit.js](http://orbitjs.com/) in a [React](https://reactjs.org/)
@@ -17,35 +14,69 @@ with [redux](https://github.com/reactjs/redux/) in combination with
 [react-redux](https://github.com/reactjs/react-redux), you already know
 how to use this package.
 
----
-
-### [Documentation & Demo](https://exivity.github.io/react-orbitjs/)
-
----
-
-A big thank you to the author and contributers of the popular
-[react-redux](https://github.com/reactjs/react-redux) package, as
-react-orbitjs is largely based on their code.
-
 Installation
 ------------
 
-_react-orbitjs requires React 15 and Orbit 0.15 or later._
-
-_npm_
-
-```
-npm install --save react-orbitjs
-```
+_react-orbitjs requires React 16 and Orbit 0.15 or later._
 
 _yarn_
 
 ```
-yarn add react-orbitjs
+yarn add developertown/react-orbitjs
 ```
+Note: there is no published npm package at the moment, but part of C.I. is testing the latest build against projects that use this library.
+
+See: "External partner tests" in travis.
 
 API
 ---
+
+ - Context / Data Store Access
+  - `OribtProvider`
+  - `APIProvider`
+  - `withOrbit`
+
+ - Utilities
+  - `query`
+  - `strategies`
+    - `pessimisticWithRemoteIds`
+  - Errors 
+    - `ErrorMessage`
+    - `parseError`
+  - Utils
+    - `pushPayload`
+    - `recordIdentityFrom`
+    - `localIdFromRecordIdentity`
+    - `remoteIdentityFrom`
+    - `attributesFor`
+
+
+### `<OrbitProvider />`
+
+### `<APIProvider />`
+
+### `withOrbit`
+
+### `query`
+
+### `strategies`
+
+### `pessimisticWithRemoteIds`
+
+### `<ErrorMessage />`
+
+### `parseError`
+
+### `pushPayload`
+
+### `recordIdentityFrom`
+### `localIdFromRecordIdentity`
+### `remoteIdentityFrom`
+### `attributesFor`
+
+
+
+--- old docs
 
 ### `<DataProvider/>`
 
