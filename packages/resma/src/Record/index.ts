@@ -1,5 +1,7 @@
 import produce from 'immer'
 
+import { hasRelationship, getRelationship, removeHasMany } from './helpers'
+
 export interface RecordIdentifier {
   id?: string
   type: string
@@ -50,14 +52,14 @@ export class Record {
     return this
   }
 
-  addHasOne = (relationship: string, record: RecordIdentifier): this => {
+  addHasOne = (relationship: string, recordIdentifier: RecordIdentifier): this => {
     this.record = produce<IRecord, void, IRecord>(this.record, draft => {
-      if (draft.relationships && draft.relationships[relationship]) {
-        draft.relationships[relationship].data = record
+      if (hasRelationship.call(draft, relationship)) {
+        draft.relationships![relationship].data = recordIdentifier
       } else {
         draft.relationships = { 
           [relationship]: {
-            data: record 
+            data: recordIdentifier
           }
         }
       }
@@ -67,14 +69,14 @@ export class Record {
     return this
   }
 
-  addHasMany = (relationship: string, record: RecordIdentifier): this => {
+  addHasMany = (relationship: string, recordIdentifier: RecordIdentifier): this => {
     this.record = produce<IRecord, void, IRecord>(this.record, draft => {
-      if (draft.relationships && draft.relationships[relationship]) {
-        draft.relationships[relationship].data.push(record)
+      if (hasRelationship.call(draft, relationship)) {
+        draft.relationships![relationship].data.push(recordIdentifier)
       } else {
         draft.relationships = { 
           [relationship]: {
-            data: [ record ] 
+            data: [ recordIdentifier ] 
           }
         }
       }
@@ -82,5 +84,16 @@ export class Record {
 
     this.listener(this.record)
     return this
+  }
+
+
+  removeRelationship = (relationship: string, relatedId: string) => { 
+    this.record = produce<IRecord, void, IRecord>(this.record, draft => {
+      if (hasRelationship.call(draft, relationship)) {
+        draft.relationships![relationship].data = Array.isArray(getRelationship.call(draft, relationship))
+          ? removeHasMany.call(draft, relationship, relatedId)
+          : {}
+      }
+    })
   }
 }

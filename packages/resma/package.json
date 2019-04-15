@@ -1,6 +1,6 @@
 {
   "name": "resma",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Record state manager according to json:api specs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
