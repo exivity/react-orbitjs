@@ -95,5 +95,8 @@ export class Record {
           : {}
       }
     })
+
+    this.listener(this.record)
+    return this
   }
 }
