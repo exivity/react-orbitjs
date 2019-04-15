@@ -1,8 +1,11 @@
 import produce from 'immer'
 
-export interface IRecord {
+export interface RecordIdentifier {
   id?: string
   type: string
+}
+
+export interface IRecord extends RecordIdentifier {
   attributes: {
     [key: string]: any
   }
@@ -47,14 +50,31 @@ export class Record {
     return this
   }
 
-  addRelationship = (relationship: string, record: object): this => {
+  addHasOne = (relationship: string, record: RecordIdentifier): this => {
     this.record = produce<IRecord, void, IRecord>(this.record, draft => {
-      if (draft.relationships) {
-        draft.relationships[relationship] = { data: record }
+      if (draft.relationships && draft.relationships[relationship]) {
+        draft.relationships[relationship].data = record
       } else {
         draft.relationships = { 
           [relationship]: {
             data: record 
+          }
+        }
+      }
+    })
+
+    this.listener(this.record)
+    return this
+  }
+
+  addHasMany = (relationship: string, record: RecordIdentifier): this => {
+    this.record = produce<IRecord, void, IRecord>(this.record, draft => {
+      if (draft.relationships && draft.relationships[relationship]) {
+        draft.relationships[relationship].data.push(record)
+      } else {
+        draft.relationships = { 
+          [relationship]: {
+            data: [ record ] 
           }
         }
       }
