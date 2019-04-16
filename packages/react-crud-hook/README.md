@@ -114,9 +114,9 @@ const ReactComponent = () => {
 
 ### `Methods`
 
-| Name | Parameter types | Description
+| Name | Parameters | Description
 |:---- |:---------- |:-----------
-| ```setAttribute(  attribute,  value  )``` | ```string, any``` | Use ```setAttribute``` to update a record attribute.
+| setAttribute | attribute, value | Use ```setAttribute``` to update a record attribute.
 | addHasMany | ```relationship: string```  ```record: RecordIdentifier``` | Use ```addHasMany``` to add a **hasMany** related record.
 | addHasOne | ```relationship: string```  ```record: RecordIdentifier``` | Use ```addHasOne``` to add or replace a **hasOne** related record.
 | removeRelationship | ```relationship: string```  ```relatedId: string``` | Use ```removeRelationship``` to remove a **hasOne** or **hasMany** related record.
