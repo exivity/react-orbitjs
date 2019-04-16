@@ -138,7 +138,7 @@ Callbacks are handled by the manager and enriched with the extensions you provid
 
 | Callback | arguments | Description
 |:---------|:-----------|:-----------
-| beforeCreate | record, extensions | You can return a Promise that either returns a new record which it then will use for the create operation or a truthy otr falsy value. A truthy value will let the operation proceed and a falsy value will abort it.
+| beforeCreate | record, extensions | You can return a Promise that either returns a new record which it then will use for the create operation or a truthy or falsy value. Instead of a Promise you can also just directly return a truthy/falsy value A truthy value will let the operation proceed and a falsy value will abort it.
 | onCreate | record, extensions | onCreate will be called on fulfillment of the operation.
 | beforeUpdate | record, extensions | Works like beforeCreate.
 | onUpdate | record, extensions | Works like onCreate.
