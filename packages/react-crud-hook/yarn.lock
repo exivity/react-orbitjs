@@ -37,10 +37,10 @@ immer@^2.1.5:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
-lemon-curd@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/lemon-curd/-/lemon-curd-0.0.1.tgz#c9586e20c5513d5195522cb01cd42be96d569580"
-  integrity sha512-qtIp07gpX7lVLFiflUhr8EhPBGJsHhA97U5ohuJ/KxgXVLHcDfd1cuesbluR47/ED+1GC+tmgVIns2E9gR2KiQ==
+lemon-curd@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/lemon-curd/-/lemon-curd-0.0.2.tgz#e9bed4337fd2e3292fce42db6c340669f1f50d87"
+  integrity sha512-mK2hftbp/Lz64JazTJ/EbVGXBlWgNRmjSczEvdRaKFpFlGPagwKSu7qW6Bj0kp3KKLM6iz+TXS87Brrk1Z33ag==
 
 loose-envify@^1.1.0, loose-envify@^1.4.0:
   version "1.4.0"
