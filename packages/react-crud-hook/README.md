@@ -131,7 +131,20 @@ const ReactComponent = () => {
 | relationship | string
 | RecordIdentifier | ```{ id: string, type: string }```
 | RelatedId | string
-| options | 
+| options | ```{ ...standardCallbacks, ...customOptions }``` 
+
+### `Standard callbacks and custom options`
+Callbacks are handled by the manager. Custom options are passed to each crud function (provided in to the manager) as second argument. You can use the following callbacks:
+
+| Callback | arguments | Description
+|:---------|:-----------|:-----------
+| beforeCreate | record, extensions | You can return a Promise that either returns a new record which it then will use for the create operation or a truthy otr falsy value. A truthy value will let the operation proceed and a falsy value will abort it.
+| onCreate | record, extensions | onCreate will be called on fulfillment of the operation.
+| beforeUpdate | record, extensions | Works like beforeCreate.
+| onUpdate | record, extensions | Works like onCreate.
+| beforeDelete | record, extensions | Works like beforeCreate.
+| onDelete | recordIdentifier, extensions | Works like onCreate.
+ 
 
 License
 -------
