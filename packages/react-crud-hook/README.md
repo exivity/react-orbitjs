@@ -106,8 +106,8 @@ const ReactComponent = () => {
 
 ### `Methods`
 
-Name | Parameters | Description
----- | ---------- | -----------
+:Name |: Parameters |: Description
+ ---- |  ---------- | -----------
 setAttribute | attribute: string, value: any | Use setAttribute to update a record attribute.
 
 License
