@@ -108,7 +108,7 @@ const ReactComponent = () => {
 
 | Name | Parameters | Description
 |:---- |:---------- |:-----------
-| setAttribute | attribute: string, value: any | Use setAttribute to update a record attribute.
+| setAttribute | ```attribute: string, value: any``` | Use ```setAttribute``` to update a record attribute.
 
 License
 -------
