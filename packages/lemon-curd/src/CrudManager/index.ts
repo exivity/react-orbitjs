@@ -19,10 +19,10 @@ export interface Crud {
 }
 
 export class CrudManager {
-  operations: Crud
+  _operations: Crud
 
   constructor (operations: Crud) {
-    this.operations = operations
+    this._operations = operations
   }
 
   _isRecord = (record: IRecord|boolean|void) => record && record.hasOwnProperty('type')
@@ -35,7 +35,7 @@ export class CrudManager {
     onCallback?: OnCallback,
     onErrorCallback?: OnErrorCallback
   ) => {
-    const { extensions } = this.operations
+    const { extensions } = this._operations
     
     if (beforeCallback) {
       const resultBeforeCallback = await beforeCallback(record, extensions)
@@ -47,11 +47,11 @@ export class CrudManager {
         operation(isRecord, options)
           .then(onFulfilled(extensions, onCallback))
           .catch(onThrow(extensions, isRecord, onErrorCallback))
-      } else {
-        operation(record, options)
-          .then(onFulfilled(extensions, onCallback))
-          .catch(onThrow(extensions, record, onErrorCallback))
       }
+    } else {
+      operation(record, options)
+        .then(onFulfilled(extensions, onCallback))
+        .catch(onThrow(extensions, record, onErrorCallback))
     }
   }
 
@@ -66,7 +66,7 @@ export class CrudManager {
       ...options
     }: Options
   ) => {
-    const { createRecord, updateRecord } = this.operations
+    const { createRecord, updateRecord } = this._operations
     
     record.id 
       ? this._operation(updateRecord, record, options, beforeUpdate, onUpdate, onError)
@@ -82,7 +82,7 @@ export class CrudManager {
       ...options 
     }: Options
   ) => {
-    const { deleteRecord } = this.operations
+    const { deleteRecord } = this._operations
 
     this._operation(deleteRecord, record, options, beforeDelete, onDelete, onError)
   }
