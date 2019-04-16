@@ -64,7 +64,7 @@ export class CrudManager {
       onUpdate,
       onError,
       ...options
-    }: Options
+    }: Options = {}
   ) => {
     const { createRecord, updateRecord } = this._operations
     
