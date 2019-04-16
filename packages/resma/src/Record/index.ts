@@ -56,6 +56,8 @@ export class Record {
     this.record = produce<IRecord, void, IRecord>(this.record, draft => {
       if (hasRelationship.call(draft, relationship)) {
         draft.relationships![relationship].data = recordIdentifier
+      } else if (draft.relationships) {
+        draft.relationships[relationship] = { data: recordIdentifier }
       } else {
         draft.relationships = { 
           [relationship]: {
@@ -73,10 +75,12 @@ export class Record {
     this.record = produce<IRecord, void, IRecord>(this.record, draft => {
       if (hasRelationship.call(draft, relationship)) {
         draft.relationships![relationship].data.push(recordIdentifier)
+      } else if (draft.relationships) {
+        draft.relationships[relationship] = { data: [ recordIdentifier ] }
       } else {
         draft.relationships = { 
           [relationship]: {
-            data: [ recordIdentifier ] 
+            data: [ recordIdentifier ]
           }
         }
       }
