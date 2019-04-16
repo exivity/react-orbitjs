@@ -3,7 +3,7 @@ react-crud-hook
 
 [React](https://reactjs.org/) hook for CRUD-operations and record state management.
 
-This package attempts to make it easier to perform CRUD-operations while also providing methods to set attributes and relationships on a record.
+This package attempts to make it easier to perform CRUD-operations while also providing methods to set attributes and relationships on a record. Records should conform to the JSON:API specs - https://jsonapi.org/
 
 ---
 
@@ -65,7 +65,6 @@ ReactDOM.render(
 ```jsx
 import useCrud from 'react-crud-hook'
 
-// Record according to JSON:API specs - https://jsonapi.org/
 const record = {
   type: 'user',
   id: '1',
