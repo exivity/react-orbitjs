@@ -1,0 +1,30 @@
+{
+  "name": "react-crud-hook",
+  "version": "0.0.1",
+  "description": "React crud hook - uses crud global crud manager",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rm -rf ./lib && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Michiel87/react-crud-hook.git"
+  },
+  "author": "Michiel de Vos <Michiel_87@hotmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Michiel87/react-crud-hook/issues"
+  },
+  "homepage": "https://github.com/Michiel87/react-crud-hook#readme",
+  "devDependencies": {
+    "@types/react": "^16.8.13",
+    "@types/react-dom": "^16.8.4",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "typescript": "^3.4.3"
+  },
+  "dependencies": {
+    "lemon-curd": "^0.0.1",
+    "resma": "^0.0.5"
+  }
+}
