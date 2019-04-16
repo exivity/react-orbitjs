@@ -124,6 +124,14 @@ const ReactComponent = () => {
 | delete | options? | Use ```delete``` to delete a record.
 
 ### `Parameter types`
+| Parameter | Type
+|:--------- |:----
+| attribute | string
+| value | any
+| relationship | string
+| RecordIdentifier | ```{ id: string, type: string }```
+| RelatedId | string
+| options | 
 
 License
 -------
