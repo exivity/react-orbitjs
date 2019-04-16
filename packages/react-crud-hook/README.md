@@ -94,7 +94,8 @@ const ReactComponent = () => {
           extensions.router.push(`/user/${user.id}`)
         }
 
-        // You can also include custom properties that will be passed on to the CRUD // /// functions as second argument
+        // You can also include custom properties that will be passed on to the CRUD-functions 
+        // as second argument
         include: {
           .........
         }
