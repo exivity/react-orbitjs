@@ -123,6 +123,8 @@ const ReactComponent = () => {
 | save | options? | Use ```save``` to persist a record - ```save``` will determine by the presence of an **id** whether to *create* or *update*. Alongside of the standard callbacks you can provide custom options which will be passed to the provider crud-functions as second argument. 
 | delete | options? | Use ```delete``` to delete a record.
 
+### `Parameter types`
+
 License
 -------
 
