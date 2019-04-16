@@ -16,8 +16,13 @@ export function useCrud (record: IRecord) {
   return useMemo(() => {
     const CrudRecord = new Record(record, updater) as CrudRecord
 
-    CrudRecord.save = crudManager.save
-    CrudRecord.delete = crudManager.delete
+    CrudRecord.save = function (options: Options) {
+      return crudManager.save(CrudRecord, options)
+    }
+    
+    CrudRecord.delete = function (options: Options) {
+      return crudManager.delete(CrudRecord, options)
+    }
 
     return CrudRecord
   }, [record])
