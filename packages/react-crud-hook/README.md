@@ -116,10 +116,10 @@ const ReactComponent = () => {
 
 | Name | Parameters | Description
 |:---- |:---------- |:-----------
-| setAttribute | ```attribute: string, value: any``` | Use ```setAttribute``` to update a record attribute.
-| addHasMany | ```relationship: string, record: RecordIdentifier``` | Use ```addHasMany``` to add a **hasMany** related record.
-| addHasOne | ```relationship: string, record: RecordIdentifier``` | Use ```addHasOne``` to add or replace a **hasOne** related record.
-| removeRelationship | ```relationship: string, relatedId: string``` | Use ```removeRelationship``` to remove a **hasOne** or **hasMany** related record.
+| setAttribute | ```attribute: string```  ```value: any``` | Use ```setAttribute``` to update a record attribute.
+| addHasMany | ```relationship: string```  ```record: RecordIdentifier``` | Use ```addHasMany``` to add a **hasMany** related record.
+| addHasOne | ```relationship: string```  ```record: RecordIdentifier``` | Use ```addHasOne``` to add or replace a **hasOne** related record.
+| removeRelationship | ```relationship: string```  ```relatedId: string``` | Use ```removeRelationship``` to remove a **hasOne** or **hasMany** related record.
 | save | ```options?: { ...standardCallback, ...customOptions }``` | Use ```save``` to persist a record - ```save``` will determine by the presence of an **id** whether to *create* or *update*. Alongside of the standard callbacks you can provide custom options which will be passed to the provider crud-functions as second argument. 
 | delete | ```options?: { ...standardCallback, ...customOptions }``` | Use ```delete``` to delete a record.
 
