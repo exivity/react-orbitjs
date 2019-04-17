@@ -17,11 +17,11 @@ export function useCrud (record: IRecord) {
     const CrudRecord = new Record(record, updater) as CrudRecord
 
     CrudRecord.save = function (options: Options) {
-      return crudManager.save(CrudRecord, options)
+      return crudManager.save(CrudRecord.record, options)
     }
-    
+
     CrudRecord.delete = function (options: Options) {
-      return crudManager.delete(CrudRecord, options)
+      return crudManager.delete(CrudRecord.record, options)
     }
 
     return CrudRecord

@@ -125,6 +125,7 @@ const ReactComponent = () => {
 | delete | options? | Use ```delete``` to delete a record.
 
 ### `Parameter types`
+
 | Parameter | Type
 |:--------- |:----
 | attribute | string
@@ -135,6 +136,7 @@ const ReactComponent = () => {
 | options | ```{ ...standardCallbacks, ...customOptions }``` 
 
 ### `Standard callbacks and custom options`
+
 Callbacks are handled by the manager and enriched with the extensions you provide to the CrudManager. Custom options are passed to each crud function (provided to the CrudManager) as second argument. You can use the following callbacks:
 
 | Callback | arguments | Description
