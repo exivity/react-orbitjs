@@ -95,7 +95,7 @@ const ReactComponent = () => {
         }
 
         // You can also include custom properties that will be passed on to the CRUD-functions 
-        // as second argument
+        // as second argument, such as a include property:
         include: {
           .........
         }
