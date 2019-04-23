@@ -1,0 +1,20 @@
+{
+  "name": "orbit-query-manager",
+  "version": "0.0.0",
+  "description": "orbit query manager",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf ./dist && tsc"
+  },
+  "author": "Stefan Wullems <stefan@exivity.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^3.4.3",
+    "jest": "^24.7.1"
+  },
+  "dependencies": {
+    "@orbit/data": "^0.15.23",
+    "@orbit/store": "^0.15.25"
+  }
+}
