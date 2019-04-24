@@ -19,41 +19,41 @@ export interface IRecord extends RecordIdentifier {
 export type Listener = (record: IRecord) => void
 
 export class Record {
-  record: IRecord
+  _record: IRecord
   listener: Listener
   
   constructor (record: IRecord, listener: Listener) {
     this.listener = listener
-    this.record = record
+    this._record = record
   }
 
   get id () {
-    return this.record.id
+    return this._record.id
   }
 
   get type () {
-    return this.record.type
+    return this._record.type
   }
 
   get attributes () {
-    return this.record.attributes
+    return this._record.attributes
   }
 
   get relationships () {
-    return this.record.relationships
+    return this._record.relationships
   }
 
   setAttribute = curryFn((attribute: string, value: any): this => {
-    this.record = produce(this.record, draft => {
+    this._record = produce(this._record, draft => {
         draft.attributes[attribute] = value
     })
 
-    this.listener(this.record)
+    this.listener(this._record)
     return this
   })
 
   addHasOne = curryFn((relationship: string, recordIdentifier: RecordIdentifier): this => {
-    this.record = produce<IRecord, void, IRecord>(this.record, draft => {
+    this._record = produce<IRecord, void, IRecord>(this._record, draft => {
       if (hasRelationship.call(draft, relationship)) {
         draft.relationships![relationship].data = recordIdentifier
       } else if (draft.relationships) {
@@ -67,12 +67,12 @@ export class Record {
       }
     })
 
-    this.listener(this.record)
+    this.listener(this._record)
     return this
   })
 
   addHasMany = curryFn((relationship: string, recordIdentifier: RecordIdentifier): this => {
-    this.record = produce<IRecord, void, IRecord>(this.record, draft => {
+    this._record = produce<IRecord, void, IRecord>(this._record, draft => {
       if (hasRelationship.call(draft, relationship)) {
         draft.relationships![relationship].data.push(recordIdentifier)
       } else if (draft.relationships) {
@@ -86,12 +86,12 @@ export class Record {
       }
     })
 
-    this.listener(this.record)
+    this.listener(this._record)
     return this
   })
 
   removeRelationship = curryFn((relationship: string, relatedId: string) => {
-    this.record = produce<IRecord, void, IRecord>(this.record, draft => {
+    this._record = produce<IRecord, void, IRecord>(this._record, draft => {
       if (hasRelationship.call(draft, relationship)) {
         draft.relationships![relationship].data = Array.isArray(getRelationship.call(draft, relationship))
           ? removeHasMany.call(draft, relationship, relatedId)
@@ -99,7 +99,7 @@ export class Record {
       }
     })
 
-    this.listener(this.record)
+    this.listener(this._record)
     return this
   })
 }
