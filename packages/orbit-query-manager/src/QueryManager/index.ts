@@ -8,16 +8,18 @@ import {
   OnErrorCallback,
   Options,
   Queries,
-  Expression
+  Term,
+  OngoingQueries,
+  RecordObject
 } from './types'
 
 export class QueryManager<E extends {} = any>  {
   _extensions: E
   _store: Store
   _queryResults: any
-  _ongoingQueries: any
+  _ongoingQueries: OngoingQueries
 
-  constructor(orbitStore: Store, extensions?: E) {
+  constructor (orbitStore: Store, extensions?: E) {
     // @ts-ignore
     this._extensions = extensions || { hello: 'hi' }
     this._store = orbitStore
@@ -25,44 +27,72 @@ export class QueryManager<E extends {} = any>  {
     this._ongoingQueries = {}
   }
 
-  query<R extends Record = any> (queries: Queries) {
-    const expressions = Object.keys(queries).sort().map(
+  query (queries: Queries, options: Options<E> = {}) {
+    const terms = Object.keys(queries).sort().map(
       (key) => ({ key, expression: queries[key](this._store.queryBuilder).expression })
     )
 
-    let uniqueKey = JSON.stringify(expressions)
+    let uniqueKey = JSON.stringify(terms)
+
+    terms.forEach(({ expression }) => {
+      options.beforeQuery && options.beforeQuery(expression, this._extensions)
+    })
 
     let queryRef: string
     if (this._ongoingQueries[uniqueKey]) {
       // queryRef = this._listen(uniqueKey)
     } else {
-      queryRef = this._query<R>(uniqueKey, expressions)
+      queryRef = this._query(uniqueKey, terms, options)
     }
 
     // return queryRef
 
   }
 
-  _query<R extends Record> (
+  _query (
     uniqueKey: string,
-    expressions: Expression[],
-    options?: Options<R, E>
+    expressions: Term[],
+    options: Options<E>
   ) {
+
     const queryRef = this._generateQueryRef(uniqueKey)
 
     this._queryResults[queryRef] = { error: null, loading: true, listeners: 1, result: null }
 
-    const results = expressions.map(
-      ({ key, expression }) =>
-        new Promise((resolve) => {
+    const results: Promise<RecordObject>[] = expressions.map(
+      ({ key, expression }) => {
+        return new Promise((resolve) => {
           this._store.query(expression).then(record => resolve({ [key]: record }))
         })
+      }
     )
 
-    // Promise.all(results)
+    this._ongoingQueries[uniqueKey] = { results, listeners: 0, queryRef }
 
-    return queryRef
+    return this._listen(uniqueKey, options)
   }
+
+  _listen (uniqueKey: string, options: Options<E>) {
+
+    const ongoingQuery = this._ongoingQueries[uniqueKey]
+
+    ongoingQuery.listeners++
+
+    const self = this
+    Promise.all(ongoingQuery.results).then((results) => self._onQueryResolve(results, options, uniqueKey))
+
+    return ongoingQuery.queryRef
+  }
+
+  _onQueryResolve (results: RecordObject[], options: Options<E>, uniqueKey: string) {
+    console.log(results)
+    console.log(this._ongoingQueries[uniqueKey].results)
+
+    // options.onQuery && options.onQuery(results, this._extensions)
+    this._ongoingQueries[uniqueKey].listeners--
+
+  }
+
 
   _generateQueryRef (uniqueKey: string) {
     let i = 1
