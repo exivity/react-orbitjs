@@ -1,6 +1,6 @@
 import produce from 'immer'
 
-import { hasRelationship, getRelationship, removeHasMany } from './helpers'
+import { hasRelationship, getRelationship, removeHasMany, curryFn } from './helpers'
 
 export interface RecordIdentifier {
   id?: string
@@ -43,16 +43,16 @@ export class Record {
     return this.record.relationships
   }
 
-  setAttribute = (attribute: string, value: any): this => {
+  setAttribute = curryFn((attribute: string, value: any): this => {
     this.record = produce(this.record, draft => {
-      draft.attributes[attribute] = value
+        draft.attributes[attribute] = value
     })
 
     this.listener(this.record)
     return this
-  }
+  })
 
-  addHasOne = (relationship: string, recordIdentifier: RecordIdentifier): this => {
+  addHasOne = curryFn((relationship: string, recordIdentifier: RecordIdentifier): this => {
     this.record = produce<IRecord, void, IRecord>(this.record, draft => {
       if (hasRelationship.call(draft, relationship)) {
         draft.relationships![relationship].data = recordIdentifier
@@ -69,9 +69,9 @@ export class Record {
 
     this.listener(this.record)
     return this
-  }
+  })
 
-  addHasMany = (relationship: string, recordIdentifier: RecordIdentifier): this => {
+  addHasMany = curryFn((relationship: string, recordIdentifier: RecordIdentifier): this => {
     this.record = produce<IRecord, void, IRecord>(this.record, draft => {
       if (hasRelationship.call(draft, relationship)) {
         draft.relationships![relationship].data.push(recordIdentifier)
@@ -88,10 +88,9 @@ export class Record {
 
     this.listener(this.record)
     return this
-  }
+  })
 
-
-  removeRelationship = (relationship: string, relatedId: string) => { 
+  removeRelationship = curryFn((relationship: string, relatedId: string) => {
     this.record = produce<IRecord, void, IRecord>(this.record, draft => {
       if (hasRelationship.call(draft, relationship)) {
         draft.relationships![relationship].data = Array.isArray(getRelationship.call(draft, relationship))
@@ -102,5 +101,5 @@ export class Record {
 
     this.listener(this.record)
     return this
-  }
+  })
 }
