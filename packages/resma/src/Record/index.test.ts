@@ -162,5 +162,24 @@ describe('Record class', () => {
     expect(record._record).not.toBe(testRecord)
     expect(mockListener).toBeCalledWith(record._record)
   })
+
+  test('chaining methods', () => {
+    const mockListener = jest.fn()
+    const record = new Record(testRecord, mockListener)
+
+    const newCeo = { type: 'ceo', id: '3'}
+    const newPhoto = { type: 'photo', id: '1'}
+
+    record
+       .setAttribute('name', 'Michiel de Vos')
+       .addHasOne('ceo', newCeo)
+       .addHasMany('photos', newPhoto)
+       .removeRelationship('employees', '1')
+
+    expect(record.attributes.name).toBe('Michiel de Vos')
+    expect(record.relationships && record.relationships.ceo.data).toBe(newCeo)
+    expect(record.relationships && record.relationships.photos.data).toEqual([newPhoto])
+    expect(record.relationships && record.relationships.employees.data).toEqual([])
+  })
 })
 
