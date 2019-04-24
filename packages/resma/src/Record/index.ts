@@ -20,10 +20,10 @@ export type Listener = (record: IRecord) => void
 
 export class Record {
   _record: IRecord
-  listener: Listener
+  _listener: Listener
   
   constructor (record: IRecord, listener: Listener) {
-    this.listener = listener
+    this._listener = listener
     this._record = record
   }
 
@@ -48,7 +48,7 @@ export class Record {
         draft.attributes[attribute] = value
     })
 
-    this.listener(this._record)
+    this._listener(this._record)
     return this
   })
 
@@ -67,7 +67,7 @@ export class Record {
       }
     })
 
-    this.listener(this._record)
+    this._listener(this._record)
     return this
   })
 
@@ -86,7 +86,7 @@ export class Record {
       }
     })
 
-    this.listener(this._record)
+    this._listener(this._record)
     return this
   })
 
@@ -99,7 +99,7 @@ export class Record {
       }
     })
 
-    this.listener(this._record)
+    this._listener(this._record)
     return this
   })
 }
