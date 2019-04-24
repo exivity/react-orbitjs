@@ -88,10 +88,10 @@ react@^16.8.6:
     prop-types "^15.6.2"
     scheduler "^0.13.6"
 
-resma@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/resma/-/resma-0.0.5.tgz#cd312c80dfd709d926993d306cd8d4512ad8b4f1"
-  integrity sha512-rrpXakacYQtUkhARqn0Be86b0nJC2YYs8fiz+f/cMoY76K06txhSCXpQK7gKgpHvd8Xu0SXSMlsp1DryovQZcQ==
+resma@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/resma/-/resma-0.0.6.tgz#4ae2b399f3ef435425fdb41c02d9c24cf20cc9e6"
+  integrity sha512-c5x1GNEGEUCjRFEc1NVYDyekdEDzdxn1XcErPQOA51U/4k3kP1meFMKFA7PDY2rmW3l9fC7hVF/1wbC85xHdQw==
   dependencies:
     immer "^2.1.5"
     typescript "^3.4.3"

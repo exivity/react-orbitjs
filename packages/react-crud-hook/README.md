@@ -115,6 +115,8 @@ const ReactComponent = () => {
 
 ### `Methods`
 
+All the following methods, except for save and delete, can be curried by providing only the first argument.
+
 | Name | Parameters | Description
 |:---- |:---------- |:-----------
 | setAttribute | attribute, value | Use ```setAttribute``` to update a record attribute.
@@ -147,6 +149,7 @@ Callbacks are handled by the manager and enriched with the extensions you provid
 | onUpdate | record, extensions | Works like onCreate.
 | beforeDelete | record, extensions | Works like beforeCreate.
 | onDelete | recordIdentifier, extensions | Works like onCreate.
+| onError | error, record, extensions | If a operation (promise) catches, onError will be called.
  
 
 License

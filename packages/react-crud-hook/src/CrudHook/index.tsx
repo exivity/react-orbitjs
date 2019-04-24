@@ -10,7 +10,7 @@ export interface CrudRecord extends Record {
 }
 
 export function useCrud (record: IRecord) {
-  const [reactRecord, updater] = useState()
+  const [unUsedStateValue, updater] = useState({})
   const crudManager = useContext(CrudContext)
 
   return useMemo(() => {
