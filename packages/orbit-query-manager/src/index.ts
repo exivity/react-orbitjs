@@ -1,2 +1,2 @@
 export * from './QueryManager'
-export * from './QueryManager/types'
+export * from './types'
