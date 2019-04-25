@@ -57,7 +57,7 @@ export class CrudManager {
 
   save = (
     record: IRecord, 
-    { 
+    {
       beforeCreate,
       beforeUpdate,
       onCreate,
@@ -73,14 +73,14 @@ export class CrudManager {
       : this._operation(createRecord, record, options, beforeCreate, onCreate, onError)
   }
 
-  delete = async (
+  delete = (
     record: IRecord, 
     { 
       beforeDelete, 
       onDelete, 
       onError, 
       ...options 
-    }: Options
+    }: Options = {}
   ) => {
     const { deleteRecord } = this._operations
 
