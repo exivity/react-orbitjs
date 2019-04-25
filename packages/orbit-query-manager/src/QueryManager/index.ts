@@ -1,5 +1,5 @@
 import Store from '@orbit/store'
-import { Schema, QueryBuilder, Record } from '@orbit/data';
+import { Schema, QueryBuilder, Record, TransformBuilder } from '@orbit/data';
 
 import { onFulfilled, onThrow } from './helpers'
 import {
@@ -27,7 +27,7 @@ export class QueryManager<E extends {} = any>  {
     this._ongoingQueries = {}
   }
 
-  query (queries: Queries, options: Options<E> = {}) {
+  query (queries: Queries, listener: () => void, options: Options<E> = {}) {
     const terms = Object.keys(queries).sort().map(
       (key) => ({ key, expression: queries[key](this._store.queryBuilder).expression })
     )
@@ -38,61 +38,62 @@ export class QueryManager<E extends {} = any>  {
       options.beforeQuery && options.beforeQuery(expression, this._extensions)
     })
 
-    let queryRef: string
     if (this._ongoingQueries[uniqueKey]) {
-      // queryRef = this._listen(uniqueKey)
+      return this._listen(uniqueKey, listener, options)
     } else {
-      queryRef = this._query(uniqueKey, terms, options)
+      this._query(uniqueKey, terms)
+      return this._listen(uniqueKey, listener, options)
     }
-
-    // return queryRef
-
   }
 
   _query (
     uniqueKey: string,
-    expressions: Term[],
-    options: Options<E>
+    expressions: Term[]
   ) {
-
     const queryRef = this._generateQueryRef(uniqueKey)
 
     this._queryResults[queryRef] = { error: null, loading: true, listeners: 1, result: null }
 
-    const results: Promise<RecordObject>[] = expressions.map(
+    const queries: Promise<RecordObject>[] = expressions.map(
       ({ key, expression }) => {
         return new Promise((resolve) => {
-          this._store.query(expression).then(record => resolve({ [key]: record }))
+
+          this._store.query(expression).then(record => {
+            resolve({ [key]: record })
+          })
         })
       }
     )
 
-    this._ongoingQueries[uniqueKey] = { results, listeners: 0, queryRef }
-
-    return this._listen(uniqueKey, options)
+    this._ongoingQueries[uniqueKey] = { queries, listeners: 0, queryRef }
   }
 
-  _listen (uniqueKey: string, options: Options<E>) {
+  _listen (uniqueKey: string, listener: () => void, options: Options<E>) {
 
     const ongoingQuery = this._ongoingQueries[uniqueKey]
 
     ongoingQuery.listeners++
 
     const self = this
-    Promise.all(ongoingQuery.results).then((results) => self._onQueryResolve(results, options, uniqueKey))
+    Promise.all(ongoingQuery.queries).then((results) => {
+      self._onQueryResolve(results, uniqueKey, listener, options)
+    })
 
     return ongoingQuery.queryRef
   }
 
-  _onQueryResolve (results: RecordObject[], options: Options<E>, uniqueKey: string) {
-    console.log(results)
-    console.log(this._ongoingQueries[uniqueKey].results)
+  _onQueryResolve (results: RecordObject[], uniqueKey: string, listener: () => void, options: Options<E>) {
+    const resultObject = results.reduce((acc, result) => ({ ...acc, ...result }), {})
+    options.onQuery && options.onQuery(resultObject, this._extensions)
 
-    // options.onQuery && options.onQuery(results, this._extensions)
+    listener()
     this._ongoingQueries[uniqueKey].listeners--
 
+    if (this._ongoingQueries[uniqueKey].listeners === 0) {
+      delete this._ongoingQueries[uniqueKey]
+    }
+    console.log(this._ongoingQueries[uniqueKey])
   }
-
 
   _generateQueryRef (uniqueKey: string) {
     let i = 1
@@ -105,11 +106,37 @@ export class QueryManager<E extends {} = any>  {
   }
 }
 
-const manager = new QueryManager(new Store({ schema: new Schema() }))
+const store = new Store({
+  schema: new Schema({
+    models: {
+      account: {
+        attributes: {}
+      }
+    }
+  })
+})
+
+store.update((t: TransformBuilder) => [
+  t.addRecord({ type: 'account', id: '1' }),
+  t.addRecord({ type: 'account', id: '2' }),
+  t.addRecord({ type: 'account', id: '3' }),
+  t.addRecord({ type: 'account', id: '4' })
+])
+
+const manager = new QueryManager(store)
+
+const listener = () => console.log('hi')
 
 manager.query({
   Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' }),
   Account2: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '2' }),
   Account3: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '3' }),
   Account4: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '4' }),
-})
+}, listener)
+
+manager.query({
+  Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' }),
+  Account2: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '2' }),
+  Account3: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '3' }),
+  Account4: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '4' }),
+}, listener)

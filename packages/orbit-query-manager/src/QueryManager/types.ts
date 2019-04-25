@@ -22,7 +22,7 @@ export interface RecordObject {
 }
 
 export interface OngoingQuery {
-  results: Promise<RecordObject>[],
+  queries: Promise<RecordObject>[],
   listeners: number,
   queryRef: string
 }
