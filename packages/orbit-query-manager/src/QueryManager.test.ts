@@ -21,8 +21,7 @@ store.update((t: TransformBuilder) => [
 
 const manager = new QueryManager(store, { hello: 'hi' })
 
-const listener = () => { }
-
+// test('')
 // manager.query({
 //   Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' }),
 //   Account2: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '2' }),

@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@orbit/data": "^0.15.23",
-    "@orbit/store": "^0.15.25"
+    "@orbit/store": "^0.15.25",
+    "@types/jest": "^24.0.11"
   }
 }

@@ -33,7 +33,7 @@ export interface OngoingQueries {
   [key: string]: OngoingQuery
 }
 
-export interface QueryCache {
+export interface Subscription {
   error: null | Error,
   loading: boolean,
   terms: Term[]
@@ -41,13 +41,14 @@ export interface QueryCache {
   result: null | RecordObject
 }
 
-export interface QueryResults {
-  [key: string]: QueryCache
+export interface Subscriptions {
+  [key: string]: Subscription
 }
 
-export interface Interests {
-  types: string[]
-  records: {
-    [key: string]: string[]
-  }
+export interface RelatedRecords {
+  owner: RecordIdentity
+  relationship: string
+  inverse: string
+  identity: RecordIdentity | null
+  type: 'hasOne' | 'hasMany'
 }
