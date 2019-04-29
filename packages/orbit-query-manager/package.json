@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf ./dist && tsc"
+    "build": "rm -rf ./dist && tsc",
+    "test": "jest --watch"
   },
   "author": "Stefan Wullems <stefan@exivity.com>",
   "license": "ISC",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@orbit/data": "^0.15.23",
     "@orbit/store": "^0.15.25",
-    "@types/jest": "^24.0.11"
+    "@types/jest": "^24.0.11",
+    "ts-jest": "^24.0.2"
   }
 }

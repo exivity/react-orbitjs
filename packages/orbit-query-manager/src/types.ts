@@ -10,6 +10,7 @@ export interface Options<E extends {} = { [key: string]: any }> {
   beforeQuery?: BeforeCallback<E>
   onQuery?: OnCallback<E>
   onError?: OnErrorCallback<E>
+  initialFetch: boolean
   [key: string]: any
 }
 
@@ -38,17 +39,8 @@ export interface Subscription {
   loading: boolean,
   terms: Term[]
   listeners: number,
-  result: null | RecordObject
 }
 
 export interface Subscriptions {
   [key: string]: Subscription
-}
-
-export interface RelatedRecords {
-  owner: RecordIdentity
-  relationship: string
-  inverse: string
-  identity: RecordIdentity | null
-  type: 'hasOne' | 'hasMany'
 }
