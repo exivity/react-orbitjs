@@ -4,9 +4,6 @@ node_js:
 
 script: echo "Running tests against $(node -v) ..."
 
-stages: 
-  - test
-
 jobs:
   include:
     - stage: build
