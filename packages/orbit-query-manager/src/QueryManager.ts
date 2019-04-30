@@ -10,9 +10,14 @@ import {
   Subscriptions,
   QueryRefs,
   Statuses,
+  BeforeCallback,
+  QueryOptions,
+  OnErrorCallback,
+  OnCallback,
+  QueryCacheOptions,
 } from './types'
-import { Transform, RecordOperation, RecordIdentity } from '@orbit/data';
-import { identityIsEqual } from './helpers';
+import { Transform, RecordOperation, RecordIdentity } from '@orbit/data'
+import { identityIsEqual } from './helpers'
 
 export class QueryManager<E extends { [key: string]: any } = any>  {
   _extensions: E
@@ -31,15 +36,11 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     this.statuses = {}
   }
 
-  query (queries: Queries, options: Options<E> = { initialFetch: false }): QueryRefs {
+  query (queries: Queries, initialFetch: boolean = false): QueryRefs {
 
     const terms = Object.keys(queries).sort().map(
       (key) => ({ key, expression: queries[key](this._store.queryBuilder).expression as Expressions })
     )
-
-    terms.forEach(({ expression }) => {
-      options.beforeQuery && options.beforeQuery(expression, this._extensions)
-    })
 
     let queryRef = JSON.stringify(terms)
 
@@ -47,7 +48,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
 
     const ongoingIdenticalQuery = this._ongoingQueries[queryRef]
 
-    if (options.initialFetch) {
+    if (initialFetch) {
       if (!ongoingIdenticalQuery) {
         const statusRef = this._query(queryRef, terms)
 
@@ -77,6 +78,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
         })
       )
 
+    // The statuses[statusRef] object can be deleted before this gets called if client unsubscribes
     Promise.all(queries)
       .then(() => {
         if (this.statuses[statusRef]) {
@@ -95,6 +97,34 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     return statusRef
   }
 
+  queryCache (terms: Term[], { beforeQuery, onQuery, onError }: QueryCacheOptions<E> = {}): RecordObject | null {
+    let cancel = false
+    if (beforeQuery) {
+      for (let i = 0; i < terms.length; i++) {
+        const result = beforeQuery(terms[i].expression, this._extensions)
+        if (result === true) {
+          cancel = true
+          break
+        }
+      }
+    }
+
+    if (!cancel) {
+      try {
+        const res = terms.map(({ key, expression }) =>
+          ({ [key]: this._store.cache.query(expression) })
+        ).reduce((acc, result) => ({ ...acc, ...result }), {})
+
+        onQuery && onQuery(res, this._extensions)
+        return res
+      } catch (err) {
+        onError && onError(err, this._extensions)
+      }
+    }
+
+    return null
+  }
+
   _generateStatusRef (queryRef: string) {
     let i = 1
     while (true) {
@@ -104,40 +134,28 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     }
   }
 
-  subscribe (queryRef: string, listener: () => void, options: Options<E> = { initialFetch: false }) {
+  subscribe (queryRef: string, listener: () => void) {
     this.subscriptions[queryRef].listeners++
 
-    if (this._ongoingQueries[queryRef]) this._subscribeToFetch(queryRef, listener, options)
-
-    this._subscribeToCache(queryRef, listener, options)
+    if (this._ongoingQueries[queryRef]) this._subscribeToFetch(queryRef, listener)
+    this._subscribeToCache(queryRef, listener)
   }
 
-  _subscribeToFetch (queryRef: string, listener: () => void, options: Options<E>) {
+  _subscribeToFetch (queryRef: string, listener: () => void) {
     this._ongoingQueries[queryRef].listeners++
 
     return Promise.all(this._ongoingQueries[queryRef].queries)
-      .then((results) => this._onQueryResolve(results, queryRef, listener, options))
-      .catch(error => this._onQueryError(error, queryRef, listener, options))
+      .then(results => {
+        listener()
+        this._unsubscribeToFetch(queryRef)
+      })
+      .catch(error => {
+        listener()
+        this._unsubscribeToFetch(queryRef)
+      })
   }
 
-  _onQueryResolve (results: RecordObject[], queryRef: string, listener: () => void, options: Options<E>) {
-    const resultObject = results.reduce((acc, result) => ({ ...acc, ...result }), {})
-
-    options.onQuery && options.onQuery(resultObject, this._extensions)
-
-    listener()
-    this._unsubscribeToFetch(queryRef)
-  }
-
-  _onQueryError (error: Error, queryRef: string, listener: () => void, options: Options<E>) {
-    if (options.onError) options.onError(error, this._extensions)
-
-    listener()
-    this._unsubscribeToFetch(queryRef)
-  }
-
-
-  _subscribeToCache (queryRef: string, listener: () => void, options: Options<E>) {
+  _subscribeToCache (queryRef: string, listener: () => void) {
     this._store.on('transform', this._compare.bind(this, queryRef, listener))
   }
 

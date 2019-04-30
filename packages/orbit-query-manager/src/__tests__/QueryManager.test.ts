@@ -38,7 +38,7 @@ const store = new Store({
 
 let manager: QueryManager
 beforeEach(() => {
-  manager = new QueryManager(store.fork())
+  manager = new QueryManager(store.fork(), { skip: ['account'] })
 })
 
 test('QueryManager.query(...) should return a queryRef', async (done) => {
@@ -57,10 +57,10 @@ test('QueryManager.subscribe(...) subscribes you to the request being made', asy
 
   const { queryRef } = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, { initialFetch: true })
+  }, true)
 
   const subscription = new Promise(resolve => {
-    manager.subscribe(queryRef, () => { resolve('done') }, { initialFetch: true })
+    manager.subscribe(queryRef, () => { resolve('done') })
   })
 
   expect(await subscription).toBe('done')
@@ -72,11 +72,11 @@ test('QueryManager.subscribe(...) will return a ref to the same subscription obj
 
   const query1 = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, { initialFetch: true })
+  }, true)
 
   const query2 = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, { initialFetch: true })
+  }, true)
 
   manager.subscribe(query1.queryRef, () => { })
   manager.subscribe(query2.queryRef, () => { })
@@ -91,11 +91,11 @@ test('QueryManager.subscribe(...) will subscribe to an ongoing identical query i
 
   const query1 = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, { initialFetch: true })
+  }, true)
 
   const query2 = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, { initialFetch: true })
+  }, true)
 
   manager.subscribe(query1.queryRef, () => { })
   manager.subscribe(query2.queryRef, () => { })
@@ -138,13 +138,13 @@ test('QueryManager.unsubscribe(...) delete statuses object when there are no lis
 
   const query1 = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, { initialFetch: true })
+  }, true)
 
   expect(manager.statuses[query1.statusRef!].listeners).toBe(1)
 
   const query2 = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, { initialFetch: true })
+  }, true)
 
   expect(manager.statuses[query2.statusRef!].listeners).toBe(2)
 
@@ -157,6 +157,114 @@ test('QueryManager.unsubscribe(...) delete statuses object when there are no lis
   manager.unsubscribe(query2)
   expect(manager.statuses[query1.statusRef!]).toBeUndefined()
 
+  done()
+})
+
+test('QueryManager.queryCache(...) returns null if no match is found', () => {
+  const query = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  })
+
+  manager.subscribe(query.queryRef, () => { })
+
+  const result = manager.queryCache(manager.subscriptions[query.queryRef].terms)
+
+  expect(result).toBe(null)
+})
+
+test('QueryManager.queryCache(...) returns an object when a match is found', async done => {
+  const query = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  })
+
+  const subscription = new Promise((resolve) => {
+    // @ts-ignore
+    manager.subscribe(query.queryRef, () => { resolve(manager.queryCache(manager.subscriptions[query.queryRef].terms)) })
+  })
+
+  manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+
+  expect(await subscription).toMatchObject({ Account: { type: 'account', id: '1' } })
+  done()
+})
+
+test('QueryManager.queryCache(...) gets cancelled when beforeQuery returns true', async done => {
+
+  const query = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  })
+
+  const subscription = new Promise((resolve) => {
+    manager.subscribe(query.queryRef, () => {
+      // @ts-ignore
+      resolve(manager.queryCache(manager.subscriptions[query.queryRef].terms,
+        {
+          beforeQuery: (expression: any, extensions: any) => {
+            // extensions.skip: ['account'] as defined at the top of the file
+            if (extensions.skip.includes(expression.record.type)) {
+              return true
+            }
+          }
+        }
+      ))
+    })
+  })
+
+  manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+
+  expect(await subscription).toBe(null)
+  done()
+})
+
+test('QueryManager.queryCache(...) calls onQuery with the results', async done => {
+
+  const query = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  })
+
+  const subscription = new Promise((resolve) => {
+    manager.subscribe(query.queryRef, () => {
+      // @ts-ignore
+      manager.queryCache(manager.subscriptions[query.queryRef].terms,
+        {
+          onQuery: (results, extensions) => {
+            resolve(results)
+          }
+        }
+      )
+    })
+  })
+
+  manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+
+  expect(await subscription).toMatchObject({ Account: { type: 'account', id: '1' } })
+  done()
+})
+
+test('QueryManager.queryCache(...) calls onError when no matches are found', async done => {
+
+  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+
+  const query = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  })
+
+  const subscription = new Promise((resolve) => {
+    manager.subscribe(query.queryRef, () => {
+      // @ts-ignore
+      manager.queryCache(manager.subscriptions[query.queryRef].terms,
+        {
+          onError: (err, extensions) => {
+            resolve(err.message)
+          }
+        }
+      )
+    })
+  })
+
+  manager._store.update(t => t.removeRecord({ type: 'account', id: '1' }))
+
+  expect(await subscription).toBeDefined()
   done()
 })
 
@@ -195,7 +303,6 @@ describe('QueryManager._shouldUpdate(...)', () => {
   })
 
   test('It should return true with any other operation if a relatedRecord matches an expression (hasOne)', async (done) => {
-
     await manager._store.update(t => [
       t.addRecord({ type: 'account', id: '1' }),
       t.addRecord({ type: 'profile', id: '1' }),

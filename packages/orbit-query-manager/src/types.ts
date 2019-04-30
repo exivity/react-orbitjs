@@ -1,6 +1,6 @@
-import { Record, QueryBuilder, QueryTerm, QueryExpression, RecordIdentity, FindRecord, FindRelatedRecord, FindRecords, FindRelatedRecords } from '@orbit/data'
+import { Record, QueryBuilder, QueryTerm, QueryExpression, FindRecord, FindRelatedRecord, FindRecords, FindRelatedRecords } from '@orbit/data'
 
-export type BeforeCallback<E extends {}> = (expression: QueryExpression, extensions: Readonly<E>) => void
+export type BeforeCallback<E extends {}> = (expression: QueryExpression, extensions: Readonly<E>) => boolean | void
 
 export type OnCallback<E extends {}> = (records: RecordObject, extensions: Readonly<E>) => void
 
@@ -10,8 +10,17 @@ export interface Options<E extends {} = { [key: string]: any }> {
   beforeQuery?: BeforeCallback<E>
   onQuery?: OnCallback<E>
   onError?: OnErrorCallback<E>
+}
+
+export interface QueryOptions<E> {
+  beforeQuery?: BeforeCallback<E>
   initialFetch: boolean
-  [key: string]: any
+}
+
+export interface QueryCacheOptions<E> {
+  beforeQuery?: BeforeCallback<E>
+  onQuery?: OnCallback<E>
+  onError?: OnErrorCallback<E>
 }
 
 export type Queries = { [key: string]: (q: QueryBuilder) => QueryTerm }
