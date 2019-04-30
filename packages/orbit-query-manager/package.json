@@ -1,12 +1,18 @@
 {
   "name": "orbit-query-manager",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "orbit query manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf ./dist && tsc",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "release": "standard-version"
+  },
+  "standard-version": {
+    "scripts": {
+      "posttag": "git push --follow-tags origin master && npm publish"
+    }
   },
   "author": "Stefan Wullems <stefan@exivity.com>",
   "license": "ISC",
