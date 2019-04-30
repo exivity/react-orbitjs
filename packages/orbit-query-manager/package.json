@@ -1,29 +1,29 @@
 {
   "name": "orbit-query-manager",
-  "version": "0.0.10",
+  "version": "0.0.0-development",
   "description": "orbit query manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf ./dist && tsc",
     "test": "jest --watch",
-    "release": "standard-version"
-  },
-  "standard-version": {
-    "scripts": {
-      "posttag": "git push --follow-tags origin master && npm publish"
-    }
+    "semantic-release": "semantic-release"
   },
   "author": "Stefan Wullems <stefan@exivity.com>",
   "license": "ISC",
   "devDependencies": {
     "jest": "^24.7.1",
-    "typescript": "^3.4.3"
+    "typescript": "^3.4.3",
+    "semantic-release": "^15.13.3"
   },
   "dependencies": {
     "@orbit/data": "^0.15.23",
     "@orbit/store": "^0.15.25",
     "@types/jest": "^24.0.11",
     "ts-jest": "^24.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/exivity/orbit-query-manager.git"
   }
 }
