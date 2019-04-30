@@ -1,6 +1,6 @@
 {
   "name": "orbit-query-manager",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "orbit query manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
