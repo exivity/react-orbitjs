@@ -24,19 +24,29 @@ export interface RecordObject {
   [key: string]: Record
 }
 
+export interface QueryRefs { queryRef: string, statusRef?: string }
+
 export interface OngoingQuery {
   queries: Promise<RecordObject>[],
   listeners: number
-  queryRef: string
+  statusRef: string
 }
 
 export interface OngoingQueries {
   [key: string]: OngoingQuery
 }
 
-export interface Subscription {
+export interface Status {
   error: null | Error,
   loading: boolean,
+  listeners: number
+}
+
+export interface Statuses {
+  [key: string]: Status
+}
+
+export interface Subscription {
   terms: Term[]
   listeners: number,
 }

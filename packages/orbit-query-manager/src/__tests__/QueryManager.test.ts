@@ -11,7 +11,6 @@ const modelDefenition: Dict<ModelDefinition> = {
     },
     relationships: {
       profile: { type: 'hasOne', inverse: 'account', model: 'profile' },
-      items: { type: 'hasMany', inverse: 'account', model: 'item' },
       services: { type: 'hasMany', inverse: 'subscribers', model: 'service' }
     }
   },
@@ -21,14 +20,6 @@ const modelDefenition: Dict<ModelDefinition> = {
     },
     relationships: {
       account: { type: 'hasOne', inverse: 'profile', model: 'account' }
-    }
-  },
-  item: {
-    attributes: {
-      test: { type: 'string' }
-    },
-    relationships: {
-      account: { type: 'hasOne', inverse: 'items', model: 'account' }
     }
   },
   service: {
@@ -45,12 +36,15 @@ const store = new Store({
   schema: new Schema({ models: modelDefenition })
 })
 
-test('QueryManager.query(...) should return a queryRef', async (done) => {
-  const manager = new QueryManager(store.fork())
+let manager: QueryManager
+beforeEach(() => {
+  manager = new QueryManager(store.fork())
+})
 
+test('QueryManager.query(...) should return a queryRef', async (done) => {
   await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-  const queryRef = manager.query({
+  const { queryRef } = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
   })
 
@@ -59,11 +53,9 @@ test('QueryManager.query(...) should return a queryRef', async (done) => {
 })
 
 test('QueryManager.subscribe(...) subscribes you to the request being made', async done => {
-  const manager = new QueryManager(store.fork())
-
   await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-  const queryRef = manager.query({
+  const { queryRef } = manager.query({
     Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
   }, { initialFetch: true })
 
@@ -73,18 +65,103 @@ test('QueryManager.subscribe(...) subscribes you to the request being made', asy
 
   expect(await subscription).toBe('done')
   done()
+})
 
+test('QueryManager.subscribe(...) will return a ref to the same subscription object if the queries are identical', async done => {
+  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+
+  const query1 = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  }, { initialFetch: true })
+
+  const query2 = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  }, { initialFetch: true })
+
+  manager.subscribe(query1.queryRef, () => { })
+  manager.subscribe(query2.queryRef, () => { })
+
+  expect(query1.queryRef).toBe(query2.queryRef)
+
+  done()
+})
+
+test('QueryManager.subscribe(...) will subscribe to an ongoing identical query if one is going on', async done => {
+  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+
+  const query1 = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  }, { initialFetch: true })
+
+  const query2 = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  }, { initialFetch: true })
+
+  manager.subscribe(query1.queryRef, () => { })
+  manager.subscribe(query2.queryRef, () => { })
+
+  expect(typeof query1.statusRef).toBeDefined()
+  expect(typeof query2.statusRef).toBeDefined()
+  expect(query1.statusRef).toBe(query2.statusRef)
+
+  done()
+})
+
+test('QueryManager.unsubscribe(...) delete subscription object when there are no listeners left', async done => {
+  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+
+  const query1 = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  })
+
+  const query2 = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  })
+
+  manager.subscribe(query1.queryRef, () => { })
+  expect(manager.subscriptions[query1.queryRef].listeners).toBe(1)
+
+  manager.subscribe(query2.queryRef, () => { })
+  expect(manager.subscriptions[query2.queryRef].listeners).toBe(2)
+
+  manager.unsubscribe(query1)
+  expect(manager.subscriptions[query1.queryRef].listeners).toBe(1)
+
+  manager.unsubscribe(query2)
+  expect(manager.subscriptions[query1.queryRef]).toBeUndefined()
+
+  done()
+})
+
+test('QueryManager.unsubscribe(...) delete statuses object when there are no listeners left', async done => {
+  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+
+  const query1 = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  }, { initialFetch: true })
+
+  expect(manager.statuses[query1.statusRef!].listeners).toBe(1)
+
+  const query2 = manager.query({
+    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
+  }, { initialFetch: true })
+
+  expect(manager.statuses[query2.statusRef!].listeners).toBe(2)
+
+  manager.subscribe(query1.queryRef, () => { })
+  manager.subscribe(query2.queryRef, () => { })
+
+  manager.unsubscribe(query1)
+  expect(manager.statuses[query1.statusRef!].listeners).toBe(1)
+
+  manager.unsubscribe(query2)
+  expect(manager.statuses[query1.statusRef!]).toBeUndefined()
+
+  done()
 })
 
 describe('QueryManager._shouldUpdate(...)', () => {
-  let manager: QueryManager
-
-  beforeEach(() => {
-    manager = new QueryManager(store.fork())
-  })
-
   test('It should return true when the operation is findRecords and a record of the listened to type present in records', async (done) => {
-
     const shouldUpdate = manager._shouldUpdate(
       [{ key: 'Test', expression: { op: 'findRecords', type: 'account' } }],
       [{ type: 'account', id: '1' }],
@@ -118,7 +195,6 @@ describe('QueryManager._shouldUpdate(...)', () => {
   })
 
   test('It should return true with any other operation if a relatedRecord matches an expression (hasOne)', async (done) => {
-    const manager = new QueryManager(store.fork())
 
     await manager._store.update(t => [
       t.addRecord({ type: 'account', id: '1' }),
@@ -137,7 +213,6 @@ describe('QueryManager._shouldUpdate(...)', () => {
   })
 
   test('It should return true with any other operation if a relatedRecord matches an expression (hasMany)', async (done) => {
-    const manager = new QueryManager(store.fork())
 
     await manager._store.update(t => [
       t.addRecord({ type: 'account', id: '1' }),
@@ -156,15 +231,12 @@ describe('QueryManager._shouldUpdate(...)', () => {
   })
 })
 
-describe('Listener gets called for', () => {
-  let manager: QueryManager
-  beforeEach(() => {
-    manager = new QueryManager(store.fork())
-  })
+describe('Listener gets called after', () => {
+
   test('AddRecordOperation while listening to a type of record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -181,7 +253,7 @@ describe('Listener gets called for', () => {
   test('ReplaceRecordOperation while listening to a type of record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -198,7 +270,7 @@ describe('Listener gets called for', () => {
   test('RemoveRecordOperation while listening to a type of record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -215,7 +287,7 @@ describe('Listener gets called for', () => {
   test('ReplaceKeyOperation while listening to a type of record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -232,7 +304,7 @@ describe('Listener gets called for', () => {
   test('ReplaceAttributeOperation while listening to a type of record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -249,7 +321,7 @@ describe('Listener gets called for', () => {
   test('AddToRelatedRecordsOperation while listening to a type of record (record perspective)', async done => {
     await manager._store.update(t => [t.addRecord({ type: 'account', id: '1' }), t.addRecord({ type: 'service', id: '1' })])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -266,7 +338,7 @@ describe('Listener gets called for', () => {
   test('AddToRelatedRecordsOperation while listening to a type of record (relation perspective)', async done => {
     await manager._store.update(t => [t.addRecord({ type: 'account', id: '1' }), t.addRecord({ type: 'service', id: '1' })])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -287,7 +359,7 @@ describe('Listener gets called for', () => {
       t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -308,7 +380,7 @@ describe('Listener gets called for', () => {
       t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -331,7 +403,7 @@ describe('Listener gets called for', () => {
       t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -354,7 +426,7 @@ describe('Listener gets called for', () => {
       t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -377,7 +449,7 @@ describe('Listener gets called for', () => {
       t.replaceRelatedRecord({ type: 'profile', id: '1' }, 'account', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -400,7 +472,7 @@ describe('Listener gets called for', () => {
       t.replaceRelatedRecord({ type: 'profile', id: '1' }, 'account', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecords('account')
     })
 
@@ -415,7 +487,7 @@ describe('Listener gets called for', () => {
   })
 
   test('AddRecordOperation while listening to a specific record', async done => {
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -432,7 +504,7 @@ describe('Listener gets called for', () => {
   test('ReplaceRecordOperation while listening to a specific record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -449,7 +521,7 @@ describe('Listener gets called for', () => {
   test('RemoveRecordOperation while listening to a specific record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -466,7 +538,7 @@ describe('Listener gets called for', () => {
   test('ReplaceKeyOperation while listening to a specific record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -483,7 +555,7 @@ describe('Listener gets called for', () => {
   test('ReplaceAttributeOperation while listening to a specific record', async done => {
     await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -500,7 +572,7 @@ describe('Listener gets called for', () => {
   test('AddToRelatedRecordsOperation while listening to a specific record (record perspective)', async done => {
     await manager._store.update(t => [t.addRecord({ type: 'account', id: '1' }), t.addRecord({ type: 'service', id: '1' })])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -517,7 +589,7 @@ describe('Listener gets called for', () => {
   test('AddToRelatedRecordsOperation while listening to a specific record (relation perspective)', async done => {
     await manager._store.update(t => [t.addRecord({ type: 'account', id: '1' }), t.addRecord({ type: 'service', id: '1' })])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -538,7 +610,7 @@ describe('Listener gets called for', () => {
       t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -559,7 +631,7 @@ describe('Listener gets called for', () => {
       t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -582,7 +654,7 @@ describe('Listener gets called for', () => {
       t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -605,7 +677,7 @@ describe('Listener gets called for', () => {
       t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -628,7 +700,7 @@ describe('Listener gets called for', () => {
       t.replaceRelatedRecord({ type: 'profile', id: '1' }, 'account', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -651,7 +723,7 @@ describe('Listener gets called for', () => {
       t.replaceRelatedRecord({ type: 'profile', id: '1' }, 'account', { type: 'account', id: '1' })
     ])
 
-    const queryRef = manager.query({
+    const { queryRef } = manager.query({
       Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
     })
 
@@ -665,3 +737,4 @@ describe('Listener gets called for', () => {
     done()
   })
 })
+
