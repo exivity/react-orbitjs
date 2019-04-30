@@ -1,7 +1,6 @@
 import Store from '@orbit/store'
 
 import {
-  Options,
   Term,
   OngoingQueries,
   RecordObject,
@@ -10,10 +9,6 @@ import {
   Subscriptions,
   QueryRefs,
   Statuses,
-  BeforeCallback,
-  QueryOptions,
-  OnErrorCallback,
-  OnCallback,
   QueryCacheOptions,
 } from './types'
 import { Transform, RecordOperation, RecordIdentity } from '@orbit/data'
@@ -198,6 +193,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
       }
 
       return records.some(record => !!identityIsEqual(expression.record, record))
+        // @todo find a way to check for identity for relationships
         || relatedRecords.some(record => record.type === expression.record.type)
     })
   }
@@ -209,6 +205,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
 
   _unsubscribeToFetch (queryRef: string) {
     this._ongoingQueries[queryRef].listeners--
+
     if (this._ongoingQueries[queryRef].listeners === 0) {
       delete this._ongoingQueries[queryRef]
     }
