@@ -2,16 +2,10 @@ language: node_js
 
 node_js:
   - 8
-  - 6
 
 jobs:
   include:
     # Define the release stage that runs semantic-release
-    - stage: test
-      name: "build"
-      script: yarn tsc
-    - name: "test"
-      script: yarn jest
     - stage: release
       node_js: lts/*
       # Advanced: optionally overwrite your default `script` step to skip the tests
