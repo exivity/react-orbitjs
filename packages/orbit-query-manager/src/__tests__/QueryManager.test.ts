@@ -2,6 +2,7 @@ import { QueryBuilder, Schema, ModelDefinition } from '@orbit/data'
 import { QueryManager } from '../QueryManager'
 import Store from '@orbit/store'
 import { Dict } from '@orbit/utils'
+import { Term } from '../types';
 
 const modelDefenition: Dict<ModelDefinition> = {
 
@@ -41,133 +42,136 @@ beforeEach(() => {
   manager = new QueryManager(store.fork(), { skip: ['account'] })
 })
 
-test('QueryManager.query(...) should return a queryRef', async (done) => {
-  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+test('QueryManager._extractTerms(...) returns an ordered array of terms', () => {
+  const account = { type: 'account', id: '1' }
+  const query = (q: QueryBuilder) => q.findRecord(account)
+  const queries = { Cccount: query, Account: query, Bccount: query, }
 
-  const { queryRef } = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  })
+  const terms = manager._extractTerms(queries)
+
+  expect(terms).toMatchObject([
+    { key: 'Account', expression: { op: 'findRecord', record: account } },
+    { key: 'Bccount', expression: { op: 'findRecord', record: account } },
+    { key: 'Cccount', expression: { op: 'findRecord', record: account } }
+  ])
+})
+
+test('QueryManager.query(...) should return a queryRef', () => {
+  const query = { Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' }) }
+
+  const { queryRef } = manager.query(query)
 
   expect(typeof queryRef).toBe('string')
-  done()
 })
 
 test('QueryManager.subscribe(...) subscribes you to the request being made', async done => {
-  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+  const account = { type: 'account', id: '1' }
 
-  const { queryRef } = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, true)
+  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+  const initialFetch = true
 
-  const subscription = new Promise(resolve => {
-    manager.subscribe(queryRef, () => { resolve('done') })
+  await manager._store.update(t => t.addRecord(account))
+
+  const { queryRef } = manager.query(query, initialFetch)
+
+  const result = await new Promise(resolve => {
+    const listener = () => { resolve(' q(0_0)p ') }
+
+    manager.subscribe(queryRef, listener)
   })
 
-  expect(await subscription).toBe('done')
+  expect(result).toBe(' q(0_0)p ')
   done()
 })
 
 test('QueryManager.subscribe(...) will return a ref to the same subscription object if the queries are identical', async done => {
-  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+  const account = { type: 'account', id: '1' }
 
-  const query1 = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, true)
+  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+  const initialFetch = true
 
-  const query2 = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, true)
+  await manager._store.update(t => t.addRecord(account))
 
-  manager.subscribe(query1.queryRef, () => { })
-  manager.subscribe(query2.queryRef, () => { })
+  const refs1 = manager.query(query, initialFetch)
+  const refs2 = manager.query(query, initialFetch)
 
-  expect(query1.queryRef).toBe(query2.queryRef)
+  manager.subscribe(refs1.queryRef, () => { })
+  manager.subscribe(refs2.queryRef, () => { })
 
+  expect(refs1.queryRef).toBe(refs2.queryRef)
   done()
 })
 
-test('QueryManager.subscribe(...) will subscribe to an ongoing identical query if one is going on', async done => {
-  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+test('QueryManager.subscribe(...) will subscribe to an ongoing identical query\'s status', async done => {
+  const account = { type: 'account', id: '1' }
 
-  const query1 = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, true)
+  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+  const initialFetch = true
 
-  const query2 = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, true)
+  await manager._store.update(t => t.addRecord(account))
 
-  manager.subscribe(query1.queryRef, () => { })
-  manager.subscribe(query2.queryRef, () => { })
+  const refs1 = manager.query(query, initialFetch)
+  const refs2 = manager.query(query, initialFetch)
 
-  expect(typeof query1.statusRef).toBeDefined()
-  expect(typeof query2.statusRef).toBeDefined()
-  expect(query1.statusRef).toBe(query2.statusRef)
+  manager.subscribe(refs1.queryRef, () => { })
+  manager.subscribe(refs2.queryRef, () => { })
 
+  expect(refs1.statusRef).toBe(refs2.statusRef)
   done()
 })
 
 test('QueryManager.unsubscribe(...) delete subscription object when there are no listeners left', async done => {
-  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+  const account = { type: 'account', id: '1' }
 
-  const query1 = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  })
+  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
 
-  const query2 = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  })
+  await manager._store.update(t => t.addRecord(account))
 
-  manager.subscribe(query1.queryRef, () => { })
-  expect(manager.subscriptions[query1.queryRef].listeners).toBe(1)
+  const refs1 = manager.query(query)
+  const refs2 = manager.query(query)
 
-  manager.subscribe(query2.queryRef, () => { })
-  expect(manager.subscriptions[query2.queryRef].listeners).toBe(2)
+  manager.subscribe(refs1.queryRef, () => { })
+  manager.subscribe(refs2.queryRef, () => { })
 
-  manager.unsubscribe(query1)
-  expect(manager.subscriptions[query1.queryRef].listeners).toBe(1)
+  expect(manager.subscriptions[refs2.queryRef].listeners).toBe(2)
 
-  manager.unsubscribe(query2)
-  expect(manager.subscriptions[query1.queryRef]).toBeUndefined()
+  manager.unsubscribe(refs1)
+  manager.unsubscribe(refs2)
 
+  expect(manager.subscriptions[refs1.queryRef]).toBeUndefined()
   done()
 })
 
 test('QueryManager.unsubscribe(...) delete statuses object when there are no listeners left', async done => {
-  await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
+  const account = { type: 'account', id: '1' }
 
-  const query1 = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, true)
+  const query = { Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' }) }
+  const initialFetch = true
 
-  expect(manager.statuses[query1.statusRef!].listeners).toBe(1)
+  await manager._store.update(t => t.addRecord(account))
 
-  const query2 = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  }, true)
+  const refs1 = manager.query(query, initialFetch)
+  const refs2 = manager.query(query, initialFetch)
 
-  expect(manager.statuses[query2.statusRef!].listeners).toBe(2)
+  expect(manager.statuses[refs2.statusRef!].listeners).toBe(2)
 
-  manager.subscribe(query1.queryRef, () => { })
-  manager.subscribe(query2.queryRef, () => { })
+  manager.subscribe(refs1.queryRef, () => { })
+  manager.subscribe(refs2.queryRef, () => { })
 
-  manager.unsubscribe(query1)
-  expect(manager.statuses[query1.statusRef!].listeners).toBe(1)
+  manager.unsubscribe(refs1)
+  manager.unsubscribe(refs2)
 
-  manager.unsubscribe(query2)
-  expect(manager.statuses[query1.statusRef!]).toBeUndefined()
-
+  expect(manager.statuses[refs1.statusRef!]).toBeUndefined()
   done()
 })
 
 test('QueryManager.queryCache(...) returns null if no match is found', () => {
-  const query = manager.query({
-    Account: (q: QueryBuilder) => q.findRecord({ type: 'account', id: '1' })
-  })
+  const account = { type: 'account', id: '1' }
 
-  manager.subscribe(query.queryRef, () => { })
+  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
 
-  const result = manager.queryCache(manager.subscriptions[query.queryRef].terms)
+  const refs = manager.query(query)
+  const result = manager.queryCache(manager.subscriptions[refs.queryRef].terms)
 
   expect(result).toBe(null)
 })
@@ -269,91 +273,66 @@ test('QueryManager.queryCache(...) calls onError when no matches are found', asy
 })
 
 describe('QueryManager._shouldUpdate(...)', () => {
-  test('It should return true when the operation is findRecords and a record of the listened to type present in records', async (done) => {
-    const shouldUpdate = manager._shouldUpdate(
-      [{ key: 'Test', expression: { op: 'findRecords', type: 'account' } }],
-      [{ type: 'account', id: '1' }],
-      []
-    )
+  test('findRecords: It should return true when a record of the listened to type present in records', () => {
+    const term: Term = { key: 'Test', expression: { op: 'findRecords', type: 'account' } }
+    const changedRecord = { type: 'account', id: '1' }
 
-    expect(await shouldUpdate).toBe(true)
-    done()
+    const shouldUpdate = manager._shouldUpdate([term], [changedRecord], [])
+
+    expect(shouldUpdate).toBe(true)
   })
 
-  test('It should return true when the operation is findRecords and a record of the listened to type present in related records', async (done) => {
-    const shouldUpdate = manager._shouldUpdate(
-      [{ key: 'Test', expression: { op: 'findRecords', type: 'account' } }],
-      [],
-      [{ type: 'account', id: '1' }]
-    )
+  test('findRecords: It should return true  when a record of the listened to type present in relatedRecords', () => {
+    const term: Term = { key: 'Test', expression: { op: 'findRecords', type: 'account' } }
+    const changedRelatedRecord = { type: 'account', id: '1' }
 
-    expect(await shouldUpdate).toBe(true)
-    done()
+    const shouldUpdate = manager._shouldUpdate([term], [], [changedRelatedRecord])
+
+    expect(shouldUpdate).toBe(true)
   })
 
-  test('It should return true with any other operation if a record matches an expression', async (done) => {
-    const shouldUpdate = manager._shouldUpdate(
-      [{ key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }],
-      [{ type: 'account', id: '1' }],
-      []
-    )
+  test('It should return true with any other operation if a record matches an expression', () => {
+    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
+    const changedRecord = { type: 'account', id: '1' }
 
-    expect(await shouldUpdate).toBe(true)
-    done()
+    const shouldUpdate = manager._shouldUpdate([term], [changedRecord], [])
+
+    expect(shouldUpdate).toBe(true)
   })
 
-  test('It should return true with any other operation if a relatedRecord matches an expression (hasOne)', async (done) => {
-    await manager._store.update(t => [
-      t.addRecord({ type: 'account', id: '1' }),
-      t.addRecord({ type: 'profile', id: '1' }),
-      t.replaceRelatedRecord({ type: 'account', id: '1' }, 'profile', { type: 'profile', id: '1' })]
-    )
+  test('It should return true with any other operation if the type of a relatedRecord matches the expression (hasOne)', () => {
+    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
+    const changedRelatedRecord = { type: 'account', id: '1' }
 
-    const shouldUpdate1 = manager._shouldUpdate(
-      [{ key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }],
-      [],
-      [{ type: 'account', id: '1' }]
-    )
+    const shouldUpdate = manager._shouldUpdate([term], [], [changedRelatedRecord])
 
-    expect(await shouldUpdate1).toBe(true)
-    done()
+    expect(shouldUpdate).toBe(true)
   })
 
-  test('It should return true with any other operation if a relatedRecord matches an expression (hasMany)', async (done) => {
+  test('It should return true with any other operation if the type of a relatedRecord matches the expression (hasMany)', () => {
+    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
+    const changedRelatedRecord = { type: 'account', id: '1' }
 
-    await manager._store.update(t => [
-      t.addRecord({ type: 'account', id: '1' }),
-      t.addRecord({ type: 'service', id: '1' }),
-      t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' })
-    ])
+    const shouldUpdate = manager._shouldUpdate([term], [], [changedRelatedRecord])
 
-    const shouldUpdate1 = manager._shouldUpdate(
-      [{ key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }],
-      [],
-      [{ type: 'account', id: '1' }]
-    )
-
-    expect(await shouldUpdate1).toBe(true)
-    done()
+    expect(shouldUpdate).toBe(true)
   })
 })
 
 describe('Listener gets called after', () => {
-
   test('AddRecordOperation while listening to a type of record', async done => {
-    await manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
-
-    const { queryRef } = manager.query({
-      Account: (q: QueryBuilder) => q.findRecords('account')
-    })
+    const { queryRef } = manager.query({ Account: (q: QueryBuilder) => q.findRecords('account') })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      const listener = () => { resolve(' q(0_0)p ') }
+      manager.subscribe(queryRef, listener)
     })
 
     manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    const result = await subscription
+
+    expect(result).toBe(' q(0_0)p ')
     done()
   })
 
@@ -365,12 +344,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRecord({ type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -382,12 +361,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.removeRecord({ type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -399,12 +378,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceKey({ type: 'account', id: '1' }, 'testKey', 'testValue'))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -416,12 +395,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceAttribute({ type: 'account', id: '1' }, 'test', 'hello'))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -433,12 +412,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.addToRelatedRecords({ type: 'account', id: '1' }, 'services', { type: 'service', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -450,12 +429,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -471,12 +450,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.removeFromRelatedRecords({ type: 'account', id: '1' }, 'services', { type: 'service', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -492,12 +471,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.removeFromRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -515,12 +494,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRelatedRecords({ type: 'account', id: '1' }, 'services', [{ type: 'service', id: '2' }]))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -538,12 +517,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRelatedRecords({ type: 'service', id: '1' }, 'subscribers', [{ type: 'account', id: '2' }]))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -561,12 +540,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRelatedRecord({ type: 'account', id: '1' }, 'profile', { type: 'profile', id: '2' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -584,12 +563,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRelatedRecord({ type: 'profile', id: '1' }, 'account', { type: 'account', id: '2' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -599,12 +578,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.addRecord({ type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -616,12 +595,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRecord({ type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -633,12 +612,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.removeRecord({ type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -650,12 +629,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceKey({ type: 'account', id: '1' }, 'testKey', 'testValue'))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -667,12 +646,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceAttribute({ type: 'account', id: '1' }, 'test', 'hello'))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -684,12 +663,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.addToRelatedRecords({ type: 'account', id: '1' }, 'services', { type: 'service', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -701,12 +680,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.addToRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -722,12 +701,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.removeFromRelatedRecords({ type: 'account', id: '1' }, 'services', { type: 'service', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -743,12 +722,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.removeFromRelatedRecords({ type: 'service', id: '1' }, 'subscribers', { type: 'account', id: '1' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -766,12 +745,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRelatedRecords({ type: 'account', id: '1' }, 'services', [{ type: 'service', id: '2' }]))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -789,12 +768,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRelatedRecords({ type: 'service', id: '1' }, 'subscribers', [{ type: 'account', id: '2' }]))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -812,12 +791,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRelatedRecord({ type: 'account', id: '1' }, 'profile', { type: 'profile', id: '2' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 
@@ -835,12 +814,12 @@ describe('Listener gets called after', () => {
     })
 
     const subscription = new Promise(resolve => {
-      manager.subscribe(queryRef, () => { resolve('done') })
+      manager.subscribe(queryRef, () => { resolve(' q(0_0)p ') })
     })
 
     manager._store.update(t => t.replaceRelatedRecord({ type: 'profile', id: '1' }, 'account', { type: 'account', id: '2' }))
 
-    expect(await subscription).toBe('done')
+    expect(await subscription).toBe(' q(0_0)p ')
     done()
   })
 })

@@ -33,9 +33,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
 
   query (queries: Queries, initialFetch: boolean = false): QueryRefs {
 
-    const terms = Object.keys(queries).sort().map(
-      (key) => ({ key, expression: queries[key](this._store.queryBuilder).expression as Expressions })
-    )
+    const terms = this._extractTerms(queries)
 
     let queryRef = JSON.stringify(terms)
 
@@ -57,6 +55,12 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     }
 
     return { queryRef }
+  }
+
+  _extractTerms (queries: Queries): Term[] {
+    return Object.keys(queries).sort().map(
+      (key) => ({ key, expression: queries[key](this._store.queryBuilder).expression as Expressions })
+    )
   }
 
   _query (queryRef: string, terms: Term[]) {
