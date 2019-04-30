@@ -12,9 +12,12 @@
   "author": "Stefan Wullems <stefan@exivity.com>",
   "license": "ISC",
   "devDependencies": {
+    "@semantic-release/commit-analyzer": "^6.1.0",
+    "@semantic-release/npm": "^5.1.4",
+    "@semantic-release/release-notes-generator": "^7.1.4",
     "jest": "^24.7.1",
-    "typescript": "^3.4.3",
-    "semantic-release": "^15.13.3"
+    "semantic-release": "^15.13.3",
+    "typescript": "^3.4.3"
   },
   "dependencies": {
     "@orbit/data": "^0.15.23",

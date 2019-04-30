@@ -176,16 +176,15 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
       }
     })
 
-    const terms = this.subscriptions[queryRef].terms
-
-    if (this._shouldUpdate(terms, records, relatedRecords)) listener()
+    if (this._shouldUpdate(queryRef, records, relatedRecords)) listener()
   }
 
   _shouldUpdate = (
-    terms: Term[],
+    queryRef: string,
     records: RecordIdentity[],
     relatedRecords: RecordIdentity[]
   ) => {
+    const terms = this.subscriptions[queryRef].terms
     return terms.some(({ expression }) => {
       if (expression.op === 'findRecords') {
         return records.some(({ type }) => type === expression.type) ||
