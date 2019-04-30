@@ -1,7 +1,7 @@
-import { TransformBuilder, QueryBuilder, Schema, ModelDefinition } from "@orbit/data";
-import { QueryManager } from "../QueryManager";
-import Store from "@orbit/store";
-import { Dict } from "@orbit/utils";
+import { QueryBuilder, Schema, ModelDefinition } from '@orbit/data'
+import { QueryManager } from '../QueryManager'
+import Store from '@orbit/store'
+import { Dict } from '@orbit/utils'
 
 const modelDefenition: Dict<ModelDefinition> = {
 
