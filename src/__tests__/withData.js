@@ -11,11 +11,21 @@ import {DataProvider, withData} from "./../index"
 
 const definition = {
   models: {
+    list: {
+      attributes: {
+        name: {type: "string"},
+      },
+      relationships: {
+        owner: {type: "hasOne", model: "user", inverse: "lists"},
+        todos: {type: "hasMany", model: "todo", inverse: "list"},
+      },
+    },
     todo: {
       attributes: {
         description: {type: "string"},
       },
       relationships: {
+        list: {type: "hasOne", model: "list", inverse: "todos"},
         owner: {type: "hasOne", model: "user", inverse: "todos"},
       },
     },
@@ -24,6 +34,7 @@ const definition = {
         name: {type: "string"},
       },
       relationships: {
+        lists: {type: "hasMany", model: "list", inverse: "owner"},
         todos: {type: "hasMany", model: "todo", inverse: "owner"},
       },
     },
@@ -464,6 +475,94 @@ test("withData receives updates for findRelatedRecords", (done) => {
           id: "my-second-todo"
         }))
       })
+    })
+})
+
+test("withData receives updates for findRelatedRecords when calling addRecord with relationship intersection", (done) => {
+  // Unfortunately, on Windows we can't use async/await for tests
+  // see https://github.com/facebook/jest/issues/3750 for more info
+  let callCount = 0
+  const updatedDescription = "Run tests again"
+
+  store
+    .update(t => t.addRecord({
+      type: "user",
+      id: "test-user",
+      attributes: {
+        name: "Test user",
+      },
+    }))
+    .then(() => {
+      return store.update(t => t.addRecord({
+        type: "list",
+        id: "test-list",
+        attributes: {
+          name: "Test list",
+        },
+        relationships: {
+          todos: {
+            data: []
+          },
+          owner: {
+            data: {
+              type: "user",
+              id: "test-user"
+            }
+          }
+        }
+      }))
+    })
+    .then(() => {
+
+      const testLists = (lists) => {
+        callCount++
+
+        if (callCount === 1) {
+          expect(lists).toHaveLength(1)
+          expect(lists[0].relationships.todos.data).toHaveLength(0)
+        } else if (callCount === 2) {
+          expect(lists).toHaveLength(1)
+          expect(lists[0].relationships.todos.data).toHaveLength(1)
+          done()
+        }
+      }
+
+      const Test = ({lists}) => {
+        testLists(lists)
+
+        return <span>test</span>
+      }
+
+      const mapRecordsToProps = {
+        lists: q => q.findRelatedRecords({
+          type: "user",
+          id: "test-user",
+        }, "lists"),
+      }
+
+      const TestWithData = withData(mapRecordsToProps)(Test)
+
+      const component = renderer.create(
+        <DataProvider dataStore={store}>
+          <TestWithData/>
+        </DataProvider>,
+      )
+
+      store.update(t => t.addRecord({
+        type: "todo",
+        id: "test-todo",
+        attributes: {
+          description: "Do something"
+        },
+        relationships: {
+          list: {
+            data: {
+              type: "list",
+              id: "test-list"
+            }
+          }
+        }
+      }))
     })
 })
 
