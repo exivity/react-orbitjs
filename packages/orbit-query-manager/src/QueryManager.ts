@@ -31,30 +31,15 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     this.statuses = {}
   }
 
-  query (queries: Queries, initialFetch: boolean = false): QueryRefs {
-
+  generateQueryRef (queries: Queries) {
     const terms = this._extractTerms(queries)
 
     let queryRef = JSON.stringify(terms)
 
+    if (this.subscriptions[queryRef]) return queryRef
+
     this.subscriptions[queryRef] = { listeners: 0, terms }
-
-    const ongoingIdenticalQuery = this._ongoingQueries[queryRef]
-
-    if (initialFetch) {
-      if (!ongoingIdenticalQuery) {
-        const statusRef = this._query(queryRef, terms)
-
-        return { queryRef, statusRef }
-      } else {
-        const { statusRef } = ongoingIdenticalQuery
-        this.statuses[statusRef].listeners++
-
-        return { queryRef, statusRef }
-      }
-    }
-
-    return { queryRef }
+    return queryRef
   }
 
   _extractTerms (queries: Queries): Term[] {
@@ -63,10 +48,16 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     )
   }
 
-  _query (queryRef: string, terms: Term[]) {
+  query (queryRef: string) {
+    return this._ongoingQueries[queryRef] ? this._ongoingQueries[queryRef].statusRef : this._query(queryRef)
+  }
+
+  _query (queryRef: string) {
 
     const statusRef = this._generateStatusRef(queryRef)
-    this.statuses[statusRef] = { error: null, loading: false, listeners: 1 }
+    this.statuses[statusRef] = { error: null, loading: false, listeners: 0 }
+
+    const terms = this.subscriptions[queryRef].terms
 
     const queries: Promise<RecordObject>[] = terms
       .map(({ key, expression }) =>
@@ -91,7 +82,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
         }
       })
 
-    this._ongoingQueries[queryRef] = { queries, listeners: 1, statusRef }
+    this._ongoingQueries[queryRef] = { queries, listeners: 0, statusRef }
 
     return statusRef
   }
@@ -133,29 +124,32 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     }
   }
 
-  subscribe (queryRef: string, listener: () => void) {
-    this.subscriptions[queryRef].listeners++
+  async subscribeToFetch (queryRef: string, listener: () => void) {
+    if (this._ongoingQueries[queryRef]) this._ongoingQueries[queryRef].listeners++
+    else throw new Error('There is no fetch going on with this queryRef. You possibly forgot to make a query before subscribing')
 
-    if (this._ongoingQueries[queryRef]) this._subscribeToFetch(queryRef, listener)
-    this._subscribeToCache(queryRef, listener)
+    try {
+      await Promise.all(this._ongoingQueries[queryRef].queries);
+      listener();
+      this._unsubscribeFromFetch(queryRef);
+    }
+    catch (error) {
+      listener();
+      this._unsubscribeFromFetch(queryRef);
+    }
   }
 
-  _subscribeToFetch (queryRef: string, listener: () => void) {
-    this._ongoingQueries[queryRef].listeners++
+  subscribeToCache (queryRef: string, listener: () => void) {
+    if (this.subscriptions[queryRef]) this.subscriptions[queryRef].listeners++
+    else throw new Error('There is no subscription with this queryRef. Generate one with manager.generateQueryRef(...)')
 
-    return Promise.all(this._ongoingQueries[queryRef].queries)
-      .then(results => {
-        listener()
-        this._unsubscribeToFetch(queryRef)
-      })
-      .catch(error => {
-        listener()
-        this._unsubscribeToFetch(queryRef)
-      })
-  }
-
-  _subscribeToCache (queryRef: string, listener: () => void) {
     this._store.on('transform', this._compare.bind(this, queryRef, listener))
+  }
+
+  subscribeToStatus (statusRef: string) {
+    if (this.statuses[statusRef]) this.statuses[statusRef].listeners++
+    else throw new Error('There is no status with this statusRef.')
+
   }
 
   _compare (queryRef: string, listener: () => void, transform: Transform) {
@@ -175,7 +169,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
           break
 
         case 'replaceRelatedRecords':
-          operation.relatedRecords.forEach((record) => relatedRecords.push(record))
+          operation.relatedRecords.forEach(record => relatedRecords.push(record))
           break
       }
     })
@@ -202,12 +196,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     })
   }
 
-  unsubscribe ({ queryRef, statusRef }: QueryRefs) {
-    this._unsubscribeToCache(queryRef)
-    statusRef && this._unsubscribeToStatus(statusRef)
-  }
-
-  _unsubscribeToFetch (queryRef: string) {
+  _unsubscribeFromFetch (queryRef: string) {
     this._ongoingQueries[queryRef].listeners--
 
     if (this._ongoingQueries[queryRef].listeners === 0) {
@@ -215,7 +204,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     }
   }
 
-  _unsubscribeToCache (queryRef: string) {
+  unsubscribeFromCache (queryRef: string) {
     this.subscriptions[queryRef].listeners--
 
     if (this.subscriptions[queryRef].listeners === 0) {
@@ -223,7 +212,7 @@ export class QueryManager<E extends { [key: string]: any } = any>  {
     }
   }
 
-  _unsubscribeToStatus (statusRef: string) {
+  unsubscribeFromStatus (statusRef: string) {
     this.statuses[statusRef].listeners--
 
     if (this.statuses[statusRef].listeners === 0) {
