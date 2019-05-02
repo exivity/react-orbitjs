@@ -1,6 +1,6 @@
 {
   "name": "react-crud-hook",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "React crud hook - uses crud global crud manager",
   "main": "dist/index.js",
   "scripts": {
@@ -39,7 +39,7 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
-    "lemon-curd": "^0.0.4",
+    "lemon-curd": "^0.0.5",
     "resma": "^0.0.9"
   }
 }

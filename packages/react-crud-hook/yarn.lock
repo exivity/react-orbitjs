@@ -2209,10 +2209,10 @@ left-pad@^1.3.0:
   resolved "https://registry.yarnpkg.com/left-pad/-/left-pad-1.3.0.tgz#5b8a3a7765dfe001261dde915589e782f8c94d1e"
   integrity sha512-XI5MPzVNApjAyhQzphX8BkmKsKUxD4LdyK24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdot8ghrjyrvMCoEA==
 
-lemon-curd@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/lemon-curd/-/lemon-curd-0.0.4.tgz#9db5a7c3509e4ddc0848168d1d608af8398b9996"
-  integrity sha512-q54rRweJMJ90UWvp+2Ek52qAx7aiJUEXrRTcH0uvmLT2Pr/Sk90Agn+oOi4lk8t+4jtQO7WCDSclTkzBgkSCog==
+lemon-curd@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/lemon-curd/-/lemon-curd-0.0.5.tgz#1e039ccd380bd9edb70ed079b2792677af3fa177"
+  integrity sha512-SpPzyBEwCSfCZpsWb4XYJfRmGb0Bm+mLJvmc1BAQYg47BIgNhzFFVrbjGXcrY0nhQWNAo7aO00zq4vnrg3zdMw==
 
 leven@^2.1.0:
   version "2.1.0"
