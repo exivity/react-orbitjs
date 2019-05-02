@@ -43,7 +43,7 @@ export class CrudManager {
         ? resultBeforeCallback as IRecord
         : record
 
-      if (isRecord) {
+      if (resultBeforeCallback) {
         operation(isRecord, options)
           .then(onFulfilled(extensions, onCallback))
           .catch(onThrow(extensions, isRecord, onErrorCallback))
