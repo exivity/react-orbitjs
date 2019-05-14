@@ -61,7 +61,7 @@ export class QueryManager extends Observable {
       this._afterQueryQueue = []
     }
 
-    return [{}, this._queryRefs[id]]
+    return [null, this._queryRefs[id]]
   }
 
   async _query (id: string, terms: Term[]) {
