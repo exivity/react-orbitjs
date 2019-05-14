@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf ./dist && tsc",
-    "test": "jest --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "semantic-release": "semantic-release"
   },
   "author": "Stefan Wullems <stefan@exivity.com>",

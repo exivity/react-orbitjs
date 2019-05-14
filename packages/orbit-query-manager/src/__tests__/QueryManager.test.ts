@@ -1,11 +1,9 @@
-import { QueryBuilder, Schema, ModelDefinition, FindRecord } from '@orbit/data'
+import { QueryBuilder, Schema, ModelDefinition } from '@orbit/data'
 import { QueryManager } from '../QueryManager'
 import Store from '@orbit/store'
 import { Dict } from '@orbit/utils'
-import { Term } from '../types';
 
 const modelDefenition: Dict<ModelDefinition> = {
-
   account: {
     attributes: {
       test: { type: 'string' }
@@ -39,7 +37,7 @@ const store = new Store({
 
 let manager: QueryManager
 beforeEach(() => {
-  manager = new QueryManager(store.fork(), { skip: ['account'] })
+  manager = new QueryManager(store.fork())
 })
 
 test('QueryManager._extractTerms(...) returns an ordered array of terms', () => {
@@ -57,293 +55,87 @@ test('QueryManager._extractTerms(...) returns an ordered array of terms', () => 
   ])
 })
 
-test('QueryManager.subscribeToFetch(...) subscribes you to the request being made', async done => {
+test('QueryManager.query(...) makes a new query when no queries are going on', () => {
   const account = { type: 'account', id: '1' }
 
   const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
+  const listener = jest.fn()
 
-  await manager._store.update(t => t.addRecord(account))
+  manager.subscribe(query, listener)
 
-  manager.query(queryRef)
+  expect(Object.keys(manager._queryRefs).length).toBe(0)
 
-  const result = new Promise(resolve => manager.subscribeToFetch(queryRef, () => { resolve(' q(0_0)p ') }))
+  manager.query(query)
 
-  expect(await result).toBe(' q(0_0)p ')
-  done()
+  expect(Object.keys(manager._queryRefs).length).toBe(1)
 })
 
-test('QueryManager.subscribeToFetch(...) throws an error when an invalid queryRef is given', async done => {
-  let message: string
-  try {
-    await manager.subscribeToFetch('hellloo', () => { })
-  } catch (err) {
-    message = err.message
-  }
+describe('queryCache(...)', () => {
+  test('The record object is null if no match is found', () => {
+    const account = { type: 'account', id: '1' }
 
-  expect(message).toBe('There is no fetch going on with this queryRef. You possibly forgot to make a query before subscribing')
-  done()
+    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+
+    const data = manager.queryCache(query)
+
+    expect(data[0]).toBe(null)
+  })
 })
 
-test('QueryManager.subscribeToCache(...) throws an error when an invalid queryRef is given', async done => {
-  let message: string
-  try {
-    await manager.subscribeToCache('hellloo', () => { })
-  } catch (err) {
-    message = err.message
-  }
+describe('subscribe(...)', () => {
+  test('The record object is null if the cache updates and no match is found', async done => {
+    const account = { type: 'account', id: '1' }
 
-  expect(message).toBe('There is no subscription with this queryRef. Generate one with manager.generateQueryRef(...)')
-  done()
-})
+    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
 
-test('QueryManager.subscribeToStatus(...) throws an error when an invalid queryRef is given', async done => {
-  let message: string
-  try {
-    await manager.subscribeToStatus('hellloo')
-  } catch (err) {
-    message = err.message
-  }
-
-  expect(message).toBe('There is no status with this statusRef.')
-  done()
-})
-
-test('QueryManager.query(...) will return the same statusRef if an identical request is already going on', async done => {
-  const account = { type: 'account', id: '1' }
-
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-
-  await manager._store.update(t => t.addRecord(account))
-
-  const statusRef1 = manager.query(queryRef)
-  const statusRef2 = manager.query(queryRef)
-
-  expect(statusRef1).toBe(statusRef2)
-  done()
-})
-
-test('QueryManager.query(...) will return a different statusRef for an identical query if a new request needs to be made', async done => {
-  const account = { type: 'account', id: '1' }
-
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-
-  await manager._store.update(t => t.addRecord(account))
-
-  const statusRef1 = manager.query(queryRef)
-
-  await new Promise(resolve => manager.subscribeToFetch(queryRef, resolve))
-
-  const statusRef2 = manager.query(queryRef)
-
-  expect(statusRef1).not.toBe(statusRef2)
-  done()
-})
-
-test('QueryManager.unsubscribeFromCache(...) delete result object when there are no listeners left', async done => {
-  const account = { type: 'account', id: '1' }
-
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-
-  await manager._store.update(t => t.addRecord(account))
-
-  manager.subscribeToCache(queryRef, () => { })
-  manager.subscribeToCache(queryRef, () => { })
-
-  expect(manager.subscriptions[queryRef].listeners).toBe(2)
-
-  manager.unsubscribeFromCache(queryRef)
-  manager.unsubscribeFromCache(queryRef)
-
-  expect(manager.subscriptions[queryRef]).toBeUndefined()
-  done()
-})
-
-test('QueryManager.unsubscribeFromStatus(...) delete statuses object when there are no listeners left', async done => {
-  const account = { type: 'account', id: '1' }
-
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-
-  await manager._store.update(t => t.addRecord(account))
-
-  const statusRef = manager.query(queryRef)
-
-  manager.subscribeToStatus(statusRef)
-  manager.subscribeToStatus(statusRef)
-
-  expect(manager.statuses[statusRef].listeners).toBe(2)
-
-  manager.unsubscribeFromStatus(statusRef)
-  manager.unsubscribeFromStatus(statusRef)
-
-  expect(manager.statuses[statusRef]).toBeUndefined()
-  done()
-})
-
-test('QueryManager.queryCache(...) returns null if no match is found', () => {
-  const account = { type: 'account', id: '1' }
-
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-
-  manager.query(queryRef)
-
-  const terms = manager.subscriptions[queryRef].terms
-  const result = manager.queryCache(terms)
-
-  expect(result).toBe(null)
-})
-
-test('QueryManager.queryCache(...) returns an object when a match is found', async done => {
-  const account = { type: 'account', id: '1' }
-
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-  const terms = manager.subscriptions[queryRef].terms
-
-  const subscription = new Promise((resolve) => manager.subscribeToCache(queryRef, resolve))
-
-  manager._store.update(t => t.addRecord(account))
-
-  await subscription
-
-  const result = manager.queryCache(terms)
-
-  expect(result).toMatchObject({ Account: account })
-  done()
-})
-
-test('QueryManager.queryCache(...) gets cancelled when beforeQuery returns true', async done => {
-  const account = { type: 'account', id: '1' }
-
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-  const terms = manager.subscriptions[queryRef].terms
-
-  const result = new Promise((resolve) => {
-    manager.subscribeToCache(queryRef, () => {
-
-      const queryOptions = {
-        beforeQuery: (expression: any, extensions: any) => {
-          // extensions.skip: ['account'] as defined at the top of the file
-          if (extensions.skip.includes((expression as FindRecord).record.type)) return true
-        }
-      }
-
-      resolve(manager.queryCache(terms, queryOptions)
-      )
+    let data: any
+    const listener = jest.fn(result => {
+      data = result
     })
+
+    manager.subscribe(query, listener)
+
+    await manager._store.update(t => t.addRecord(account))
+
+    expect(data[0]).toMatchObject({ Account: account })
+
+    await manager._store.update(t => t.removeRecord(account))
+
+    expect(data[0]).toBe(null)
+    done()
   })
 
-  manager._store.update(t => t.addRecord(account))
+  test('returns a function that stops listening for events if there are no subscriptions left', () => {
+    const account = { type: 'account', id: '1' }
 
-  expect(await result).toBe(null)
-  done()
-})
+    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const listener = jest.fn()
 
-test('QueryManager.queryCache(...) calls onQuery with the results', async done => {
-  const account = { type: 'account', id: '1' }
+    const unsubscribe = manager.subscribe(query, listener)
 
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-  const terms = manager.subscriptions[queryRef].terms
+    expect(Object.keys(manager._subscriptions).length).toBe(1)
+    expect(manager._store.listeners('transform').length).toBe(1)
 
-  const result = new Promise((resolve) => {
-    const queryOptions = { onQuery: resolve }
-    manager.subscribeToCache(queryRef, () => manager.queryCache(terms, queryOptions))
-  })
+    unsubscribe()
 
-  manager._store.update(t => t.addRecord(account))
-
-  expect(await result).toMatchObject({ Account: account })
-  done()
-})
-
-test('QueryManager.queryCache(...) calls onError when no matches are found', async done => {
-  const account = { type: 'account', id: '1' }
-
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-  const queryRef = manager.generateQueryRef(query)
-  const terms = manager.subscriptions[queryRef].terms
-
-  await manager._store.update(t => t.addRecord(account))
-
-  const result = new Promise((resolve) => {
-    manager.subscribeToCache(queryRef, () => {
-      const queryOptions = { onError: resolve }
-      manager.queryCache(terms, queryOptions)
-    })
-  })
-
-  manager._store.update(t => t.removeRecord(account))
-
-  expect(await result).toBeDefined()
-  done()
-})
-
-describe('QueryManager._shouldUpdate(...)', () => {
-  test('findRecords: It should return true when a record of the listened to type present in records', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecords', type: 'account' } }
-    const changedRecord = { type: 'account', id: '1' }
-
-    const shouldUpdate = manager._shouldUpdate([term], [changedRecord], [])
-
-    expect(shouldUpdate).toBe(true)
-  })
-
-  test('findRecords: It should return true  when a record of the listened to type present in relatedRecords', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecords', type: 'account' } }
-    const changedRelatedRecord = { type: 'account', id: '1' }
-
-    const shouldUpdate = manager._shouldUpdate([term], [], [changedRelatedRecord])
-
-    expect(shouldUpdate).toBe(true)
-  })
-
-  test('It should return true with any other operation if a record matches an expression', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
-    const changedRecord = { type: 'account', id: '1' }
-
-    const shouldUpdate = manager._shouldUpdate([term], [changedRecord], [])
-
-    expect(shouldUpdate).toBe(true)
-  })
-
-  test('It should return true with any other operation if the type of a relatedRecord matches the expression (hasOne)', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
-    const changedRelatedRecord = { type: 'account', id: '1' }
-
-    const shouldUpdate = manager._shouldUpdate([term], [], [changedRelatedRecord])
-
-    expect(shouldUpdate).toBe(true)
-  })
-
-  test('It should return true with any other operation if the type of a relatedRecord matches the expression (hasMany)', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
-    const changedRelatedRecord = { type: 'account', id: '1' }
-
-    const shouldUpdate = manager._shouldUpdate([term], [], [changedRelatedRecord])
-
-    expect(shouldUpdate).toBe(true)
+    expect(Object.keys(manager._subscriptions).length).toBe(0)
+    expect(manager._store.listeners('transform').length).toBe(0)
   })
 })
+
 
 describe('Listener gets called after', () => {
   test('AddRecordOperation while listening to a type of record', async done => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.addRecord(account))
+    await manager._store.update(t => t.addRecord(account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -351,15 +143,15 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => t.addRecord(account))
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRecord(account))
+    await manager._store.update(t => t.replaceRecord(account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -367,15 +159,15 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => t.addRecord(account))
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.removeRecord(account))
+    await manager._store.update(t => t.removeRecord(account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -383,15 +175,15 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => t.addRecord(account))
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceKey(account, 'testKey', 'testValue'))
+    await manager._store.update(t => t.replaceKey(account, 'testKey', 'testValue'))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -402,13 +194,12 @@ describe('Listener gets called after', () => {
 
     await manager._store.update(t => t.addRecord(account))
 
-    const queryRef = manager.generateQueryRef(query)
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    await manager._store.update(t => t.replaceAttribute(account, 'test', 'hello'))
 
-    manager._store.update(t => t.replaceAttribute(account, 'test', 'hello'))
-
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -416,15 +207,15 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [t.addRecord(account), t.addRecord({ type: 'service', id: '1' })])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.addToRelatedRecords(account, 'services', { type: 'service', id: '1' }))
+    await manager._store.update(t => t.addToRelatedRecords(account, 'services', { type: 'service', id: '1' }))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -433,15 +224,15 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.addToRelatedRecords(service, 'subscribers', account))
+    await manager._store.update(t => t.addToRelatedRecords(service, 'subscribers', account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -450,7 +241,6 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -458,11 +248,12 @@ describe('Listener gets called after', () => {
       t.addToRelatedRecords(account, 'services', service)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.removeFromRelatedRecords(account, 'services', service))
+    await manager._store.update(t => t.removeFromRelatedRecords(account, 'services', service))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -471,7 +262,6 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -479,11 +269,12 @@ describe('Listener gets called after', () => {
       t.addToRelatedRecords(service, 'subscribers', account)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.removeFromRelatedRecords(service, 'subscribers', account))
+    await manager._store.update(t => t.removeFromRelatedRecords(service, 'subscribers', account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -493,7 +284,6 @@ describe('Listener gets called after', () => {
     const service2 = { type: 'service', id: '2' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -502,11 +292,12 @@ describe('Listener gets called after', () => {
       t.addToRelatedRecords(account, 'services', service1)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRelatedRecords(account, 'services', [service2]))
+    await manager._store.update(t => t.replaceRelatedRecords(account, 'services', [service2]))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -516,7 +307,6 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account1),
@@ -525,11 +315,12 @@ describe('Listener gets called after', () => {
       t.addToRelatedRecords(service, 'subscribers', account1)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRelatedRecords(service, 'subscribers', [account2]))
+    await manager._store.update(t => t.replaceRelatedRecords(service, 'subscribers', [account2]))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -539,7 +330,6 @@ describe('Listener gets called after', () => {
     const profile2 = { type: 'profile', id: '2' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -548,11 +338,12 @@ describe('Listener gets called after', () => {
       t.replaceRelatedRecord(account, 'profile', profile1)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRelatedRecord(account, 'profile', profile2))
+    await manager._store.update(t => t.replaceRelatedRecord(account, 'profile', profile2))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -562,7 +353,6 @@ describe('Listener gets called after', () => {
     const profile = { type: 'profile', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account1),
@@ -571,11 +361,12 @@ describe('Listener gets called after', () => {
       t.replaceRelatedRecord(profile, 'account', account2)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRelatedRecord(profile, 'account', account2))
+    await manager._store.update(t => t.replaceRelatedRecord(profile, 'account', account2))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -583,13 +374,13 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.addRecord(account))
+    await manager._store.update(t => t.addRecord(account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -597,15 +388,15 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => t.addRecord(account))
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRecord(account))
+    await manager._store.update(t => t.replaceRecord(account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -613,15 +404,15 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => t.addRecord(account))
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.removeRecord(account))
+    await manager._store.update(t => t.removeRecord(account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -629,15 +420,15 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => t.addRecord(account))
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceKey(account, 'testKey', 'testValue'))
+    await manager._store.update(t => t.replaceKey(account, 'testKey', 'testValue'))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -645,15 +436,15 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => t.addRecord(account))
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceAttribute(account, 'test', 'hello'))
+    await manager._store.update(t => t.replaceAttribute(account, 'test', 'hello'))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -662,15 +453,15 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.addToRelatedRecords(account, 'services', service))
+    await manager._store.update(t => t.addToRelatedRecords(account, 'services', service))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -679,15 +470,15 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.addToRelatedRecords(service, 'subscribers', account))
+    await manager._store.update(t => t.addToRelatedRecords(service, 'subscribers', account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -696,7 +487,6 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -704,11 +494,12 @@ describe('Listener gets called after', () => {
       t.addToRelatedRecords(account, 'services', service)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.removeFromRelatedRecords(account, 'services', service))
+    await manager._store.update(t => t.removeFromRelatedRecords(account, 'services', service))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -717,7 +508,6 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -725,11 +515,12 @@ describe('Listener gets called after', () => {
       t.addToRelatedRecords(service, 'subscribers', account)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.removeFromRelatedRecords(service, 'subscribers', account))
+    await manager._store.update(t => t.removeFromRelatedRecords(service, 'subscribers', account))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -739,7 +530,6 @@ describe('Listener gets called after', () => {
     const service2 = { type: 'service', id: '2' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -748,11 +538,12 @@ describe('Listener gets called after', () => {
       t.addToRelatedRecords(account, 'services', service1)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRelatedRecords(account, 'services', [service2]))
+    await manager._store.update(t => t.replaceRelatedRecords(account, 'services', [service2]))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -762,7 +553,6 @@ describe('Listener gets called after', () => {
     const service = { type: 'service', id: '2' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account1) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account1),
@@ -771,11 +561,12 @@ describe('Listener gets called after', () => {
       t.addToRelatedRecords(service, 'subscribers', account1)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRelatedRecords(service, 'subscribers', [account2]))
+    await manager._store.update(t => t.replaceRelatedRecords(service, 'subscribers', [account2]))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
@@ -785,7 +576,6 @@ describe('Listener gets called after', () => {
     const profile2 = { type: 'profile', id: '2' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -794,21 +584,21 @@ describe('Listener gets called after', () => {
       t.replaceRelatedRecord(account, 'profile', profile1)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRelatedRecord(account, 'profile', profile2))
+    await manager._store.update(t => t.replaceRelatedRecord(account, 'profile', profile2))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 
-  test('ReplaceRelatedRecordOperation while listening to a specific ecord (relation perspective)', async done => {
+  test('ReplaceRelatedRecordOperation while listening to a specific record (relation perspective)', async done => {
     const account1 = { type: 'account', id: '1' }
     const account2 = { type: 'account', id: '2' }
     const profile = { type: 'profile', id: '1' }
 
     const query = { Account: (q: QueryBuilder) => q.findRecord(account1) }
-    const queryRef = manager.generateQueryRef(query)
 
     await manager._store.update(t => [
       t.addRecord(account1),
@@ -817,12 +607,12 @@ describe('Listener gets called after', () => {
       t.replaceRelatedRecord(profile, 'account', account1)
     ])
 
-    const result = new Promise(resolve => manager.subscribeToCache(queryRef, () => { resolve(' q(0_0)p ') }))
+    const listener = jest.fn()
+    manager.subscribe(query, listener)
 
-    manager._store.update(t => t.replaceRelatedRecord(profile, 'account', account2))
+    await manager._store.update(t => t.replaceRelatedRecord(profile, 'account', account2))
 
-    expect(await result).toBe(' q(0_0)p ')
+    expect(listener).toHaveBeenCalledTimes(1)
     done()
   })
 })
-
