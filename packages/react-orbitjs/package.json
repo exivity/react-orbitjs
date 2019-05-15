@@ -1,6 +1,6 @@
 {
   "name": "react-orbitjs",
-  "version": "0.1.11",
+  "version": "2.0.0-alpha.1",
   "description": "React.js bindings for Orbit.js",
   "license": "MIT",
   "repository": {
@@ -16,66 +16,32 @@
     "url": "https://github.com/exivity/react-orbitjs/issues"
   },
   "homepage": "https://github.com/exivity/react-orbitjs#readme",
-  "main": "dist/bundle/umd/react-orbitjs.js",
+  "main": "dist/index.js",
   "module": "dist/module/es5/index.js",
   "files": [
-    "index.d.ts",
-    "src",
     "dist"
   ],
   "scripts": {
-    "build": "yarn run build:clean && yarn run build:module && yarn run build:bundle",
-    "build:clean": "rimraf dist && rimraf example/build",
-    "build:module": "babel src -d dist/module/es5",
-    "build:bundle": "webpack --config webpack.bundle.config.js",
-    "build:docs": "webpack --config webpack.docs.config.js && rimraf docs/dist/main.bundle.js.map",
-    "publishDocs": "git subtree push --prefix docs/dist origin gh-pages",
-    "prepublishOnly": "yarn test && yarn build",
-    "start": "webpack-dev-server --config webpack.docs.config.js",
-    "test": "jest && codecov",
-    "watch": "jest --watch"
+    "build": "rm -rf ./dist && tsc",
+    "test": "jest --watch"
   },
   "devDependencies": {
-    "@orbit/data": "^0.15.8",
-    "@orbit/store": "^0.15.8",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-jest": "^21.2.0",
-    "babel-loader": "^7.1.2",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-react": "^6.24.1",
-    "codecov": "^3.0.0",
-    "copy-webpack-plugin": "^4.2.3",
-    "html-webpack-plugin": "^2.30.1",
-    "jest": "^21.2.1",
-    "luxon": "^0.2.3",
-    "raw-loader": "^0.5.1",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "react-syntax-highlighter": "^6.0.4",
-    "react-test-renderer": "^16.2.0",
-    "rimraf": "^2.6.2",
-    "webpack": "^3.7.1",
-    "webpack-dev-server": "^2.9.1"
-  },
-  "dependencies": {
-    "hoist-non-react-statics": "^2.3.1",
-    "prop-types": "^15.6.0"
+    "@types/jest": "^24.0.11",
+    "@types/node": "^11.13.7",
+    "@types/react": "^16.8.13",
+    "@types/react-dom": "^16.8.4",
+    "jest": "^24.7.1",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-hooks-testing-library": "^0.5.0",
+    "react-test-renderer": "^16.8.6",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.4.3"
   },
   "peerDependencies": {
     "@orbit/core": "^0.15.0",
     "@orbit/store": "^0.15.0",
     "@orbit/data": "^0.15.0",
     "react": ">=15"
-  },
-  "jest": {
-    "coverageDirectory": "./coverage/",
-    "collectCoverage": true,
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/dist/"
-    ]
   }
 }
