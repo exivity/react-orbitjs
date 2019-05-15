@@ -1,0 +1,17 @@
+### IDEs
+/.idea/
+
+### Logs
+*.log
+
+### Dependency directories
+/node_modules/
+
+### dotenv environment variables file
+.env
+
+### Build artefact
+/dist/
+
+### Test artefact
+/coverage/
