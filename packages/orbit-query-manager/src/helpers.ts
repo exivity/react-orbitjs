@@ -1,5 +1,5 @@
 import { RecordOperation, RecordIdentity } from '@orbit/data'
-import { Term } from './types';
+import { Expression } from './types';
 
 export const getUpdatedRecords = (operations: RecordOperation[]) => {
   const records: RecordIdentity[] = []
@@ -24,21 +24,18 @@ export const getUpdatedRecords = (operations: RecordOperation[]) => {
   return { records, relatedRecords }
 }
 
-export const shouldUpdate = (
-  terms: Term[],
+export const hasChanged = (
+  expression: Expression,
   records: RecordIdentity[],
-  relatedRecords: RecordIdentity[]
-) => {
-  return terms.some(({ expression }) => {
-    if (expression.op === 'findRecords') {
-      return records.some(({ type }) => type === expression.type) ||
-        relatedRecords.some(({ type }) => type === expression.type)
-    }
+  relatedRecords: RecordIdentity[]) => {
+  if (expression.op === 'findRecords') {
+    return records.some(({ type }) => type === expression.type) ||
+      relatedRecords.some(({ type }) => type === expression.type)
+  }
 
-    return records.some(record => !!identityIsEqual(expression.record, record))
-      // @todo find a way to check for identity for relationships
-      || relatedRecords.some(record => record.type === expression.record.type)
-  })
+  return records.some(record => !!identityIsEqual(expression.record, record))
+    // @todo find a way to check for identity for relationships
+    || relatedRecords.some(record => record.type === expression.record.type)
 }
 
 export const identityIsEqual = (a: RecordIdentity | null, b: RecordIdentity | null) =>

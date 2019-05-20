@@ -40,25 +40,24 @@ beforeEach(() => {
   manager = new QueryManager(store.fork())
 })
 
-test('QueryManager._extractTerms(...) returns an ordered array of terms', () => {
-  const account = { type: 'account', id: '1' }
+// test('QueryManager._extractTerms(...) returns an ordered array of terms', () => {
+//   const account = { type: 'account', id: '1' }
 
-  const query = (q: QueryBuilder) => q.findRecord(account)
-  const queries = { Cccount: query, Account: query, Bccount: query, }
+//   const query = (q: QueryBuilder) => q.findRecord(account)/   const queries = { Cccount: query, Account: query, Bccount: query, }
 
-  const terms = manager._extractTerms(queries)
+//   const terms = manager._extractTermsOrExpression(queries)
 
-  expect(terms).toMatchObject([
-    { key: 'Account', expression: { op: 'findRecord', record: account } },
-    { key: 'Bccount', expression: { op: 'findRecord', record: account } },
-    { key: 'Cccount', expression: { op: 'findRecord', record: account } }
-  ])
-})
+//   expect(terms).toMatchObject([
+//     { key: 'Account', expression: { op: 'findRecord', record: {Account: account } },
+//     { key: 'Bccount', expression: { op: 'findRecord', record: {Account: account } },
+//     { key: 'Cccount', expression: { op: 'findRecord', record: {Account: account } }
+//   ])
+// })
 
 test('QueryManager.query(...) makes a new query when no queries are going on', () => {
   const account = { type: 'account', id: '1' }
 
-  const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+  const query = (q: QueryBuilder) => q.findRecord(account)
   const listener = jest.fn()
 
   manager.subscribe(query, listener)
@@ -74,11 +73,41 @@ describe('queryCache(...)', () => {
   test('The record object is null if no match is found', () => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     const data = manager.queryCache(query)
 
     expect(data[0]).toBe(null)
+  })
+
+  test('Returns a record when a single query function is passed in', async (done) => {
+    const account = { type: 'account', id: '1' }
+
+    const query = (q: QueryBuilder) => q.findRecord(account)
+
+    await manager._store.update(t => t.addRecord(account))
+
+    const data = manager.queryCache(query)
+
+    expect(data[0]).toBe(account)
+    done()
+  })
+
+  test('Returns an object with records when an object with query functions function is passed in', async (done) => {
+    const account1 = { type: 'account', id: '1' }
+    const account2 = { type: 'account', id: '1' }
+
+    const query = {
+      Bob: (q: QueryBuilder) => q.findRecord(account1),
+      Steve: (q: QueryBuilder) => q.findRecord(account2)
+    }
+
+    await manager._store.update(t => [t.addRecord(account1), t.addRecord(account2)])
+
+    const data = manager.queryCache(query)
+
+    expect(data[0]).toMatchObject({ Bob: account1, Steve: account2 })
+    done()
   })
 })
 
@@ -86,7 +115,7 @@ describe('subscribe(...)', () => {
   test('The record object is null if the cache updates and no match is found', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     let data: any
     const listener = jest.fn(result => {
@@ -97,7 +126,7 @@ describe('subscribe(...)', () => {
 
     await manager._store.update(t => t.addRecord(account))
 
-    expect(data[0]).toMatchObject({ Account: account })
+    expect(data[0]).toMatchObject(account)
 
     await manager._store.update(t => t.removeRecord(account))
 
@@ -108,7 +137,7 @@ describe('subscribe(...)', () => {
   test('returns a function that stops listening for events if there are no subscriptions left', () => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
     const listener = jest.fn()
 
     const unsubscribe = manager.subscribe(query, listener)
@@ -128,7 +157,7 @@ describe('Listener gets called after', () => {
   test('AddRecordOperation while listening to a type of record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     const listener = jest.fn()
     manager.subscribe(query, listener)
@@ -142,7 +171,7 @@ describe('Listener gets called after', () => {
   test('ReplaceRecordOperation while listening to a type of record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => t.addRecord(account))
 
@@ -158,7 +187,7 @@ describe('Listener gets called after', () => {
   test('RemoveRecordOperation while listening to a type of record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => t.addRecord(account))
 
@@ -174,7 +203,7 @@ describe('Listener gets called after', () => {
   test('ReplaceKeyOperation while listening to a type of record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => t.addRecord(account))
 
@@ -190,7 +219,7 @@ describe('Listener gets called after', () => {
   test('ReplaceAttributeOperation while listening to a type of record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => t.addRecord(account))
 
@@ -206,7 +235,7 @@ describe('Listener gets called after', () => {
   test('AddToRelatedRecordsOperation while listening to a type of record (record perspective)', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => [t.addRecord(account), t.addRecord({ type: 'service', id: '1' })])
 
@@ -223,7 +252,7 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
 
@@ -240,7 +269,7 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -261,7 +290,7 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -283,7 +312,7 @@ describe('Listener gets called after', () => {
     const service1 = { type: 'service', id: '1' }
     const service2 = { type: 'service', id: '2' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -306,7 +335,7 @@ describe('Listener gets called after', () => {
     const account2 = { type: 'account', id: '2' }
     const service = { type: 'service', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => [
       t.addRecord(account1),
@@ -329,7 +358,7 @@ describe('Listener gets called after', () => {
     const profile1 = { type: 'profile', id: '1' }
     const profile2 = { type: 'profile', id: '2' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -352,7 +381,7 @@ describe('Listener gets called after', () => {
     const account2 = { type: 'account', id: '2' }
     const profile = { type: 'profile', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecords('account') }
+    const query = (q: QueryBuilder) => q.findRecords('account')
 
     await manager._store.update(t => [
       t.addRecord(account1),
@@ -373,7 +402,7 @@ describe('Listener gets called after', () => {
   test('AddRecordOperation while listening to a specific record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     const listener = jest.fn()
     manager.subscribe(query, listener)
@@ -387,7 +416,7 @@ describe('Listener gets called after', () => {
   test('ReplaceRecordOperation while listening to a specific record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => t.addRecord(account))
 
@@ -403,7 +432,7 @@ describe('Listener gets called after', () => {
   test('RemoveRecordOperation while listening to a specific record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => t.addRecord(account))
 
@@ -419,7 +448,7 @@ describe('Listener gets called after', () => {
   test('ReplaceKeyOperation while listening to a specific record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => t.addRecord(account))
 
@@ -435,7 +464,7 @@ describe('Listener gets called after', () => {
   test('ReplaceAttributeOperation while listening to a specific record', async done => {
     const account = { type: 'account', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => t.addRecord(account))
 
@@ -452,7 +481,7 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
 
@@ -469,7 +498,7 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
 
@@ -486,7 +515,7 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -507,7 +536,7 @@ describe('Listener gets called after', () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -529,7 +558,7 @@ describe('Listener gets called after', () => {
     const service1 = { type: 'service', id: '1' }
     const service2 = { type: 'service', id: '2' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -552,7 +581,7 @@ describe('Listener gets called after', () => {
     const account2 = { type: 'account', id: '2' }
     const service = { type: 'service', id: '2' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account1) }
+    const query = (q: QueryBuilder) => q.findRecord(account1)
 
     await manager._store.update(t => [
       t.addRecord(account1),
@@ -575,7 +604,7 @@ describe('Listener gets called after', () => {
     const profile1 = { type: 'profile', id: '1' }
     const profile2 = { type: 'profile', id: '2' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account) }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
     await manager._store.update(t => [
       t.addRecord(account),
@@ -598,7 +627,8 @@ describe('Listener gets called after', () => {
     const account2 = { type: 'account', id: '2' }
     const profile = { type: 'profile', id: '1' }
 
-    const query = { Account: (q: QueryBuilder) => q.findRecord(account1) }
+    const query = (q: QueryBuilder) => q.findRecord(account1)
+
 
     await manager._store.update(t => [
       t.addRecord(account1),

@@ -12,9 +12,9 @@ export type Query = (q: QueryBuilder) => QueryTerm
 
 export type Queries = { [key: string]: Query }
 
-export type Expressions = FindRecord | FindRelatedRecord | FindRecords | FindRelatedRecords
+export type Expression = FindRecord | FindRelatedRecord | FindRecords | FindRelatedRecords
 
-export type Term = { key: string, expression: Expressions }
+export type Term = { key: string, expression: Expression }
 
 export type Listener = Function
 
@@ -24,10 +24,10 @@ export type Subscriptions = {
 
 export interface RecordObject { [key: string]: Record | Record[] }
 
-export type RecordData = RecordObject | null
+export type RecordData = RecordObject | Record | Record[] | null
 
 export interface Status {
-  loading?: boolean
+  loading: boolean
   error: null | Error
 }
 

@@ -1,49 +1,49 @@
-import { Term } from '../types'
-import { shouldUpdate, getUpdatedRecords } from '../helpers'
+import { Expression } from '../types'
+import { hasChanged, getUpdatedRecords } from '../helpers'
 import { RecordOperation } from '@orbit/data';
 
 describe('shouldUpdate(...)', () => {
   test('findRecords: It should return true when a record of the listened to type present in records', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecords', type: 'account' } }
+    const expression: Expression = { op: 'findRecords', type: 'account' }
     const changedRecord = { type: 'account', id: '1' }
 
-    const shouldUpdateVal = shouldUpdate([term], [changedRecord], [])
+    const shouldUpdateVal = hasChanged(expression, [changedRecord], [])
 
     expect(shouldUpdateVal).toBe(true)
   })
 
   test('findRecords: It should return true  when a record of the listened to type present in relatedRecords', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecords', type: 'account' } }
+    const expression: Expression = { op: 'findRecords', type: 'account' }
     const changedRelatedRecord = { type: 'account', id: '1' }
 
-    const shouldUpdateVal = shouldUpdate([term], [], [changedRelatedRecord])
+    const shouldUpdateVal = hasChanged(expression, [], [changedRelatedRecord])
 
     expect(shouldUpdateVal).toBe(true)
   })
 
   test('It should return true with any other operation if a record matches an expression', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
+    const expression: Expression = { op: 'findRecord', record: { type: 'account', id: '1' } }
     const changedRecord = { type: 'account', id: '1' }
 
-    const shouldUpdateVal = shouldUpdate([term], [changedRecord], [])
+    const shouldUpdateVal = hasChanged(expression, [changedRecord], [])
 
     expect(shouldUpdateVal).toBe(true)
   })
 
   test('It should return true with any other operation if the type of a relatedRecord matches the expression (hasOne)', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
+    const expression: Expression = { op: 'findRecord', record: { type: 'account', id: '1' } }
     const changedRelatedRecord = { type: 'account', id: '1' }
 
-    const shouldUpdateVal = shouldUpdate([term], [], [changedRelatedRecord])
+    const shouldUpdateVal = hasChanged(expression, [], [changedRelatedRecord])
 
     expect(shouldUpdateVal).toBe(true)
   })
 
   test('It should return true with any other operation if the type of a relatedRecord matches the expression (hasMany)', () => {
-    const term: Term = { key: 'Test', expression: { op: 'findRecord', record: { type: 'account', id: '1' } } }
+    const expression: Expression = { op: 'findRecord', record: { type: 'account', id: '1' } }
     const changedRelatedRecord = { type: 'account', id: '1' }
 
-    const shouldUpdateVal = shouldUpdate([term], [], [changedRelatedRecord])
+    const shouldUpdateVal = hasChanged(expression, [], [changedRelatedRecord])
 
     expect(shouldUpdateVal).toBe(true)
   })
