@@ -71,9 +71,6 @@ export class QueryManager extends Observable {
       this._afterQueryQueue[id] = []
 
       this._query(id, termsOrExpression)
-
-      this._afterQueryQueue[id].forEach(fn => fn())
-      delete this._afterQueryQueue[id]
     }
 
     return [null, this._queryRefs[id]]
@@ -93,6 +90,9 @@ export class QueryManager extends Observable {
     } finally {
       this._queryRefs[id].loading = false
       super.notify(id, [data || null, this._queryRefs[id]])
+
+      this._afterQueryQueue[id].forEach(fn => fn())
+      delete this._afterQueryQueue[id]
     }
   }
 
