@@ -40,34 +40,58 @@ beforeEach(() => {
   manager = new QueryManager(store.fork())
 })
 
-// test('QueryManager._extractTerms(...) returns an ordered array of terms', () => {
-//   const account = { type: 'account', id: '1' }
+describe('QueryManager.query(...)', () => {
+  test('Makes a new query when no queries are going on', () => {
+    const account = { type: 'account', id: '1' }
 
-//   const query = (q: QueryBuilder) => q.findRecord(account)/   const queries = { Cccount: query, Account: query, Bccount: query, }
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
-//   const terms = manager._extractTermsOrExpression(queries)
+    manager.query(query)
 
-//   expect(terms).toMatchObject([
-//     { key: 'Account', expression: { op: 'findRecord', record: {Account: account } },
-//     { key: 'Bccount', expression: { op: 'findRecord', record: {Account: account } },
-//     { key: 'Cccount', expression: { op: 'findRecord', record: {Account: account } }
-//   ])
-// })
+    expect(Object.keys(manager._queryRefs).length).toBe(1)
+  })
 
-test('QueryManager.query(...) makes a new query when no queries are going on', () => {
-  const account = { type: 'account', id: '1' }
+  test('No new query will be made when an identical query already exists', () => {
+    const account = { type: 'account', id: '1' }
 
-  const query = (q: QueryBuilder) => q.findRecord(account)
-  const listener = jest.fn()
+    const query = (q: QueryBuilder) => q.findRecord(account)
 
-  manager.subscribe(query, listener)
+    manager.query(query)
 
-  expect(Object.keys(manager._queryRefs).length).toBe(0)
+    expect(Object.keys(manager._queryRefs).length).toBe(1)
 
-  manager.query(query)
+    manager.query(query)
 
-  expect(Object.keys(manager._queryRefs).length).toBe(1)
+    expect(Object.keys(manager._queryRefs).length).toBe(1)
+  })
+
+  test('Able to pass in options to make a unique query', () => {
+    const account = { type: 'account', id: '1' }
+
+    const query = (q: QueryBuilder) => q.findRecord(account)
+
+    const listener1 = jest.fn()
+    const listener2 = jest.fn()
+
+    const options = {
+      label: 'Find all contacts',
+      sources: {
+        remote: {
+          include: ['phone-numbers']
+        }
+      }
+    }
+
+    manager.query(query)
+
+    expect(Object.keys(manager._queryRefs).length).toBe(1)
+
+    manager.query(query, options)
+
+    expect(Object.keys(manager._queryRefs).length).toBe(2)
+  })
 })
+
 
 describe('queryCache(...)', () => {
   test('The record object is null if no match is found', () => {

@@ -1,5 +1,5 @@
 import { RecordOperation, RecordIdentity } from '@orbit/data'
-import { Expression } from './types';
+import { Expression, Term, Options } from './types';
 
 export const getUpdatedRecords = (operations: RecordOperation[]) => {
   const records: RecordIdentity[] = []
@@ -22,6 +22,25 @@ export const getUpdatedRecords = (operations: RecordOperation[]) => {
   })
 
   return { records, relatedRecords }
+}
+
+export const shouldUpdate = (
+  termsOrExpression: Term[] | Expression | { termsOrExpression: Term[] | Expression, options: Options },
+  records: RecordIdentity[],
+  relatedRecords: RecordIdentity[]) => {
+
+  if (Array.isArray(termsOrExpression)) {
+    return termsOrExpression.some(({ expression }) => hasChanged(expression, records, relatedRecords))
+  }
+
+  else if (termsOrExpression['op']) {
+    return hasChanged(termsOrExpression as Expression, records, relatedRecords)
+  }
+
+  else {
+    // @ts-ignore
+    return shouldUpdate(termsOrExpression.termsOrExpression, records, relatedRecords)
+  }
 }
 
 export const hasChanged = (

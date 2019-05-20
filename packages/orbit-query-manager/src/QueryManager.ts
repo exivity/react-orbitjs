@@ -2,7 +2,7 @@ import Store from '@orbit/store'
 import { Transform, RecordOperation, Record } from '@orbit/data'
 
 import { Observable } from './Observable'
-import { getUpdatedRecords, hasChanged } from './helpers'
+import { getUpdatedRecords, hasChanged, shouldUpdate } from './helpers'
 import { Term, Queries, Expression, RecordData, Status, QueryRefs, Query, RecordObject, Options, SingleOptions, MultipleOptions } from './types'
 
 export class QueryManager extends Observable {
@@ -151,11 +151,7 @@ export class QueryManager extends Observable {
     Object.keys(this._subscriptions).forEach(id => {
       const termsOrExpression = JSON.parse(id)
 
-      const shouldUpdate = !Array.isArray(termsOrExpression)
-        ? hasChanged(termsOrExpression as Expression, records, relatedRecords)
-        : termsOrExpression.some(({ expression }) => hasChanged(expression, records, relatedRecords))
-
-      if (shouldUpdate) {
+      if (shouldUpdate(termsOrExpression, records, relatedRecords)) {
         const data = this._queryCache(termsOrExpression)
         super.notify(id, data)
       }
