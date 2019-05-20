@@ -3,7 +3,7 @@ import { Transform, RecordOperation } from '@orbit/data'
 
 import { Observable } from './Observable'
 import { getUpdatedRecords, shouldUpdate } from './helpers'
-import { Term, Queries, Expressions, RecordData, Status, QueryRefs } from './types'
+import { Term, Queries, Expressions, RecordData, Status, QueryRefs, Query } from './types'
 
 export class QueryManager extends Observable {
   _store: Store
@@ -46,8 +46,12 @@ export class QueryManager extends Observable {
     }
   }
 
-  query (queries: Queries) {
-    const terms = this._extractTerms(queries)
+  query (queryOrQueries: Query | Queries) {
+
+    const terms = typeof queryOrQueries === 'function'
+      ? this._extractTerms({ query: queryOrQueries })
+      : this._extractTerms(queryOrQueries)
+
     const id = JSON.stringify(terms)
 
     if (!this._queryRefs[id]) {

@@ -8,7 +8,9 @@ import {
   Record
 } from '@orbit/data'
 
-export type Queries = { [key: string]: (q: QueryBuilder) => QueryTerm }
+export type Query = (q: QueryBuilder) => QueryTerm
+
+export type Queries = { [key: string]: Query }
 
 export type Expressions = FindRecord | FindRelatedRecord | FindRecords | FindRelatedRecords
 
