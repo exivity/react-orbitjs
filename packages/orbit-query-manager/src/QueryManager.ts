@@ -3,7 +3,7 @@ import { Transform, RecordOperation, Record } from '@orbit/data'
 
 import { Observable } from './Observable'
 import { getUpdatedRecords, hasChanged } from './helpers'
-import { Term, Queries, Expression, RecordData, Status, QueryRefs, Query, RecordObject } from './types'
+import { Term, Queries, Expression, RecordData, Status, QueryRefs, Query, RecordObject, Options, SingleOptions, MultipleOptions } from './types'
 
 export class QueryManager extends Observable {
   _store: Store
@@ -26,7 +26,7 @@ export class QueryManager extends Observable {
     return query(this._store.queryBuilder).expression as Expression
   }
 
-  _getTermsOrExpression (queryOrQueries: Query | Queries) {
+  _getTermsOrExpression (queryOrQueries: Query | Queries, options?: Options) {
     return typeof queryOrQueries === 'function'
       ? this._extractExpression(queryOrQueries)
       : this._extractTerms(queryOrQueries)
@@ -57,10 +57,12 @@ export class QueryManager extends Observable {
     }
   }
 
-  query (queryOrQueries: Query | Queries): [RecordData, Status] {
+  query (queryOrQueries: Query | Queries, options: Options = {}): [RecordData, Status] {
 
-    const termsOrExpression = this._getTermsOrExpression(queryOrQueries)
-    const id = JSON.stringify(termsOrExpression)
+    const termsOrExpression = this._getTermsOrExpression(queryOrQueries, options)
+    const id = Object.keys(options).length
+      ? JSON.stringify({ termsOrExpression, options })
+      : JSON.stringify(termsOrExpression)
 
     if (!this._queryRefs[id]) {
       this._queryRefs[id] = { loading: false, error: null }
@@ -70,20 +72,20 @@ export class QueryManager extends Observable {
       this._queryRefs[id].loading = true
       this._afterQueryQueue[id] = []
 
-      this._query(id, termsOrExpression)
+      this._query(id, termsOrExpression, options)
     }
 
     return [null, this._queryRefs[id]]
   }
 
-  async _query (id: string, termsOrExpression: Term[] | Expression) {
+  async _query (id: string, termsOrExpression: Term[] | Expression, options: Options) {
 
     let data: RecordData
 
     try {
       data = !Array.isArray(termsOrExpression)
-        ? await this._makeSingleQuery(termsOrExpression)
-        : await this._makeMultipleQueries(termsOrExpression)
+        ? await this._makeSingleQuery(termsOrExpression, options as SingleOptions)
+        : await this._makeMultipleQueries(termsOrExpression, options as MultipleOptions)
 
     } catch (error) {
       this._queryRefs[id].error = error
@@ -96,19 +98,22 @@ export class QueryManager extends Observable {
     }
   }
 
-  async _makeSingleQuery (expression: Expression) {
+  async _makeSingleQuery (expression: Expression, options: SingleOptions = {}) {
     return new Promise<Record>((resolve, reject) => {
-      this._store.query(expression)
+      this._store.query(expression, options)
         .then(record => resolve(record))
         .catch(reject)
     })
   }
 
-  async _makeMultipleQueries (terms: Term[]) {
+  async _makeMultipleQueries (terms: Term[], options: MultipleOptions) {
     const results = await Promise.all(terms.map(({ key, expression }) =>
       new Promise<RecordObject>((resolve, reject) => {
-        this._makeSingleQuery(expression)
-          .then(result => resolve({ [key]: result }))
+
+        const currentOptions = options.find(option => option.queryKey === key)
+
+        this._makeSingleQuery(expression, currentOptions.options)
+          .then(record => resolve({ [key]: record }))
           .catch(reject)
       })
     ))

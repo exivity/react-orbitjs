@@ -18,6 +18,15 @@ export type Term = { key: string, expression: Expression }
 
 export type Listener = Function
 
+export type SingleOptions = { [optionKey: string]: any }
+
+export type MultipleOptions = {
+  queryKey: string
+  options: SingleOptions
+}[]
+
+export type Options = SingleOptions | MultipleOptions
+
 export type Subscriptions = {
   [key: string]: Listener[]
 }
