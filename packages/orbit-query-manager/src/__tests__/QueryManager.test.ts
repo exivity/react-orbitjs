@@ -1,7 +1,8 @@
-import { QueryBuilder, Schema, ModelDefinition } from '@orbit/data'
+import { QueryBuilder, Schema, ModelDefinition, AddRecordOperation, Transform, ReplaceRecordOperation, RemoveRecordOperation, ReplaceKeyOperation, ReplaceAttributeOperation, AddToRelatedRecordsOperation, RemoveFromRelatedRecordsOperation, ReplaceRelatedRecordsOperation, ReplaceRelatedRecordOperation } from '@orbit/data'
 import { QueryManager } from '../QueryManager'
 import Store from '@orbit/store'
 import { Dict } from '@orbit/utils'
+import { Expression, Term } from '../types';
 
 const modelDefenition: Dict<ModelDefinition> = {
   account: {
@@ -70,9 +71,6 @@ describe('QueryManager.query(...)', () => {
 
     const query = (q: QueryBuilder) => q.findRecord(account)
 
-    const listener1 = jest.fn()
-    const listener2 = jest.fn()
-
     const options = {
       label: 'Find all contacts',
       sources: {
@@ -89,6 +87,59 @@ describe('QueryManager.query(...)', () => {
     manager.query(query, options)
 
     expect(Object.keys(manager._queryRefs).length).toBe(2)
+  })
+})
+
+describe('_makeSingleQuery', () => {
+  test('returns a promise that resolves with a record', async (done) => {
+    const account = { type: 'account', id: '1' }
+    const expression: Expression = { op: 'findRecord', record: account }
+
+    await manager._store.update(t => t.addRecord(account))
+
+    const result = await manager._makeSingleQuery(expression)
+
+    expect(result).toBe(account)
+    done()
+  })
+
+  test('can take a second options parameter', async (done) => {
+    const account = { type: 'account', id: '1' }
+    const expression: Expression = { op: 'findRecord', record: account }
+    const options = { label: 'get account' }
+
+    await manager._store.update(t => t.addRecord(account))
+
+    const result = await manager._makeSingleQuery(expression, options)
+
+    expect(result).toBe(account)
+    done()
+  })
+})
+
+describe('_makeMultipleQueries', () => {
+  test('returns a promise that resolves with a record object', async (done) => {
+    const account = { type: 'account', id: '1' }
+    const terms: Term[] = [{ key: 'Account', expression: { op: 'findRecord', record: account } }]
+
+    await manager._store.update(t => t.addRecord(account))
+
+    const result = await manager._makeMultipleQueries(terms)
+
+    expect(result).toMatchObject({ Account: account })
+    done()
+  })
+
+  test('can take a second options parameter', async (done) => {
+    const account = { type: 'account', id: '1' }
+    const terms: Term[] = [{ key: 'Account', expression: { op: 'findRecord', record: account } }]
+
+    await manager._store.update(t => t.addRecord(account))
+
+    const result = await manager._makeMultipleQueries(terms)
+
+    expect(result).toMatchObject({ Account: account })
+    done()
   })
 })
 
@@ -136,29 +187,7 @@ describe('queryCache(...)', () => {
 })
 
 describe('subscribe(...)', () => {
-  test('The record object is null if the cache updates and no match is found', async done => {
-    const account = { type: 'account', id: '1' }
-
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    let data: any
-    const listener = jest.fn(result => {
-      data = result
-    })
-
-    manager.subscribe(query, listener)
-
-    await manager._store.update(t => t.addRecord(account))
-
-    expect(data[0]).toMatchObject(account)
-
-    await manager._store.update(t => t.removeRecord(account))
-
-    expect(data[0]).toBe(null)
-    done()
-  })
-
-  test('returns a function that stops listening for events if there are no subscriptions left', () => {
+  test('returns an unsubscribe function that stops listening for events if there are no subscriptions left', () => {
     const account = { type: 'account', id: '1' }
 
     const query = (q: QueryBuilder) => q.findRecord(account)
@@ -177,496 +206,476 @@ describe('subscribe(...)', () => {
 })
 
 
-describe('Listener gets called after', () => {
-  test('AddRecordOperation while listening to a type of record', async done => {
+describe('_compare(...)', () => {
+  test(`notifies when a subscriber's subscribed-to record type is included and options were provided (single query)`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecords('account')
+    const expression = { op: 'findRecords', type: 'account' }
+    const options = { test: 'test' }
+
+    const id = JSON.stringify({ termsOrExpression: expression, options })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.addRecord(account))
+    const operation: AddRecordOperation = { op: 'addRecord', record: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceRecordOperation while listening to a type of record', async done => {
+  test(`notifies when a subscriber's subscribed-to record type is included and options were provided (multiple queries, with options)`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecords('account')
+    const terms = [{ key: 'Account', expression: { op: 'findRecords', type: 'account' } }]
+    const options = { test: 'test' }
 
-    await manager._store.update(t => t.addRecord(account))
+    const id = JSON.stringify({ termsOrExpression: terms, options })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceRecord(account))
+    const operation: AddRecordOperation = { op: 'addRecord', record: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('RemoveRecordOperation while listening to a type of record', async done => {
+  test(`notifies when a subscriber's subscribed-to record type is included in a AddRecordOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => t.addRecord(account))
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.removeRecord(account))
+    const operation: AddRecordOperation = { op: 'addRecord', record: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceKeyOperation while listening to a type of record', async done => {
+  test(`notifies when a subscriber's subscribed-to record is included in a AddRecordOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => t.addRecord(account))
+    const id = JSON.stringify({ op: 'findRecord', record: account })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceKey(account, 'testKey', 'testValue'))
+    const operation: AddRecordOperation = { op: 'addRecord', record: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceAttributeOperation while listening to a type of record', async done => {
+  test(`notifies when a subscriber's subscribed-to record type is included in a ReplaceRecordOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => t.addRecord(account))
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceAttribute(account, 'test', 'hello'))
+    const operation: ReplaceRecordOperation = { op: 'replaceRecord', record: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('AddToRelatedRecordsOperation while listening to a type of record (record perspective)', async done => {
+  test(`notifies when a subscriber's subscribed-to record is included in a ReplaceRecordOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => [t.addRecord(account), t.addRecord({ type: 'service', id: '1' })])
+    const id = JSON.stringify({ op: 'findRecord', record: account })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.addToRelatedRecords(account, 'services', { type: 'service', id: '1' }))
+    const operation: ReplaceRecordOperation = { op: 'replaceRecord', record: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
 
-    expect(listener).toHaveBeenCalledTimes(1)
-    done()
-  })
-
-  test('AddToRelatedRecordsOperation while listening to a type of record (relation perspective)', async done => {
-    const account = { type: 'account', id: '1' }
-    const service = { type: 'service', id: '1' }
-
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
-
-    const listener = jest.fn()
-    manager.subscribe(query, listener)
-
-    await manager._store.update(t => t.addToRelatedRecords(service, 'subscribers', account))
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('RemoveFromRelatedRecordsOperation while listening to a type of record (record perspective)', async done => {
-    const account = { type: 'account', id: '1' }
-    const service = { type: 'service', id: '1' }
-
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => [
-      t.addRecord(account),
-      t.addRecord(service),
-      t.addToRelatedRecords(account, 'services', service)
-    ])
-
-    const listener = jest.fn()
-    manager.subscribe(query, listener)
-
-    await manager._store.update(t => t.removeFromRelatedRecords(account, 'services', service))
-
-    expect(listener).toHaveBeenCalledTimes(1)
-    done()
-  })
-
-  test('RemoveFromRelatedRecordsOperation while listening to a type of record (relation perspective)', async done => {
-    const account = { type: 'account', id: '1' }
-    const service = { type: 'service', id: '1' }
-
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => [
-      t.addRecord(account),
-      t.addRecord(service),
-      t.addToRelatedRecords(service, 'subscribers', account)
-    ])
-
-    const listener = jest.fn()
-    manager.subscribe(query, listener)
-
-    await manager._store.update(t => t.removeFromRelatedRecords(service, 'subscribers', account))
-
-    expect(listener).toHaveBeenCalledTimes(1)
-    done()
-  })
-
-  test('ReplaceRelatedRecordsOperation while listening to a type of record (record perspective)', async done => {
-    const account = { type: 'account', id: '1' }
-    const service1 = { type: 'service', id: '1' }
-    const service2 = { type: 'service', id: '2' }
-
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => [
-      t.addRecord(account),
-      t.addRecord(service1),
-      t.addRecord(service2),
-      t.addToRelatedRecords(account, 'services', service1)
-    ])
-
-    const listener = jest.fn()
-    manager.subscribe(query, listener)
-
-    await manager._store.update(t => t.replaceRelatedRecords(account, 'services', [service2]))
-
-    expect(listener).toHaveBeenCalledTimes(1)
-    done()
-  })
-
-  test('ReplaceRelatedRecordsOperation while listening to a type of record (relation perspective)', async done => {
-    const account1 = { type: 'account', id: '1' }
-    const account2 = { type: 'account', id: '2' }
-    const service = { type: 'service', id: '1' }
-
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => [
-      t.addRecord(account1),
-      t.addRecord(account2),
-      t.addRecord(service),
-      t.addToRelatedRecords(service, 'subscribers', account1)
-    ])
-
-    const listener = jest.fn()
-    manager.subscribe(query, listener)
-
-    await manager._store.update(t => t.replaceRelatedRecords(service, 'subscribers', [account2]))
-
-    expect(listener).toHaveBeenCalledTimes(1)
-    done()
-  })
-
-  test('ReplaceRelatedRecordOperation while listening to a type of record (record perspective)', async done => {
-    const account = { type: 'account', id: '1' }
-    const profile1 = { type: 'profile', id: '1' }
-    const profile2 = { type: 'profile', id: '2' }
-
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => [
-      t.addRecord(account),
-      t.addRecord(profile1),
-      t.addRecord(profile2),
-      t.replaceRelatedRecord(account, 'profile', profile1)
-    ])
-
-    const listener = jest.fn()
-    manager.subscribe(query, listener)
-
-    await manager._store.update(t => t.replaceRelatedRecord(account, 'profile', profile2))
-
-    expect(listener).toHaveBeenCalledTimes(1)
-    done()
-  })
-
-  test('ReplaceRelatedRecordOperation while listening to a type of record (relation perspective)', async done => {
-    const account1 = { type: 'account', id: '1' }
-    const account2 = { type: 'account', id: '2' }
-    const profile = { type: 'profile', id: '1' }
-
-    const query = (q: QueryBuilder) => q.findRecords('account')
-
-    await manager._store.update(t => [
-      t.addRecord(account1),
-      t.addRecord(account2),
-      t.addRecord(profile),
-      t.replaceRelatedRecord(profile, 'account', account2)
-    ])
-
-    const listener = jest.fn()
-    manager.subscribe(query, listener)
-
-    await manager._store.update(t => t.replaceRelatedRecord(profile, 'account', account2))
-
-    expect(listener).toHaveBeenCalledTimes(1)
-    done()
-  })
-
-  test('AddRecordOperation while listening to a specific record', async done => {
+  test(`notifies when a subscriber's subscribed-to record type is included in a RemoveRecordOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.addRecord(account))
+    const operation: RemoveRecordOperation = { op: 'removeRecord', record: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceRecordOperation while listening to a specific record', async done => {
+  test(`notifies when a subscriber's subscribed-to record is included in a RemoveRecordOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => t.addRecord(account))
+    const id = JSON.stringify({ op: 'findRecord', record: account })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceRecord(account))
+    const operation: RemoveRecordOperation = { op: 'removeRecord', record: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('RemoveRecordOperation while listening to a specific record', async done => {
+  test(`notifies when a subscriber's subscribed-to record type is included in a ReplaceKeyOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => t.addRecord(account))
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.removeRecord(account))
+    const operation: ReplaceKeyOperation = { op: 'replaceKey', record: account, key: 'testKey', value: 'test' }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceKeyOperation while listening to a specific record', async done => {
+  test(`notifies when a subscriber's subscribed-to record is included in a ReplaceKeyOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => t.addRecord(account))
+    const id = JSON.stringify({ op: 'findRecord', record: account })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceKey(account, 'testKey', 'testValue'))
+    const operation: ReplaceKeyOperation = { op: 'replaceKey', record: account, key: 'testKey', value: 'test' }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceAttributeOperation while listening to a specific record', async done => {
+  test(`notifies when a subscriber's subscribed-to record type is included in a ReplaceAttributeOperation`, () => {
     const account = { type: 'account', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => t.addRecord(account))
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceAttribute(account, 'test', 'hello'))
+    const operation: ReplaceAttributeOperation = { op: 'replaceAttribute', record: account, attribute: 'test', value: 'test' }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('AddToRelatedRecordsOperation while listening to a specific record (record perspective)', async done => {
+  test(`notifies when a subscriber's subscribed-to record is included in a ReplaceAttributeOperation`, () => {
+    const account = { type: 'account', id: '1' }
+
+    const id = JSON.stringify({ op: 'findRecord', record: account })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: ReplaceAttributeOperation = { op: 'replaceAttribute', record: account, attribute: 'test', value: 'test' }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test(`notifies when a subscriber's subscribed-to record type is included in a AddToRelatedRecordsOperation (record perspective)`, () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.addToRelatedRecords(account, 'services', service))
+    const operation: AddToRelatedRecordsOperation = { op: 'addToRelatedRecords', record: account, relationship: 'services', relatedRecord: service }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('AddToRelatedRecordsOperation while listening to a specific record (relation perspective)', async done => {
+  test(`notifies when a subscriber's subscribed-to record is included in a AddToRelatedRecordsOperation (record perspective)`, () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => [t.addRecord(account), t.addRecord(service)])
+    const id = JSON.stringify({ op: 'findRecord', record: account })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.addToRelatedRecords(service, 'subscribers', account))
+    const operation: AddToRelatedRecordsOperation = { op: 'addToRelatedRecords', record: account, relationship: 'services', relatedRecord: service }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('RemoveFromRelatedRecordsOperation while listening to a specific record (record perspective)', async done => {
+  test(`notifies when a subscriber's subscribed-to record type is included in a AddToRelatedRecordsOperation (relation perspective)`, () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => [
-      t.addRecord(account),
-      t.addRecord(service),
-      t.addToRelatedRecords(account, 'services', service)
-    ])
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.removeFromRelatedRecords(account, 'services', service))
+    const operation: AddToRelatedRecordsOperation = { op: 'addToRelatedRecords', record: service, relationship: 'subscribers', relatedRecord: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('RemoveFromRelatedRecordsOperation while listening to a specific record (relation perspective)', async done => {
+  test(`notifies when a subscriber's subscribed-to record is included in a AddToRelatedRecordsOperation (relation perspective)`, () => {
     const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => [
-      t.addRecord(account),
-      t.addRecord(service),
-      t.addToRelatedRecords(service, 'subscribers', account)
-    ])
+    const id = JSON.stringify({ op: 'findRecord', record: account })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.removeFromRelatedRecords(service, 'subscribers', account))
+    const operation: AddToRelatedRecordsOperation = { op: 'addToRelatedRecords', record: service, relationship: 'subscribers', relatedRecord: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceRelatedRecordsOperation while listening to a specific record (record perspective)', async done => {
+  test(`notifies when a subscriber's subscribed-to record type is included in a RemoveFromRelatedRecordsOperation (record perspective)`, () => {
     const account = { type: 'account', id: '1' }
-    const service1 = { type: 'service', id: '1' }
-    const service2 = { type: 'service', id: '2' }
+    const service = { type: 'service', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => [
-      t.addRecord(account),
-      t.addRecord(service1),
-      t.addRecord(service2),
-      t.addToRelatedRecords(account, 'services', service1)
-    ])
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceRelatedRecords(account, 'services', [service2]))
+    const operation: RemoveFromRelatedRecordsOperation = { op: 'removeFromRelatedRecords', record: account, relationship: 'services', relatedRecord: service }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceRelatedRecordsOperation while listening to a specific record (relation perspective)', async done => {
-    const account1 = { type: 'account', id: '1' }
-    const account2 = { type: 'account', id: '2' }
+  test(`notifies when a subscriber's subscribed-to record is included in a RemoveFromRelatedRecordsOperation (record perspective)`, () => {
+    const account = { type: 'account', id: '1' }
+    const service = { type: 'service', id: '1' }
+
+    const id = JSON.stringify({ op: 'findRecord', record: account })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: RemoveFromRelatedRecordsOperation = { op: 'removeFromRelatedRecords', record: account, relationship: 'services', relatedRecord: service }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test(`notifies when a subscriber's subscribed-to record type is included in a RemoveFromRelatedRecordsOperation (relation perspective)`, () => {
+    const account = { type: 'account', id: '1' }
+    const service = { type: 'service', id: '1' }
+
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: RemoveFromRelatedRecordsOperation = { op: 'removeFromRelatedRecords', record: service, relationship: 'subscriptions', relatedRecord: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test(`notifies when a subscriber's subscribed-to record is included in a RemoveFromRelatedRecordsOperation (relation perspective)`, () => {
+    const account = { type: 'account', id: '1' }
+    const service = { type: 'service', id: '1' }
+
+    const id = JSON.stringify({ op: 'findRecord', record: account })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: RemoveFromRelatedRecordsOperation = { op: 'removeFromRelatedRecords', record: service, relationship: 'subscriptions', relatedRecord: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test(`notifies when a subscriber's subscribed-to record type is included in a ReplaceRelatedRecordsOperation (record perspective)`, () => {
+    const account = { type: 'account', id: '1' }
     const service = { type: 'service', id: '2' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account1)
-
-    await manager._store.update(t => [
-      t.addRecord(account1),
-      t.addRecord(account2),
-      t.addRecord(service),
-      t.addToRelatedRecords(service, 'subscribers', account1)
-    ])
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceRelatedRecords(service, 'subscribers', [account2]))
+    const operation: ReplaceRelatedRecordsOperation = { op: 'replaceRelatedRecords', record: account, relationship: 'services', relatedRecords: [service] }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceRelatedRecordOperation while listening to a specific record (record perspective)', async done => {
+  test(`notifies when a subscriber's subscribed-to record is included in a ReplaceRelatedRecordsOperation (record perspective)`, () => {
     const account = { type: 'account', id: '1' }
-    const profile1 = { type: 'profile', id: '1' }
-    const profile2 = { type: 'profile', id: '2' }
+    const service = { type: 'service', id: '2' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account)
-
-    await manager._store.update(t => [
-      t.addRecord(account),
-      t.addRecord(profile1),
-      t.addRecord(profile2),
-      t.replaceRelatedRecord(account, 'profile', profile1)
-    ])
+    const id = JSON.stringify({ op: 'findRecord', record: account })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceRelatedRecord(account, 'profile', profile2))
+    const operation: ReplaceRelatedRecordsOperation = { op: 'replaceRelatedRecords', record: account, relationship: 'services', relatedRecords: [service] }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
   })
 
-  test('ReplaceRelatedRecordOperation while listening to a specific record (relation perspective)', async done => {
-    const account1 = { type: 'account', id: '1' }
-    const account2 = { type: 'account', id: '2' }
+  test(`notifies when a subscriber's subscribed-to record type is included in a ReplaceRelatedRecordsOperation (relation perspective)`, () => {
+    const account = { type: 'account', id: '1' }
+    const service = { type: 'service', id: '2' }
+
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: ReplaceRelatedRecordsOperation = { op: 'replaceRelatedRecords', record: service, relationship: 'subscriptions', relatedRecords: [account] }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test(`notifies when a subscriber's subscribed-to record is included in a ReplaceRelatedRecordsOperation (relation perspective)`, () => {
+    const account = { type: 'account', id: '1' }
+    const service = { type: 'service', id: '2' }
+
+    const id = JSON.stringify({ op: 'findRecord', record: account })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: ReplaceRelatedRecordsOperation = { op: 'replaceRelatedRecords', record: service, relationship: 'subscriptions', relatedRecords: [account] }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test(`notifies when a subscriber's subscribed-to record type is included in a ReplaceRelatedRecordOperation (record perspective)`, () => {
+    const account = { type: 'account', id: '1' }
     const profile = { type: 'profile', id: '1' }
 
-    const query = (q: QueryBuilder) => q.findRecord(account1)
-
-
-    await manager._store.update(t => [
-      t.addRecord(account1),
-      t.addRecord(account2),
-      t.addRecord(profile),
-      t.replaceRelatedRecord(profile, 'account', account1)
-    ])
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
 
     const listener = jest.fn()
-    manager.subscribe(query, listener)
+    manager._subscriptions[id] = [listener]
 
-    await manager._store.update(t => t.replaceRelatedRecord(profile, 'account', account2))
+    const operation: ReplaceRelatedRecordOperation = { op: 'replaceRelatedRecord', record: account, relationship: 'profile', relatedRecord: profile }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
 
     expect(listener).toHaveBeenCalledTimes(1)
-    done()
+  })
+
+  test(`notifies when a subscriber's subscribed-to record is included in a ReplaceRelatedRecordOperation (record perspective)`, () => {
+    const account = { type: 'account', id: '1' }
+    const profile = { type: 'profile', id: '1' }
+
+    const id = JSON.stringify({ op: 'findRecord', record: account })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: ReplaceRelatedRecordOperation = { op: 'replaceRelatedRecord', record: account, relationship: 'profile', relatedRecord: profile }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test(`notifies when a subscriber's subscribed-to record type is included in a ReplaceRelatedRecordOperation (relation perspective)`, () => {
+    const account = { type: 'account', id: '1' }
+    const profile = { type: 'profile', id: '1' }
+
+    const id = JSON.stringify({ op: 'findRecords', type: 'account' })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: ReplaceRelatedRecordOperation = { op: 'replaceRelatedRecord', record: profile, relationship: 'account', relatedRecord: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test(`notifies when a subscriber's subscribed-to record is included in a ReplaceRelatedRecordOperation (relation perspective)`, () => {
+    const account = { type: 'account', id: '1' }
+    const profile = { type: 'profile', id: '1' }
+
+    const id = JSON.stringify({ op: 'findRecord', record: account })
+
+    const listener = jest.fn()
+    manager._subscriptions[id] = [listener]
+
+    const operation: ReplaceRelatedRecordOperation = { op: 'replaceRelatedRecord', record: profile, relationship: 'account', relatedRecord: account }
+    const transform: Transform = { operations: [operation], id: 'test' }
+
+    manager._compare(transform)
+
+    expect(listener).toHaveBeenCalledTimes(1)
   })
 })
+
+

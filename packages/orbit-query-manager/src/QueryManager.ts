@@ -2,7 +2,7 @@ import Store from '@orbit/store'
 import { Transform, RecordOperation, Record } from '@orbit/data'
 
 import { Observable } from './Observable'
-import { getUpdatedRecords, hasChanged, shouldUpdate } from './helpers'
+import { getUpdatedRecords, shouldUpdate, getTermsOrExpression, hashQueryIdentifier, validateOptions } from './helpers'
 import { Term, Queries, Expression, RecordData, Status, QueryRefs, Query, RecordObject, Options, SingleOptions, MultipleOptions } from './types'
 
 export class QueryManager extends Observable {
@@ -16,27 +16,14 @@ export class QueryManager extends Observable {
     this._store = store
   }
 
-  _extractTerms (queries: Queries): Term[] {
-    return Object.keys(queries).sort().map((key) =>
-      ({ key, expression: queries[key](this._store.queryBuilder).expression as Expression })
-    )
-  }
-
-  _extractExpression (query: Query): Expression {
-    return query(this._store.queryBuilder).expression as Expression
-  }
-
-  _getTermsOrExpression (queryOrQueries: Query | Queries, options?: Options) {
-    return typeof queryOrQueries === 'function'
-      ? this._extractExpression(queryOrQueries)
-      : this._extractTerms(queryOrQueries)
-  }
-
   // @ts-ignore
-  subscribe (queryOrQueries: Query | Queries, listener: Function) {
+  subscribe (queryOrQueries: Query | Queries, listener: Function, options?: Options) {
 
-    const termsOrExpression = this._getTermsOrExpression(queryOrQueries)
-    const id = JSON.stringify(termsOrExpression)
+    const termsOrExpression = getTermsOrExpression(queryOrQueries)
+
+    validateOptions(termsOrExpression, options)
+
+    const id = hashQueryIdentifier(termsOrExpression, options)
 
     if (Object.keys(this._subscriptions).length === 0) {
       this._store.on('transform', this._compare)
@@ -57,12 +44,13 @@ export class QueryManager extends Observable {
     }
   }
 
-  query (queryOrQueries: Query | Queries, options: Options = {}): [RecordData, Status] {
+  query (queryOrQueries: Query | Queries, options?: Options): [RecordData, Status] {
 
-    const termsOrExpression = this._getTermsOrExpression(queryOrQueries, options)
-    const id = Object.keys(options).length
-      ? JSON.stringify({ termsOrExpression, options })
-      : JSON.stringify(termsOrExpression)
+    const termsOrExpression = getTermsOrExpression(queryOrQueries)
+
+    validateOptions(termsOrExpression, options)
+
+    const id = hashQueryIdentifier(termsOrExpression, options)
 
     if (!this._queryRefs[id]) {
       this._queryRefs[id] = { loading: false, error: null }
@@ -78,7 +66,7 @@ export class QueryManager extends Observable {
     return [null, this._queryRefs[id]]
   }
 
-  async _query (id: string, termsOrExpression: Term[] | Expression, options: Options) {
+  async _query (id: string, termsOrExpression: Term[] | Expression, options?: Options) {
 
     let data: RecordData
 
@@ -98,7 +86,7 @@ export class QueryManager extends Observable {
     }
   }
 
-  async _makeSingleQuery (expression: Expression, options: SingleOptions = {}) {
+  async _makeSingleQuery (expression: Expression, options?: SingleOptions) {
     return new Promise<Record>((resolve, reject) => {
       this._store.query(expression, options)
         .then(record => resolve(record))
@@ -106,11 +94,11 @@ export class QueryManager extends Observable {
     })
   }
 
-  async _makeMultipleQueries (terms: Term[], options: MultipleOptions) {
+  async _makeMultipleQueries (terms: Term[], options: MultipleOptions = []) {
     const results = await Promise.all(terms.map(({ key, expression }) =>
       new Promise<RecordObject>((resolve, reject) => {
 
-        const currentOptions = options.find(option => option.queryKey === key)
+        const currentOptions = options.find(option => option.queryKey === key) || { options: {} }
 
         this._makeSingleQuery(expression, currentOptions.options)
           .then(record => resolve({ [key]: record }))
@@ -122,7 +110,7 @@ export class QueryManager extends Observable {
   }
 
   queryCache (queryOrQueries: Query | Queries): [RecordData, Status] {
-    const termsOrExpression = this._getTermsOrExpression(queryOrQueries)
+    const termsOrExpression = getTermsOrExpression(queryOrQueries)
 
     return this._queryCache(termsOrExpression)
   }
