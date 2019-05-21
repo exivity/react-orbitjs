@@ -69,7 +69,7 @@ describe('notify(...)', () => {
   test('should call all listeners added to a map entry for a certain id', () => {
     const id = 'test'
     const listeners = [jest.fn(), jest.fn(), jest.fn()]
-    const data = [{ test: { id: '1', type: 'test' } }, { error: null, loading: false }] as [RecordData, Status]
+    const data = [{ test: { id: '1', type: 'test' } }, { isError: null, isLoading: false }] as [RecordData, Status]
 
     listeners.forEach(listener => observable.subscribe(id, listener))
     observable.notify(id, data)

@@ -36,8 +36,8 @@ export interface RecordObject { [key: string]: Record | Record[] }
 export type RecordData = RecordObject | Record | Record[] | null
 
 export interface Status {
-  loading: boolean
-  error: null | Error
+  isLoading: boolean
+  isError: boolean
 }
 
 export interface QueryRefs {

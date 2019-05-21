@@ -53,11 +53,11 @@ export class QueryManager extends Observable {
     const id = hashQueryIdentifier(termsOrExpression, options)
 
     if (!this._queryRefs[id]) {
-      this._queryRefs[id] = { loading: false, error: null }
+      this._queryRefs[id] = { isLoading: false, isError: false }
     }
 
-    if (!this._queryRefs[id].loading) {
-      this._queryRefs[id].loading = true
+    if (!this._queryRefs[id].isLoading) {
+      this._queryRefs[id].isLoading = true
       this._afterQueryQueue[id] = []
 
       this._query(id, termsOrExpression, options)
@@ -69,16 +69,16 @@ export class QueryManager extends Observable {
   async _query (id: string, termsOrExpression: Term[] | Expression, options?: Options) {
 
     let data: RecordData
-
+    this._queryRefs[id].isError = false
     try {
       data = !Array.isArray(termsOrExpression)
         ? await this._makeSingleQuery(termsOrExpression, options as SingleOptions)
         : await this._makeMultipleQueries(termsOrExpression, options as MultipleOptions)
 
-    } catch (error) {
-      this._queryRefs[id].error = error
+    } catch  {
+      this._queryRefs[id].isError = true
     } finally {
-      this._queryRefs[id].loading = false
+      this._queryRefs[id].isLoading = false
       super.notify(id, [data || null, this._queryRefs[id]])
 
       this._afterQueryQueue[id].forEach(fn => fn())
@@ -117,7 +117,7 @@ export class QueryManager extends Observable {
 
   _queryCache (termsOrExpression: Term[] | Expression): [RecordData, Status] {
     let data: RecordData = null
-    let error = null
+    let isError = false
 
     try {
       data = !Array.isArray(termsOrExpression)
@@ -126,11 +126,11 @@ export class QueryManager extends Observable {
           .map(({ key, expression }) => ({ [key]: this._store.cache.query(expression) }))
           .reduce((acc, record) => ({ ...acc, ...record }))
 
-    } catch (reason) {
-      error = reason
+    } catch {
+      isError = true
     }
 
-    return [data, { error, loading: false }]
+    return [data, { isError, isLoading: false }]
   }
 
   _compare = (transform: Transform) => {
@@ -139,7 +139,9 @@ export class QueryManager extends Observable {
     Object.keys(this._subscriptions).forEach(id => {
       const termsOrExpression = JSON.parse(id)
 
-      if (shouldUpdate(termsOrExpression, records, relatedRecords)) {
+      const isLoading = this._queryRefs[id] ? this._queryRefs[id].isLoading : false
+
+      if (!isLoading && shouldUpdate(termsOrExpression, records, relatedRecords)) {
         const data = this._queryCache(termsOrExpression)
         super.notify(id, data)
       }
