@@ -72,7 +72,7 @@ describe('query(...)', () => {
     expect(Object.keys(manager._queryRefs).length).toBe(1)
   })
 
-  test('Sets loading to true when a query is made', () => {
+  test('Sets isLoading to true when a query is made', () => {
     const account = { type: 'account', id: '1' }
 
 
@@ -122,7 +122,7 @@ describe('query(...)', () => {
 })
 
 describe('_query(...)', () => {
-  test('sets loading to false after the query', async (done) => {
+  test('sets isLoading to false after the query', async (done) => {
     const account = { type: 'account', id: '1' }
 
     const expression: Expression = { op: 'findRecord', record: account }
@@ -138,7 +138,7 @@ describe('_query(...)', () => {
     done()
   })
 
-  test('Sets error as true on _queryRef if query fails (single query)', async (done) => {
+  test('Sets isError as true on _queryRef if query fails (single query)', async (done) => {
     const account = { type: 'account', id: '1' }
 
     const expression: Expression = { op: 'findRecord', record: account }
@@ -154,7 +154,7 @@ describe('_query(...)', () => {
     done()
   })
 
-  test('Sets error as true on _queryRef if one of the queries fail (multiple queries)', async (done) => {
+  test('Sets isError as true on _queryRef if one of the queries fail (multiple queries)', async (done) => {
     const account1 = { type: 'account', id: '1' }
     const account2 = { type: 'account', id: '2' }
 
@@ -378,7 +378,7 @@ describe('_makeMultipleQueries', () => {
 })
 
 describe('queryCache(...)', () => {
-  test('error is true when no match is found (single query)', () => {
+  test('isError is true when no match is found (single query)', () => {
     const account = { type: 'account', id: '1' }
 
     const query = (q: QueryBuilder) => q.findRecord(account)
@@ -388,7 +388,7 @@ describe('queryCache(...)', () => {
     expect(data[1].isError).toBe(true)
   })
 
-  test('error is true when one or more matches are not found (multiple queries)', async done => {
+  test('isError is true when one or more matches are not found (multiple queries)', async done => {
     const account1 = { type: 'account', id: '1' }
     const account2 = { type: 'account', id: '2' }
 
@@ -473,6 +473,8 @@ describe('queryCache(...)', () => {
     done()
   })
 })
+
+
 
 describe('_compare(...)', () => {
   test(`doesn't notify when a subscriber is already fetching`, () => {
