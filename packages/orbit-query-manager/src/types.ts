@@ -16,7 +16,9 @@ export type Expression = FindRecord | FindRelatedRecord | FindRecords | FindRela
 
 export type Term = { key: string, expression: Expression }
 
-export type Listener = Function
+export type Listener<T> = (data: T) => void
+
+export type Data = [RecordData, Status]
 
 export type SingleOptions = { [optionKey: string]: any }
 
@@ -26,10 +28,6 @@ export type MultipleOptions = {
 }[]
 
 export type Options = SingleOptions | MultipleOptions
-
-export type Subscriptions = {
-  [key: string]: Listener[]
-}
 
 export interface RecordObject { [key: string]: Record | Record[] }
 

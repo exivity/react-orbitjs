@@ -1,21 +1,24 @@
-import { Subscriptions, RecordData, Status } from './types';
+import { Subscription } from './Subscription'
+import { Listener } from './types'
 
-export class Observable {
-  _subscriptions: Subscriptions = {}
+export class Observable<T> {
+  _subscriptions: { [id: string]: Subscription<T> } = {}
 
-  subscribe (id: string, listener: Function) {
-    if (!this._subscriptions[id]) this._subscriptions[id] = []
-    this._subscriptions[id].push(listener)
+  subscribe (id: string, listener: Listener<T>) {
+    if (!this._subscriptions[id]) this._subscriptions[id] = new Subscription<T>()
+    this._subscriptions[id].addListener(listener)
 
     return () => {
-      this._subscriptions[id] = this._subscriptions[id].filter(item => item !== listener)
-      if (this._subscriptions[id].length === 0) delete this._subscriptions[id]
+      this._subscriptions[id].removeListener(listener)
+      if (this._subscriptions[id].hasListeners() === false) {
+        delete this._subscriptions[id]
+      }
     }
   }
 
-  notify (id: string, data: [RecordData, Status]) {
+  notify (id: string, data: T) {
     if (this._subscriptions[id]) {
-      this._subscriptions[id].forEach(listener => listener(data))
+      this._subscriptions[id].notify(data)
     }
   }
 }

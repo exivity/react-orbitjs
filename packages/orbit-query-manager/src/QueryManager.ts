@@ -3,13 +3,12 @@ import { Transform, RecordOperation, Record } from '@orbit/data'
 
 import { Observable } from './Observable'
 import { getUpdatedRecords, shouldUpdate, getTermsOrExpression, hashQueryIdentifier, validateOptions } from './helpers'
-import { Term, Queries, Expression, RecordData, Status, QueryRefs, Query, RecordObject, Options, SingleOptions, MultipleOptions } from './types'
+import { Term, Queries, Expression, RecordData, Status, QueryRefs, Query, RecordObject, Options, SingleOptions, MultipleOptions, Data, Listener } from './types'
 
-export class QueryManager extends Observable {
+export class QueryManager extends Observable<Data> {
   _store: Store
   _queryRefs: QueryRefs = {}
   _afterQueryQueue: { [key: string]: Function[] } = {}
-
 
   constructor (store: Store) {
     super()
@@ -17,7 +16,7 @@ export class QueryManager extends Observable {
   }
 
   // @ts-ignore
-  subscribe (queryOrQueries: Query | Queries, listener: Function, options?: Options) {
+  subscribe (queryOrQueries: Query | Queries, listener: Listener<Data>, options?: Options) {
 
     const termsOrExpression = getTermsOrExpression(queryOrQueries)
 
@@ -68,18 +67,19 @@ export class QueryManager extends Observable {
 
   async _query (id: string, termsOrExpression: Term[] | Expression, options?: Options) {
 
-    let data: RecordData
-    this._queryRefs[id].isError = false
+    let data: RecordData = null
+    let isError: boolean = false
     try {
       data = !Array.isArray(termsOrExpression)
         ? await this._makeSingleQuery(termsOrExpression, options as SingleOptions)
         : await this._makeMultipleQueries(termsOrExpression, options as MultipleOptions)
 
     } catch  {
-      this._queryRefs[id].isError = true
+      isError = true
     } finally {
-      this._queryRefs[id].isLoading = false
-      super.notify(id, [data || null, this._queryRefs[id]])
+      const status = { isLoading: false, isError }
+      this._queryRefs[id] = status
+      super.notify(id, [data, status])
 
       this._afterQueryQueue[id].forEach(fn => fn())
       delete this._afterQueryQueue[id]
@@ -117,7 +117,7 @@ export class QueryManager extends Observable {
 
   _queryCache (termsOrExpression: Term[] | Expression): [RecordData, Status] {
     let data: RecordData = null
-    let isError = false
+    let isError: boolean = false
 
     try {
       data = !Array.isArray(termsOrExpression)

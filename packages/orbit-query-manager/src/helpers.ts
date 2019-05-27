@@ -39,24 +39,20 @@ export const validateOptions = (termsOrExpression: Term[] | Expression, options?
   }
 }
 
+interface Operation {
+  record: RecordIdentity
+  relatedRecord?: RecordIdentity
+  relatedRecords?: RecordIdentity[]
+}
+
 export const getUpdatedRecords = (operations: RecordOperation[]) => {
   const records: RecordIdentity[] = []
   const relatedRecords: RecordIdentity[] = []
 
-  operations.forEach(operation => {
-    operation && operation.record && records.push(operation.record)
-
-    switch (operation.op) {
-      case 'addToRelatedRecords':
-      case 'removeFromRelatedRecords':
-      case 'replaceRelatedRecord':
-        operation.relatedRecord && relatedRecords.push(operation.relatedRecord)
-        break
-
-      case 'replaceRelatedRecords':
-        operation.relatedRecords.forEach(record => relatedRecords.push(record))
-        break
-    }
+  operations.forEach((operation: Operation) => {
+    records.push(operation.record)
+    operation.relatedRecord && relatedRecords.push(operation.relatedRecord)
+    operation.relatedRecords && operation.relatedRecords.forEach(record => relatedRecords.push(record))
   })
 
   return { records, relatedRecords }

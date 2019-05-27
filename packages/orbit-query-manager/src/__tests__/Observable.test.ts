@@ -1,7 +1,7 @@
 import { Observable } from '../Observable'
 import { RecordData, Status } from '../types';
 
-let observable: Observable
+let observable: Observable<any>
 beforeEach(() => {
   observable = new Observable()
 })
@@ -24,7 +24,7 @@ describe('subscribe(...)', () => {
 
     observable.subscribe(id, listener)
 
-    expect(observable._subscriptions[id]).toMatchObject([listener])
+    expect(observable._subscriptions[id]._listeners).toMatchObject([listener])
   })
 
   test('should add a new listener to the map entry on every consecutive call', () => {
@@ -33,7 +33,7 @@ describe('subscribe(...)', () => {
 
     listeners.forEach(listener => observable.subscribe(id, listener))
 
-    expect(observable._subscriptions[id]).toMatchObject(listeners)
+    expect(observable._subscriptions[id]._listeners).toMatchObject(listeners)
   })
 
   test('should return an unsubscribe function that deletes a listener from the subscriptions', () => {
@@ -44,11 +44,11 @@ describe('subscribe(...)', () => {
     observable.subscribe(id, listener1)
     const unsubscribe = observable.subscribe(id, listener2)
 
-    expect(observable._subscriptions[id]).toMatchObject([listener1, listener2])
+    expect(observable._subscriptions[id]._listeners).toMatchObject([listener1, listener2])
 
     unsubscribe()
 
-    expect(observable._subscriptions[id]).toMatchObject([listener1])
+    expect(observable._subscriptions[id]._listeners).toMatchObject([listener1])
   })
 
   test('should return an unsubscribe function that deletes the subscriptions entry if no listeners are left', () => {
@@ -57,7 +57,7 @@ describe('subscribe(...)', () => {
 
     const unsubscribes = listeners.map(listener => observable.subscribe(id, listener))
 
-    expect(observable._subscriptions[id]).toMatchObject(listeners)
+    expect(observable._subscriptions[id]._listeners).toMatchObject(listeners)
 
     unsubscribes.forEach(unsubscribe => unsubscribe())
 

@@ -3,6 +3,7 @@ import { QueryManager } from '../QueryManager'
 import Store from '@orbit/store'
 import { Dict } from '@orbit/utils'
 import { Expression, Term } from '../types';
+import { Subscription } from '../Subscription';
 
 const modelDefenition: Dict<ModelDefinition> = {
   account: {
@@ -127,8 +128,8 @@ describe('_query(...)', () => {
     const expression: Expression = { op: 'findRecord', record: account }
     const id = JSON.stringify(expression)
 
-    manager._subscriptions[id] = []
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, expression)
@@ -137,14 +138,14 @@ describe('_query(...)', () => {
     done()
   })
 
-  test('Sets isError as true on _queryRef if query fails (single query)', async (done) => {
+  test('Sets error as true on _queryRef if query fails (single query)', async (done) => {
     const account = { type: 'account', id: '1' }
 
     const expression: Expression = { op: 'findRecord', record: account }
     const id = JSON.stringify(expression)
 
-    manager._subscriptions[id] = []
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, expression)
@@ -153,7 +154,7 @@ describe('_query(...)', () => {
     done()
   })
 
-  test('Sets isError as true on _queryRef if one of the queries fail (multiple queries)', async (done) => {
+  test('Sets error as true on _queryRef if one of the queries fail (multiple queries)', async (done) => {
     const account1 = { type: 'account', id: '1' }
     const account2 = { type: 'account', id: '2' }
 
@@ -165,8 +166,8 @@ describe('_query(...)', () => {
     ]
     const id = JSON.stringify(terms)
 
-    manager._subscriptions[id] = []
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, terms)
@@ -183,8 +184,9 @@ describe('_query(...)', () => {
 
     const listener = jest.fn()
 
-    manager._subscriptions[id] = [listener]
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._subscriptions[id].addListener(listener)
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, expression)
@@ -204,8 +206,9 @@ describe('_query(...)', () => {
     // returns record
     const listener = jest.fn(result => result[0])
 
-    manager._subscriptions[id] = [listener]
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._subscriptions[id].addListener(listener)
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, expression)
@@ -223,8 +226,9 @@ describe('_query(...)', () => {
     // returns record
     const listener = jest.fn(result => result[0])
 
-    manager._subscriptions[id] = [listener]
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._subscriptions[id].addListener(listener)
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, expression)
@@ -248,8 +252,9 @@ describe('_query(...)', () => {
     // returns record
     const listener = jest.fn(result => result[0])
 
-    manager._subscriptions[id] = [listener]
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._subscriptions[id].addListener(listener)
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, terms)
@@ -273,8 +278,9 @@ describe('_query(...)', () => {
     // returns record
     const listener = jest.fn(result => result[0])
 
-    manager._subscriptions[id] = [listener]
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._subscriptions[id].addListener(listener)
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, terms)
@@ -291,8 +297,8 @@ describe('_query(...)', () => {
 
     const afterQueryCallback = jest.fn()
 
-    manager._subscriptions[id] = []
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = [afterQueryCallback, afterQueryCallback, afterQueryCallback]
 
     await manager._query(id, expression)
@@ -307,8 +313,8 @@ describe('_query(...)', () => {
     const expression: Expression = { op: 'findRecord', record: account }
     const id = JSON.stringify(expression)
 
-    manager._subscriptions[id] = []
-    manager._queryRefs[id] = { isLoading: true, isError: false }
+    manager._subscriptions[id] = new Subscription()
+    manager._queryRefs[id] = { isLoading: true, isError: null }
     manager._afterQueryQueue[id] = []
 
     await manager._query(id, expression)
@@ -372,7 +378,7 @@ describe('_makeMultipleQueries', () => {
 })
 
 describe('queryCache(...)', () => {
-  test('isError is true when no match is found (single query)', () => {
+  test('error is true when no match is found (single query)', () => {
     const account = { type: 'account', id: '1' }
 
     const query = (q: QueryBuilder) => q.findRecord(account)
@@ -382,7 +388,7 @@ describe('queryCache(...)', () => {
     expect(data[1].isError).toBe(true)
   })
 
-  test('isError is true when one or more matches are not found (multiple queries)', async done => {
+  test('error is true when one or more matches are not found (multiple queries)', async done => {
     const account1 = { type: 'account', id: '1' }
     const account2 = { type: 'account', id: '2' }
 
