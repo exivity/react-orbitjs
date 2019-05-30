@@ -1,0 +1,7 @@
+# ide
+.idea
+.vscode
+
+# node
+*.log*
+node_modules/
