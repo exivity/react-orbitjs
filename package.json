@@ -58,7 +58,7 @@
     "react-test-renderer": "^16.2.0",
     "rimraf": "^2.6.2",
     "webpack": "^3.7.1",
-    "webpack-dev-server": "^2.9.1"
+    "webpack-dev-server": "^3.1.11"
   },
   "dependencies": {
     "hoist-non-react-statics": "^2.3.1",
