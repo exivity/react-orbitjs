@@ -1,0 +1,7 @@
+{
+  "name": "react-orbitjs",
+  "private": true,
+  "devDependencies": {
+    "lerna": "^3.13.4"
+  }
+}
