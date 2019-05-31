@@ -4,7 +4,7 @@
   "description": "React crud hook - uses crud global crud manager",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rm -rf ./lib && tsc",
+    "build": "rm -rf ./dist && tsc",
     "test": "jest --watch"
   },
   "repository": {
