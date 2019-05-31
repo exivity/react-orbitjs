@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "lib": ["es2017"],
+    "module": "commonjs",
+    "outDir": "lib",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noEmitHelpers": true,
+    "resolveJsonModule": true,
+    "importHelpers": true,
+    "strict": true,
+    "target": "es2017"
+  },
+  "exclude": ["**/*.test.ts?"]
+}

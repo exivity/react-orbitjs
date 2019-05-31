@@ -1,0 +1,36 @@
+{
+  "name": "orbit-type-generator",
+  "version": "1.0.0-alpha.0",
+  "main": "lib/index.js",
+  "files": [
+    "/bin",
+    "/lib"
+  ],
+  "bin": "./bin/run",
+  "license": "MIT",
+  "scripts": {
+    "lint": "tslint 'src/**/*.ts'",
+    "lint:fix": "tslint 'src/**/*.ts' --fix",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "prepublishOnly": "yarn build"
+  },
+  "dependencies": {
+    "tslib": "^1.9.3"
+  },
+  "peerDependencies": {
+    "@orbit/data": "^0.15.23"
+  },
+  "devDependencies": {
+    "@orbit/data": "^0.15.23",
+    "@types/jest": "^24.0.12",
+    "@types/node": "^11.13.8",
+    "jest": "^24.7.1",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.16.0",
+    "tslint-config-standard": "^8.0.1",
+    "typescript": "^3.4.5"
+  }
+}

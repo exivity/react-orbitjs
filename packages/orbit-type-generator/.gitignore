@@ -1,0 +1,7 @@
+# node
+*.log*
+node_modules/
+
+# artefacts
+coverage/
+lib/
