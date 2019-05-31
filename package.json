@@ -4,6 +4,12 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "build": "lerna run build",
+    "test": "lerna run test",
+    "watch": "lerna run --parallel watch",
+    "release": "lerna publish"
+  },
   "devDependencies": {
     "lerna": "^3.13.4"
   }
