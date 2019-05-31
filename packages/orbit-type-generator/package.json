@@ -13,18 +13,23 @@
     "lint:fix": "tslint 'src/**/*.ts' --fix",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "build": "tsc",
-    "build:watch": "tsc --watch",
+    "build": "rm -rf ./lib && tsc",
+    "build:watch": "rm -rf ./lib && tsc --watch",
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-transform-modules-commonjs": "^7.4.4",
+    "camelcase": "^5.3.1",
     "tslib": "^1.9.3"
   },
   "peerDependencies": {
-    "@orbit/data": "^0.15.23"
+    "@orbit/data": "^0.15.23",
+    "@orbit/utils": "^0.15.23"
   },
   "devDependencies": {
     "@orbit/data": "^0.15.23",
+    "@orbit/utils": "^0.15.23",
     "@types/jest": "^24.0.12",
     "@types/node": "^11.13.8",
     "jest": "^24.7.1",
