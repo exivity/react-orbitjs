@@ -1,5 +1,14 @@
 # orbit-type-generator
 
+[![npm](https://img.shields.io/npm/v/orbit-type-generator.svg)](https://www.npmjs.com/package/orbit-type-generator)
+[![Travis](https://img.shields.io/travis/exivity/react-orbitjs.svg)](https://travis-ci.org/exivity/react-orbitjs)
+[![Codecov](https://img.shields.io/codecov/c/github/exivity/react-orbitjs.svg)](https://codecov.io/gh/exivity/react-orbitjs)
+[![Code Climate](https://img.shields.io/codeclimate/maintainability/exivity/react-orbitjs.svg)](https://codeclimate.com/github/exivity/react-orbitjs)
+[![Gitter](https://badges.gitter.im/exivity/react-orbitjs.svg)](https://gitter.im/exivity/react-orbitjs)
+
+> [TypeScript](https://www.typescriptlang.org/) type generator for [Orbit](http://orbitjs.com/) schema definitions.
+
+
 ## API
 
 ```js
