@@ -1,10 +1,17 @@
 import ts = require('typescript')
-import path = require('path')
-import fs = require('fs')
-import slash = require('slash')
 import { Schema, RelationshipDefinition } from '@orbit/data'
 import { Dict } from '@orbit/utils'
-import { getTemplate, toPascalCase } from './utils'
+import {
+  getTemplate,
+  toPascalCase,
+  toRelativePath,
+  pipe,
+  resolvePath,
+  validatePath,
+  toForwardSlash,
+  stripExtension,
+  addDotSlash
+} from './utils'
 import {
   ModelDefinition,
   AttributeDefinition,
@@ -12,30 +19,24 @@ import {
 } from './types'
 import { resolveType } from './typeResolver'
 
-let dynamicImports
+let typeImports
 
 interface GenerateTypesOptions {
   basePath?: string
   extraImports?: ImportDeclaration[]
+  tsProperty?: string
 }
 
 export function generateTypes (
   schema: Schema,
   options: GenerateTypesOptions = {}
 ) {
-  const extraImports = options.extraImports || []
-  const basePath = options.basePath || process.cwd()
+  // Reset type imports
+  typeImports = []
 
-  // Reset dynamic imports
-  dynamicImports = []
-
-  // We need to call generateRecordTypes first so import can be added dynamically.
-  const recordTypes = generateRecordTypes(schema.models)
-  const statements = [
-    generateHeader(),
-    generateImports(basePath, [...dynamicImports, ...extraImports]),
-    recordTypes
-  ]
+  // We need to call generateRecordTypes first so type imports can be added dynamically.
+  const recordTypes = generateRecordTypes(schema.models, options)
+  const statements = [generateHeader(), generateImports(options), recordTypes]
   const resultFile = ts.createSourceFile(
     'records.d.ts',
     statements.join(''),
@@ -46,107 +47,101 @@ export function generateTypes (
   const printer = ts.createPrinter({
     newLine: ts.NewLineKind.LineFeed
   })
-  const out = printer.printFile(resultFile)
 
-  return out
+  return printer.printFile(resultFile)
 }
 
 function generateHeader () {
   return getTemplate('header')
 }
 
-function generateImports (basePath: string, imports?: ImportDeclaration[]) {
+function generateImports (options: GenerateTypesOptions) {
+  const basePath = options.basePath || process.cwd()
+  const extraImports = options.extraImports || []
+  const imports = [...typeImports, ...extraImports]
+
   if (!imports || !imports.length) {
     return ''
   }
 
-  const pipe = (...functions: Function[]) => <T>(args: T) =>
-    functions.reduce<T>((arg, fn) => fn(arg), args)
-  const resolvePath = (modulePath: string) =>
-    require.resolve(modulePath, { paths: [basePath] })
-  const validatePath = (modulePath: string) => {
-    if (!fs.existsSync(modulePath)) {
-      throw new Error(`Not a valid module path: ${modulePath}`)
-    }
-    return modulePath
-  }
-  const toRelativePaths = (modulePath: string) =>
-    path.relative(basePath, modulePath)
-  const toForwardSlash = (modulePath: string) => slash(modulePath)
-  const stripExtension = (modulePath: string) =>
-    modulePath
-      .split('.')
-      .slice(0, -1)
-      .join('.')
-  const addDotSlash = (modulePath: string) => `./${modulePath}`
-
   function transform ({ modulePath, ...rest }: ImportDeclaration) {
+    const pipeline = pipe(
+      (path: string) => resolvePath(modulePath, basePath),
+      validatePath,
+      (path: string) => toRelativePath(basePath, modulePath),
+      stripExtension,
+      toForwardSlash,
+      addDotSlash
+    )
+
     return {
-      modulePath: pipe(
-        resolvePath,
-        validatePath,
-        toRelativePaths,
-        toForwardSlash,
-        stripExtension,
-        addDotSlash
-      )(modulePath),
+      modulePath: pipeline(modulePath),
       ...rest
     }
   }
 
-  function combine (
-    newDeclarations: ImportDeclaration[],
-    declaration: ImportDeclaration
-  ) {
-    const existingModuleIndex = newDeclarations.findIndex(
-      ({ modulePath }) => modulePath === declaration.modulePath
-    )
-
-    if (existingModuleIndex > -1) {
-      newDeclarations[existingModuleIndex] = {
-        type: `${newDeclarations[existingModuleIndex].type}, ${
-          declaration.type
-        }`,
-        modulePath: declaration.modulePath
-      }
-    } else {
-      newDeclarations.push(declaration)
-    }
-
-    return newDeclarations
-  }
-
   return imports
     .map(transform)
-    .reduce(combine, [])
+    .reduce(combineImports, [])
     .map(({ type, modulePath }) => getTemplate('import', [type, modulePath]))
     .join('\n')
 }
 
-function addTypeToImports (type: string) {
+function combineImports (
+  newDeclarations: ImportDeclaration[],
+  declaration: ImportDeclaration
+) {
+  const existingModuleIndex = newDeclarations.findIndex(
+    ({ modulePath }) => modulePath === declaration.modulePath
+  )
+
+  if (existingModuleIndex > -1) {
+    newDeclarations[existingModuleIndex] = {
+      type: `${newDeclarations[existingModuleIndex].type}, ${declaration.type}`,
+      modulePath: declaration.modulePath
+    }
+  } else {
+    newDeclarations.push(declaration)
+  }
+
+  return newDeclarations
+}
+
+function tryAddTypeToImports (type: string) {
   const resolved = resolveType(type)
 
   if (resolved) {
-    dynamicImports.push(resolved)
+    typeImports.push(resolved)
+    return true
+  } else {
+    console.warn(`Could not import type ${type}`)
+    return false
   }
 }
 
-function generateRecordTypes (models: Schema['models']) {
+function generateRecordTypes (
+  models: Schema['models'],
+  options: GenerateTypesOptions
+) {
   return Object.entries(models)
     .map(([name, definition]) => {
-      return generateRecordType(name, definition)
+      return generateRecordType(name, definition, options)
     })
     .join('\n')
 }
 
-function generateRecordType (name: string, definition: ModelDefinition) {
+function generateRecordType (
+  name: string,
+  definition: ModelDefinition,
+  options: GenerateTypesOptions
+) {
   let attributesIdentifier = 'undefined'
   let relationshipIdentifier = 'undefined'
   let attributes = ''
   let relationships = ''
 
   if (definition.attributes) {
-    attributes = generateAttributes(name, definition.attributes)
+    attributes = generateAttributes(name, definition.attributes, options)
     attributesIdentifier = `${toPascalCase(name)}Attributes`
   }
 
@@ -171,17 +166,32 @@ function generateIdentity (name: string) {
   return getTemplate('identity', [toPascalCase(name), name])
 }
 
+function startsWithCapital (str: string) {
+  const firstChar = str[0]
+  if (!firstChar) {
+    throw new Error('Type should not be an empty string')
+  }
+
+  return firstChar === firstChar.toUpperCase()
+}
+
 function generateAttributes (
   name: string,
-  attributes: Dict<AttributeDefinition>
+  attributes: Dict<AttributeDefinition>,
+  options: GenerateTypesOptions
 ) {
+  const tsProperty = options.tsProperty || 'type'
   const attributeList = Object.entries(attributes)
     .map(([name, definition]) => {
       let type
-      if (definition.ts) {
-        type = definition.ts
-        addTypeToImports(type)
-      } else {
+      // Find TS declaration for type
+      const tsType = definition[tsProperty]
+      if (tsType && startsWithCapital(tsType) && tryAddTypeToImports(tsType)) {
+        type = tsType
+      }
+
+      // Map to regular types
+      if (typeof type === 'undefined') {
         switch (definition.type) {
           case 'string':
             type = 'string'
@@ -196,6 +206,7 @@ function generateAttributes (
             type = 'any'
         }
       }
+
       return `${name}: ${type}`
     })
     .join('\n')

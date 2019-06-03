@@ -62,9 +62,24 @@ orbit-type-generator schema.js > models.d.ts
 
 ### Using TypeScript types
 
-You can type attributes by specifying a `ts` property. The generator will
-automatically import the type based on a resolved `tsconfig.json` in the
-directory you're executing from.
+You can type attributes using TypeScript types or interfaces.
+The generator will automatically import the type based on a resolved
+`tsconfig.json` in the directory you're executing from.
+
+```js
+const definition = {
+  models: {
+    user: {
+      attributes: {
+        permission: { type: 'UserPermission' }
+      }
+    }
+  }
+}
+```
+
+You can optionally specify a fallback type to use if TypeScript can't resolve
+the specified type:
 
 ```js
 const definition = {
@@ -76,6 +91,9 @@ const definition = {
     }
   }
 }
+
+const schema = new Schema(definition)
+const types = generateTypes(schema, { tsProperty: 'ts' })
 ```
 
 ### Specify a different base directory

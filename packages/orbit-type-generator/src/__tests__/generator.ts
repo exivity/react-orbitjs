@@ -97,9 +97,11 @@ describe('generateTypes', () => {
       models: {}
     }
     const types = generateTypes(new Schema(definition), {
-      extraImports: [{ type: 'Type', modulePath: 'src' }]
+      extraImports: [
+        { type: 'Type', modulePath: path.resolve(__dirname, '..') }
+      ]
     })
-    expect(types).toContain(`import { Type } from "./src/index"`)
+    expect(types).toContain(`import { Type } from "./src"`)
   })
 
   it('should generate extra imports from a different base directory', async () => {
@@ -108,9 +110,11 @@ describe('generateTypes', () => {
     }
     const types = generateTypes(new Schema(definition), {
       basePath: path.resolve(__dirname, '..'),
-      extraImports: [{ type: 'Type', modulePath: '.' }]
+      extraImports: [
+        { type: 'Type', modulePath: path.resolve(__dirname, '..') }
+      ]
     })
-    expect(types).toContain(`import { Type } from "./index"`)
+    expect(types).toContain(`import { Type } from "."`)
   })
 
   // Attribute cases
@@ -136,7 +140,7 @@ describe('generateTypes', () => {
       models: {
         user: {
           attributes: {
-            permission: { type: 'string', ts: 'AttributeDefinition' }
+            permission: { type: 'AttributeDefinition' }
           }
         }
       }
@@ -151,8 +155,8 @@ describe('generateTypes', () => {
       models: {
         user: {
           attributes: {
-            permission: { type: 'string', ts: 'AttributeDefinition' },
-            group: { type: 'string', ts: 'ModelDefinition' }
+            permission: { type: 'AttributeDefinition' },
+            group: { type: 'ModelDefinition' }
           }
         }
       }
@@ -168,7 +172,7 @@ describe('generateTypes', () => {
       models: {
         user: {
           attributes: {
-            permission: { type: 'string', ts: 'AttributeDefinition' }
+            permission: { type: 'AttributeDefinition' }
           }
         }
       }
@@ -177,5 +181,52 @@ describe('generateTypes', () => {
       basePath: path.resolve(__dirname, '..')
     })
     expect(types).toContain(`import { AttributeDefinition } from "./types"`)
+  })
+
+  it('should generate attributes using the tsProperty option', async () => {
+    const definition = {
+      models: {
+        user: {
+          attributes: {
+            username: { ts: 'AttributeDefinition' }
+          }
+        }
+      }
+    }
+    const types = generateTypes(new Schema(definition as any), {
+      tsProperty: 'ts'
+    })
+    expect(types).toContain(`import { AttributeDefinition } from "./src/types"`)
+    expect(types).toContain(`username: AttributeDefinition`)
+  })
+
+  it('should generate attributes as any if ts type is not found', async () => {
+    const definition = {
+      models: {
+        user: {
+          attributes: {
+            username: { type: 'UnknownInterface' }
+          }
+        }
+      }
+    }
+    const types = generateTypes(new Schema(definition))
+    expect(types).toContain(`username: any`)
+  })
+
+  it('should generate attributes as the regular type if ts type is not found', async () => {
+    const definition = {
+      models: {
+        user: {
+          attributes: {
+            username: { type: 'string', ts: 'UnknownInterface' }
+          }
+        }
+      }
+    }
+    const types = generateTypes(new Schema(definition), {
+      tsProperty: 'ts'
+    })
+    expect(types).toContain(`username: string`)
   })
 })
