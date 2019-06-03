@@ -1,6 +1,6 @@
 {
   "name": "orbit-type-generator",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "description": "Create TypeScript definition file from a Orbit.js Schema definition",
   "license": "MIT",
   "repository": {
