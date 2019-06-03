@@ -1,18 +1,40 @@
 import ts = require('typescript')
-import camelCase = require('camelcase')
+import path = require('path')
+import fs = require('fs')
+import slash = require('slash')
+import { Schema, RelationshipDefinition } from '@orbit/data'
+import { Dict } from '@orbit/utils'
+import { getTemplate, toPascalCase } from './utils'
 import {
-  Schema,
   ModelDefinition,
   AttributeDefinition,
-  RelationshipDefinition
-} from '@orbit/data'
-import { Dict } from '@orbit/utils'
+  ImportDeclaration
+} from './types'
+import { resolveType } from './typeResolver'
 
-export function generateTypes (schema: Schema) {
+let dynamicImports
+
+interface GenerateTypesOptions {
+  basePath?: string
+  extraImports?: ImportDeclaration[]
+}
+
+export function generateTypes (
+  schema: Schema,
+  options: GenerateTypesOptions = {}
+) {
+  const extraImports = options.extraImports || []
+  const basePath = options.basePath || process.cwd()
+
+  // Reset dynamic imports
+  dynamicImports = []
+
+  // We need to call generateRecordTypes first so import can be added dynamically.
+  const recordTypes = generateRecordTypes(schema.models)
   const statements = [
-    generateImports(),
-    generateGenericTypes(),
-    generateModelTypes(schema.models)
+    generateHeader(),
+    generateImports(basePath, [...dynamicImports, ...extraImports]),
+    recordTypes
   ]
   const resultFile = ts.createSourceFile(
     'records.d.ts',
@@ -29,76 +51,163 @@ export function generateTypes (schema: Schema) {
   return out
 }
 
-function generateImports () {
-  return `import { Record, RecordRelationship, RecordHasManyRelationship, RecordHasOneRelationship } from '@orbit/data'
-import { Dict } from '@orbit/utils'`
+function generateHeader () {
+  return getTemplate('header')
 }
 
-function generateGenericTypes () {
-  return `interface GenericRecord<
-  A extends Dict<any> | undefined = undefined,
-  R extends Dict<RecordRelationship> | undefined = undefined
-> extends Record {
-  attributes?: A
-  relationships?: R
-}`
+function generateImports (basePath: string, imports?: ImportDeclaration[]) {
+  if (!imports || !imports.length) {
+    return ''
+  }
+
+  const pipe = (...functions: Function[]) => <T>(args: T) =>
+    functions.reduce<T>((arg, fn) => fn(arg), args)
+  const resolvePath = (modulePath: string) =>
+    require.resolve(modulePath, { paths: [basePath] })
+  const validatePath = (modulePath: string) => {
+    if (!fs.existsSync(modulePath)) {
+      throw new Error(`Not a valid module path: ${modulePath}`)
+    }
+    return modulePath
+  }
+  const toRelativePaths = (modulePath: string) =>
+    path.relative(basePath, modulePath)
+  const toForwardSlash = (modulePath: string) => slash(modulePath)
+  const stripExtension = (modulePath: string) =>
+    modulePath
+      .split('.')
+      .slice(0, -1)
+      .join('.')
+  const addDotSlash = (modulePath: string) => `./${modulePath}`
+
+  function transform ({ modulePath, ...rest }: ImportDeclaration) {
+    return {
+      modulePath: pipe(
+        resolvePath,
+        validatePath,
+        toRelativePaths,
+        toForwardSlash,
+        stripExtension,
+        addDotSlash
+      )(modulePath),
+      ...rest
+    }
+  }
+
+  function combine (
+    newDeclarations: ImportDeclaration[],
+    declaration: ImportDeclaration
+  ) {
+    const existingModuleIndex = newDeclarations.findIndex(
+      ({ modulePath }) => modulePath === declaration.modulePath
+    )
+
+    if (existingModuleIndex > -1) {
+      newDeclarations[existingModuleIndex] = {
+        type: `${newDeclarations[existingModuleIndex].type}, ${
+          declaration.type
+        }`,
+        modulePath: declaration.modulePath
+      }
+    } else {
+      newDeclarations.push(declaration)
+    }
+
+    return newDeclarations
+  }
+
+  return imports
+    .map(transform)
+    .reduce(combine, [])
+    .map(({ type, modulePath }) => getTemplate('import', [type, modulePath]))
+    .join('\n')
 }
 
-function generateModelTypes (models: Schema['models']) {
+function addTypeToImports (type: string) {
+  const resolved = resolveType(type)
+
+  if (resolved) {
+    dynamicImports.push(resolved)
+  }
+}
+
+function generateRecordTypes (models: Schema['models']) {
   return Object.entries(models)
     .map(([name, definition]) => {
-      const namePascalCase = camelCase(name, { pascalCase: true })
-      return generateModelType(namePascalCase, definition)
+      return generateRecordType(name, definition)
     })
     .join('\n')
 }
 
-function generateModelType (name: string, definition: ModelDefinition) {
+function generateRecordType (name: string, definition: ModelDefinition) {
   let attributesIdentifier = 'undefined'
   let relationshipIdentifier = 'undefined'
-  let out = ''
+  let attributes = ''
+  let relationships = ''
 
   if (definition.attributes) {
-    out += generateModelAttributes(name, definition.attributes)
-    attributesIdentifier = `${name}Attributes`
+    attributes = generateAttributes(name, definition.attributes)
+    attributesIdentifier = `${toPascalCase(name)}Attributes`
   }
 
   if (definition.relationships) {
-    out += generateModelRelationships(name, definition.relationships)
-    relationshipIdentifier = `${name}Relationships`
+    relationships = generateRelationships(name, definition.relationships)
+    relationshipIdentifier = `${toPascalCase(name)}Relationships`
   }
 
-  return (out += `export type ${name}Model = GenericRecord<${attributesIdentifier}, ${relationshipIdentifier}>`)
+  const model = getTemplate('record', [
+    toPascalCase(name),
+    toPascalCase(name),
+    attributesIdentifier,
+    relationshipIdentifier
+  ])
+
+  const identity = generateIdentity(name)
+
+  return [model, identity, attributes, relationships].join('\n')
 }
 
-function generateModelAttributes (
+function generateIdentity (name: string) {
+  return getTemplate('identity', [toPascalCase(name), name])
+}
+
+function generateAttributes (
   name: string,
   attributes: Dict<AttributeDefinition>
 ) {
-  let out = `export interface ${name}Attributes {`
-
-  out += Object.entries(attributes)
+  const attributeList = Object.entries(attributes)
     .map(([name, definition]) => {
       let type
-      switch (definition.type) {
-        default:
-          type =
-            typeof definition.type === 'undefined' ? 'any' : definition.type
+      if (definition.ts) {
+        type = definition.ts
+        addTypeToImports(type)
+      } else {
+        switch (definition.type) {
+          case 'string':
+            type = 'string'
+            break
+          case 'float':
+          case 'integer':
+          case 'number':
+          case 'numeric':
+            type = 'number'
+            break
+          default:
+            type = 'any'
+        }
       }
       return `${name}: ${type}`
     })
     .join('\n')
 
-  return (out += `}`)
+  return getTemplate('attributes', [toPascalCase(name), attributeList])
 }
 
-function generateModelRelationships (
+function generateRelationships (
   name: string,
   relationships: Dict<RelationshipDefinition>
 ) {
-  let out = `export interface ${name}Relationships extends Dict<RecordRelationship> {`
-
-  out += Object.entries(relationships)
+  const relationshipList = Object.entries(relationships)
     .map(([name, definition]) => {
       let type
       switch (definition.type) {
@@ -113,5 +222,5 @@ function generateModelRelationships (
     })
     .join('\n')
 
-  return (out += `}`)
+  return getTemplate('relationships', [toPascalCase(name), relationshipList])
 }
