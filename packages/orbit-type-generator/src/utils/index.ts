@@ -9,7 +9,7 @@ export function toPascalCase (name: string) {
 
 export function getTemplate (name: string, params: string[] = []) {
   const template = readFile(
-    path.resolve(__dirname, '..', 'templates', `${name}.ts`)
+    path.resolve(__dirname, '..', '__templates__', `${name}.template`)
   )
 
   return util.format(template, ...params)

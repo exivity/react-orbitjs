@@ -1,20 +1,36 @@
 {
   "name": "orbit-type-generator",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
+  "description": "Create TypeScript definition file from a Orbit.js Schema definition",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/exivity/react-orbitjs.git"
+  },
+  "keywords": [
+    "react",
+    "orbitjs",
+    "typescript"
+  ],
+  "author": "Joram van den Boezem <joram@vandenboezem.nl>",
+  "bugs": {
+    "url": "https://github.com/exivity/react-orbitjs/issues"
+  },
+  "homepage": "https://github.com/exivity/react-orbitjs#readme",
   "main": "lib/index.js",
   "files": [
     "/bin",
     "/lib"
   ],
   "bin": "./bin/run",
-  "license": "MIT",
   "scripts": {
     "lint": "tslint 'src/**/*.ts'",
     "lint:fix": "tslint 'src/**/*.ts' --fix",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "build": "rm -rf ./lib && tsc",
-    "build:watch": "rm -rf ./lib && tsc --watch",
+    "build": "rm -rf ./lib && yarn build:static && tsc",
+    "build:static": "copyfiles -u 1 src/__templates__/** lib/",
+    "build:watch": "rm -rf ./lib && yarn build:static && tsc --watch",
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
@@ -34,6 +50,7 @@
     "@orbit/utils": "^0.15.23",
     "@types/jest": "^24.0.12",
     "@types/node": "^11.13.8",
+    "copyfiles": "^2.1.0",
     "jest": "^24.7.1",
     "ts-jest": "^24.0.2",
     "tslint": "^5.16.0",
