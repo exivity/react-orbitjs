@@ -17,6 +17,9 @@
     "url": "https://github.com/exivity/react-orbitjs/issues"
   },
   "homepage": "https://github.com/exivity/react-orbitjs#readme",
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "main": "lib/index.js",
   "files": [
     "/bin",
