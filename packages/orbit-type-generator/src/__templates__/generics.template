@@ -1,0 +1,12 @@
+// Remove type property from BaseRecord so we can extend from both Record and
+// RecordIdentity.
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+export type Record = Omit<BaseRecord, 'type'>
+
+// Generic relationship types.
+export interface RecordHasOneRelationship<T = RecordIdentity> {
+    data: T | null;
+}
+export interface RecordHasManyRelationship<T = RecordIdentity> {
+    data: T[];
+}

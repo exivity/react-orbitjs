@@ -3,7 +3,7 @@ import { Schema, SchemaSettings } from '@orbit/data'
 import { generateTypes } from '../generator'
 
 describe('generateTypes', () => {
-  // Basic
+  // Basic tests
 
   it('should generate a header', async () => {
     const definition: SchemaSettings = {
@@ -117,7 +117,7 @@ describe('generateTypes', () => {
     expect(types).toContain(`import { Type } from "."`)
   })
 
-  // Attribute cases
+  // Attribute tests
 
   it('should generate attributes as any if type if not set or unknown', async () => {
     const definition = {
@@ -228,5 +228,33 @@ describe('generateTypes', () => {
       tsProperty: 'ts'
     })
     expect(types).toContain(`username: string`)
+  })
+
+  // Relationship tests
+
+  it('should generate relationship types', async () => {
+    const definition = {
+      models: {
+        user: {
+          relationships: {
+            group: { type: 'hasOne', model: 'group' }
+          }
+        },
+        group: {
+          relationships: {
+            users: { type: 'hasMany', model: 'user' }
+          }
+        }
+      }
+    } as const
+    const types = generateTypes(new Schema(definition))
+    expect(types).toContain(`UserRelationships`)
+    expect(types).toContain(
+      `group: RecordHasOneRelationship<GroupRecordIdentity>`
+    )
+    expect(types).toContain(`GroupRelationships`)
+    expect(types).toContain(
+      `users: RecordHasManyRelationship<UserRecordIdentity>`
+    )
   })
 })

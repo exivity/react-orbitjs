@@ -36,7 +36,7 @@ export function generateTypes (
 
   // We need to call generateRecordTypes first so type imports can be added dynamically.
   const recordTypes = generateRecordTypes(schema.models, options)
-  const statements = [generateHeader(), generateImports(options), recordTypes]
+  const statements = [generateHeader(options), recordTypes]
   const resultFile = ts.createSourceFile(
     'records.d.ts',
     statements.join(''),
@@ -51,8 +51,12 @@ export function generateTypes (
   return printer.printFile(resultFile)
 }
 
-function generateHeader () {
-  return getTemplate('header')
+function generateHeader (options: GenerateTypesOptions) {
+  return [
+    getTemplate('header'),
+    generateImports(options),
+    getTemplate('generics')
+  ].join('\n')
 }
 
 function generateImports (options: GenerateTypesOptions) {
@@ -151,6 +155,7 @@ function generateRecordType (
   }
 
   const model = getTemplate('record', [
+    name,
     toPascalCase(name),
     toPascalCase(name),
     attributesIdentifier,
@@ -221,6 +226,8 @@ function generateRelationships (
   const relationshipList = Object.entries(relationships)
     .map(([name, definition]) => {
       let type
+
+      // A relationship type is required.
       switch (definition.type) {
         case 'hasOne':
           type = 'RecordHasOneRelationship'
@@ -229,6 +236,12 @@ function generateRelationships (
           type = 'RecordHasManyRelationship'
           break
       }
+
+      // A relationship model is optional.
+      if (definition.model) {
+        type += `<${toPascalCase(definition.model)}RecordIdentity>`
+      }
+
       return `${name}: ${type}`
     })
     .join('\n')
