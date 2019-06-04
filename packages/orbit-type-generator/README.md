@@ -11,6 +11,10 @@
 
 ## API
 
+### `generateTypes(schema: Schema): string`
+
+Example use case:
+
 ```js
 import { generateTypes } from 'orbit-type-generator'
 
@@ -19,22 +23,33 @@ const definition = {
     user: {
       attributes: {
         username: { type: 'string' }
+      },
+      relationships: {
+        group: { type: 'hasOne', model: 'group' }
+      }
+    },
+    group: {
+      attributes: {
+        name: { type: 'string' }
+      },
+      relationships: {
+        users: { type: 'hasMany', model: 'user' }
       }
     }
   }
 }
 const schema = new Schema(definition)
-const types = generateTypes(schema)
+
+generateTypes(schema)
 ```
 
-The `types` variable now contains this code:
+Would returns this string:
 
 ```ts
-import { Record, RecordIdentity, RecordRelationship, RecordHasOneRelationship, RecordHasManyRelationship } from "@orbit/data";
-import { Dict } from "@orbit/utils";
+// some statements omitted for brevity
 export interface UserRecord extends Record, UserRecordIdentity {
     attributes?: UserAttributes;
-    relationships?: undefined;
+    relationships?: UserRelationships;
 }
 export interface UserRecordIdentity extends RecordIdentity {
     type: "user";
@@ -42,6 +57,23 @@ export interface UserRecordIdentity extends RecordIdentity {
 }
 export interface UserAttributes extends Dict<any> {
     username: string;
+}
+export interface UserRelationships extends Dict<RecordRelationship> {
+    group: RecordHasOneRelationship<GroupRecordIdentity>;
+}
+export interface GroupRecord extends Record, GroupRecordIdentity {
+    attributes?: GroupAttributes;
+    relationships?: GroupRelationships;
+}
+export interface GroupRecordIdentity extends RecordIdentity {
+    type: "group";
+    id: string;
+}
+export interface GroupAttributes extends Dict<any> {
+    name: string;
+}
+export interface GroupRelationships extends Dict<RecordRelationship> {
+    users: RecordHasManyRelationship<UserRecordIdentity>;
 }
 ```
 
@@ -118,5 +150,6 @@ const types = generateTypes(schema, {
 
 ## Todo
 
-- [ ] Properly generate types for relationships
+- [x] Properly generate types for relationships
+- [ ] Option to allow extra properties (toggle attr/rel extends statements)
 - [ ] Support .ts files in CLI using on-the-fly compiling
