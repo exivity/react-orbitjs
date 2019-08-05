@@ -859,3 +859,54 @@ test("withData doesn't update props if records remain the same", () => {
   expect(testComponent.props.users).toHaveLength(0)
   expect(testComponent.props.users).toBe(usersProp)
 })
+
+test('withData resets all props when configured with empty object', done => {
+  const record = {
+    type: 'user',
+    id: 'test-user',
+    attributes: {
+      name: 'Test user'
+    }
+  }
+
+  store
+    .update(t => t.addRecord(record))
+    .then(() => {
+      const Test = () => <span />
+
+      const mapRecordsToProps = ({ showUsers }) => {
+        if (showUsers) {
+          return {
+            users: q => q.findRecords('user')
+          }
+        }
+
+        return {}
+      }
+
+      const TestWithData = withData(mapRecordsToProps)(Test)
+
+      let testComponent
+      let usersProp
+
+      const componentRenderer = renderer.create(
+        <DataProvider dataStore={store}>
+          <TestWithData showUsers={true} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+
+      expect(testComponent.props.users).toHaveLength(1)
+
+      componentRenderer.update(
+        <DataProvider dataStore={store}>
+          <TestWithData showUsers={false} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+
+      expect(testComponent.props.users).toBeUndefined()
+
+      done()
+    })
+})
