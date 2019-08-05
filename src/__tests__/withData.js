@@ -1,10 +1,10 @@
-import React from "react"
-import renderer from "react-test-renderer"
+import React from 'react'
+import renderer from 'react-test-renderer'
 
-import {Schema} from "@orbit/data"
-import Store from "@orbit/store"
+import { Schema } from '@orbit/data'
+import Store from '@orbit/store'
 
-import {DataProvider, withData} from "./../index"
+import { DataProvider, withData } from './../index'
 
 // Unfortunately, on Windows we can't use async/await for tests
 // see https://github.com/facebook/jest/issues/3750 for more info
@@ -13,39 +13,39 @@ const definition = {
   models: {
     list: {
       attributes: {
-        name: {type: "string"},
+        name: { type: 'string' }
       },
       relationships: {
-        owner: {type: "hasOne", model: "user", inverse: "lists"},
-        todos: {type: "hasMany", model: "todo", inverse: "list"},
-      },
+        owner: { type: 'hasOne', model: 'user', inverse: 'lists' },
+        todos: { type: 'hasMany', model: 'todo', inverse: 'list' }
+      }
     },
     todo: {
       attributes: {
-        description: {type: "string"},
+        description: { type: 'string' }
       },
       relationships: {
-        list: {type: "hasOne", model: "list", inverse: "todos"},
-        owner: {type: "hasOne", model: "user", inverse: "todos"},
-      },
+        list: { type: 'hasOne', model: 'list', inverse: 'todos' },
+        owner: { type: 'hasOne', model: 'user', inverse: 'todos' }
+      }
     },
     user: {
       attributes: {
-        name: {type: "string"},
+        name: { type: 'string' }
       },
       relationships: {
-        lists: {type: "hasMany", model: "list", inverse: "owner"},
-        todos: {type: "hasMany", model: "todo", inverse: "owner"},
-      },
-    },
-  },
+        lists: { type: 'hasMany', model: 'list', inverse: 'owner' },
+        todos: { type: 'hasMany', model: 'todo', inverse: 'owner' }
+      }
+    }
+  }
 }
 
 const schema = new Schema(definition)
 let store
 
 beforeEach(() => {
-  store = new Store({schema})
+  store = new Store({ schema })
 })
 
 afterEach(() => {
@@ -54,7 +54,7 @@ afterEach(() => {
 
 // This will output a message to the console (Consider adding an error boundary
 // to your tree to customize error handling behavior.)
-test("withData requires a dataStore", () => {
+test('withData requires a dataStore', () => {
   const Test = () => {
     return <span>test</span>
   }
@@ -62,11 +62,11 @@ test("withData requires a dataStore", () => {
   const TestWithData = withData()(Test)
 
   expect(() => {
-    renderer.create(<TestWithData/>)
+    renderer.create(<TestWithData />)
   }).toThrow()
 })
 
-test("withData renders children", () => {
+test('withData renders children', () => {
   const Test = () => {
     return <span>test withdata</span>
   }
@@ -75,106 +75,106 @@ test("withData renders children", () => {
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 
   let tree = component.toJSON()
   expect(tree).toMatchSnapshot()
 })
 
-test("withData subscribes and unsubscribes from store event", () => {
+test('withData subscribes and unsubscribes from store event', () => {
   const Test = () => {
     return <span>test</span>
   }
 
   const mapRecordsToProps = {
-    todos: q => q.findRecords("todo"),
+    todos: q => q.findRecords('todo')
   }
 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
-  expect(store.listeners("transform")).toHaveLength(0)
+  expect(store.listeners('transform')).toHaveLength(0)
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 
-  expect(store.listeners("transform")).toHaveLength(1)
+  expect(store.listeners('transform')).toHaveLength(1)
 
   component.unmount()
 
-  expect(store.listeners("transform")).toHaveLength(0)
+  expect(store.listeners('transform')).toHaveLength(0)
 })
 
-test("withData passes records as prop", () => {
-  const Test = ({todos}) => {
+test('withData passes records as prop', () => {
+  const Test = ({ todos }) => {
     expect(todos).toHaveLength(0)
 
     return <span>test</span>
   }
 
   const mapRecordsToProps = {
-    todos: q => q.findRecords("todo"),
+    todos: q => q.findRecords('todo')
   }
 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 })
 
-test("withData passes non-existing record as undefined in findRecord", () => {
-  const Test = ({todo}) => {
+test('withData passes non-existing record as undefined in findRecord', () => {
+  const Test = ({ todo }) => {
     expect(todo).toBeUndefined()
 
     return <span>test</span>
   }
 
   const mapRecordsToProps = {
-    todo: q => q.findRecord({type: "todo", id: "non-existing"}),
+    todo: q => q.findRecord({ type: 'todo', id: 'non-existing' })
   }
 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 })
 
-test("withData passes non-existing record as empty array in findRecords", () => {
-  const Test = ({todos}) => {
+test('withData passes non-existing record as empty array in findRecords', () => {
+  const Test = ({ todos }) => {
     expect(todos).toHaveLength(0)
 
     return <span>test</span>
   }
 
   const mapRecordsToProps = {
-    todos: q => q.findRecords("todo"),
+    todos: q => q.findRecords('todo')
   }
 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 })
 
-test("withData passes queryStore", () => {
-  const Test = ({queryStore}) => {
-    expect(typeof queryStore).toEqual("function")
+test('withData passes queryStore', () => {
+  const Test = ({ queryStore }) => {
+    expect(typeof queryStore).toEqual('function')
 
     // queryStore should return a promise
-    expect(typeof queryStore(q => q.findRecords("todo"))).toEqual("object")
+    expect(typeof queryStore(q => q.findRecords('todo'))).toEqual('object')
 
     return <span>test</span>
   }
@@ -183,17 +183,17 @@ test("withData passes queryStore", () => {
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 })
 
-test("withData passes updateStore", () => {
-  const Test = ({updateStore}) => {
-    expect(typeof updateStore).toEqual("function")
+test('withData passes updateStore', () => {
+  const Test = ({ updateStore }) => {
+    expect(typeof updateStore).toEqual('function')
 
     // updateStore should return a promise
-    expect(typeof updateStore(t => t.addRecord({}))).toEqual("object")
+    expect(typeof updateStore(t => t.addRecord({}))).toEqual('object')
 
     return <span>test</span>
   }
@@ -202,54 +202,54 @@ test("withData passes updateStore", () => {
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 })
 
-test("withData receives updates for findRecord", (done) => {
+test('withData receives updates for findRecord', done => {
   let callCount = 0
 
   const record = {
-    type: "todo",
-    id: "my-first-todo",
+    type: 'todo',
+    id: 'my-first-todo',
     attributes: {
-      description: "Run tests",
-    },
+      description: 'Run tests'
+    }
   }
 
-  const testTodo = (todo) => {
+  const testTodo = todo => {
     if (callCount++ === 1) {
       expect(todo).toEqual(record)
       done()
     }
   }
 
-  const Test = ({todo}) => {
+  const Test = ({ todo }) => {
     testTodo(todo)
 
     return <span>test</span>
   }
 
   const mapRecordsToProps = {
-    todo: q => q.findRecord({type: "todo", id: "my-first-todo"}),
+    todo: q => q.findRecord({ type: 'todo', id: 'my-first-todo' })
   }
 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 
   store.update(t => t.addRecord(record))
 })
 
-test("withData receives updates for findRecords", (done) => {
+test('withData receives updates for findRecords', done => {
   let callCount = 0
 
-  const testTodos = (todos) => {
+  const testTodos = todos => {
     expect(todos).toHaveLength(callCount++)
 
     if (callCount === 2) {
@@ -257,63 +257,63 @@ test("withData receives updates for findRecords", (done) => {
     }
   }
 
-  const Test = ({todos}) => {
+  const Test = ({ todos }) => {
     testTodos(todos)
 
     return <span>test</span>
   }
 
   const mapRecordsToProps = {
-    todos: q => q.findRecords("todo"),
+    todos: q => q.findRecords('todo')
   }
 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData/>
-    </DataProvider>,
+      <TestWithData />
+    </DataProvider>
   )
 
-  store.update(t => t.addRecord({
-      type: "todo",
-      id: "my-first-todo",
+  store.update(t =>
+    t.addRecord({
+      type: 'todo',
+      id: 'my-first-todo',
       attributes: {
-        description: "Run tests",
-      },
-    },
-  ))
-
+        description: 'Run tests'
+      }
+    })
+  )
 })
 
-test("withData receives updates for findRelatedRecord", (done) => {
+test('withData receives updates for findRelatedRecord', done => {
   // Unfortunately, on Windows we can't use async/await for tests
   // see https://github.com/facebook/jest/issues/3750 for more info
   let callCount = 0
   const user = {
-    type: "user",
-    id: "test-user",
+    type: 'user',
+    id: 'test-user',
     attributes: {
-      name: "Test user",
-    },
+      name: 'Test user'
+    }
   }
-  const updatedName = "updated-test-user"
+  const updatedName = 'updated-test-user'
 
   store
     .update(t => t.addRecord(user))
     .then(() => {
-      return store.update(t => t.addRecord({
-          type: "todo",
-          id: "my-first-todo",
+      return store.update(t =>
+        t.addRecord({
+          type: 'todo',
+          id: 'my-first-todo',
           attributes: {
-            description: "Run tests",
-          },
-        },
-      ))
+            description: 'Run tests'
+          }
+        })
+      )
     })
     .then(() => {
-
-      const testTodos = (owner) => {
+      const testTodos = owner => {
         callCount++
 
         if (callCount === 1) {
@@ -328,72 +328,88 @@ test("withData receives updates for findRelatedRecord", (done) => {
         }
       }
 
-      const Test = ({owner}) => {
+      const Test = ({ owner }) => {
         testTodos(owner)
 
         return <span>test</span>
       }
 
       const mapRecordsToProps = {
-        owner: q => q.findRelatedRecord({
-          type: "todo",
-          id: "my-first-todo",
-        }, "owner"),
+        owner: q =>
+          q.findRelatedRecord(
+            {
+              type: 'todo',
+              id: 'my-first-todo'
+            },
+            'owner'
+          )
       }
 
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const component = renderer.create(
         <DataProvider dataStore={store}>
-          <TestWithData/>
-        </DataProvider>,
+          <TestWithData />
+        </DataProvider>
       )
 
-      store.update(t => t.replaceRelatedRecord(
-        {type: "todo", id: "my-first-todo"},
-        "owner",
-        {type: "user", id: "test-user"},
-      )).then(() => {
-        store.update(t => t.replaceAttribute(
-          {type: "user", id: "test-user"},
-          "name", updatedName,
-        ))
-      }).then(() => {
-        store.update(t => t.replaceRelatedRecord(
-          {type: "todo", id: "my-first-todo"},
-          "owner",
-          null,
-        ))
-      })
+      store
+        .update(t =>
+          t.replaceRelatedRecord(
+            { type: 'todo', id: 'my-first-todo' },
+            'owner',
+            { type: 'user', id: 'test-user' }
+          )
+        )
+        .then(() => {
+          store.update(t =>
+            t.replaceAttribute(
+              { type: 'user', id: 'test-user' },
+              'name',
+              updatedName
+            )
+          )
+        })
+        .then(() => {
+          store.update(t =>
+            t.replaceRelatedRecord(
+              { type: 'todo', id: 'my-first-todo' },
+              'owner',
+              null
+            )
+          )
+        })
     })
 })
 
-test("withData receives updates for findRelatedRecords", (done) => {
+test('withData receives updates for findRelatedRecords', done => {
   // Unfortunately, on Windows we can't use async/await for tests
   // see https://github.com/facebook/jest/issues/3750 for more info
   let callCount = 0
-  const updatedDescription = "Run tests again"
+  const updatedDescription = 'Run tests again'
 
   store
-    .update(t => t.addRecord({
-      type: "user",
-      id: "test-user",
-      attributes: {
-        name: "Test user",
-      },
-    }))
+    .update(t =>
+      t.addRecord({
+        type: 'user',
+        id: 'test-user',
+        attributes: {
+          name: 'Test user'
+        }
+      })
+    )
     .then(() => {
-      return store.update(t => t.addRecord({
-          type: "todo",
-          id: "my-first-todo",
+      return store.update(t =>
+        t.addRecord({
+          type: 'todo',
+          id: 'my-first-todo',
           attributes: {
-            description: "Run tests",
-          },
-        },
-      ))
+            description: 'Run tests'
+          }
+        })
+      )
     })
     .then(() => {
-
       const testTodos = (todos, user) => {
         callCount++
 
@@ -419,102 +435,124 @@ test("withData receives updates for findRelatedRecords", (done) => {
         }
       }
 
-      const Test = ({todos, user}) => {
+      const Test = ({ todos, user }) => {
         testTodos(todos, user)
 
         return <span>test</span>
       }
 
       const mapRecordsToProps = {
-        user: q => q.findRecord({type: "user", id: "test-user"}),
-        todos: q => q.findRelatedRecords({
-          type: "user",
-          id: "test-user",
-        }, "todos"),
+        user: q => q.findRecord({ type: 'user', id: 'test-user' }),
+        todos: q =>
+          q.findRelatedRecords(
+            {
+              type: 'user',
+              id: 'test-user'
+            },
+            'todos'
+          )
       }
 
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const component = renderer.create(
         <DataProvider dataStore={store}>
-          <TestWithData/>
-        </DataProvider>,
+          <TestWithData />
+        </DataProvider>
       )
 
-      store.update(t => t.addToRelatedRecords(
-        {type: "user", id: "test-user"},
-        "todos",
-        {type: "todo", id: "my-first-todo"},
-      )).then(() => {
-        return store.update(t => t.replaceAttribute(
-          {type: "todo", id: "my-first-todo"},
-          "description", updatedDescription,
-        ))
-      }).then(() => {
-        store.update(t => t.removeFromRelatedRecords(
-          {type: "user", id: "test-user"},
-          "todos",
-          {type: "todo", id: "my-first-todo"},
-        ))
-      }).then(() => {
-        store.update(t => t.addRecord({
-          type: "todo",
-          id: "my-second-todo",
-          attributes: {
-            description: "Run more tests",
-          },
-          relationships: {
-            owner: {
-              data: {type: "user", id: "test-user"},
-            }
-          }
-        }))
-      }).then(() => {
-        store.update(t => t.removeRecord({
-          type: "todo",
-          id: "my-second-todo"
-        }))
-      })
+      store
+        .update(t =>
+          t.addToRelatedRecords({ type: 'user', id: 'test-user' }, 'todos', {
+            type: 'todo',
+            id: 'my-first-todo'
+          })
+        )
+        .then(() => {
+          return store.update(t =>
+            t.replaceAttribute(
+              { type: 'todo', id: 'my-first-todo' },
+              'description',
+              updatedDescription
+            )
+          )
+        })
+        .then(() => {
+          store.update(t =>
+            t.removeFromRelatedRecords(
+              { type: 'user', id: 'test-user' },
+              'todos',
+              { type: 'todo', id: 'my-first-todo' }
+            )
+          )
+        })
+        .then(() => {
+          store.update(t =>
+            t.addRecord({
+              type: 'todo',
+              id: 'my-second-todo',
+              attributes: {
+                description: 'Run more tests'
+              },
+              relationships: {
+                owner: {
+                  data: { type: 'user', id: 'test-user' }
+                }
+              }
+            })
+          )
+        })
+        .then(() => {
+          store.update(t =>
+            t.removeRecord({
+              type: 'todo',
+              id: 'my-second-todo'
+            })
+          )
+        })
     })
 })
 
-test("withData receives updates for findRelatedRecords when calling addRecord with relationship intersection", (done) => {
+test('withData receives updates for findRelatedRecords when calling addRecord with relationship intersection', done => {
   // Unfortunately, on Windows we can't use async/await for tests
   // see https://github.com/facebook/jest/issues/3750 for more info
   let callCount = 0
-  const updatedDescription = "Run tests again"
+  const updatedDescription = 'Run tests again'
 
   store
-    .update(t => t.addRecord({
-      type: "user",
-      id: "test-user",
-      attributes: {
-        name: "Test user",
-      },
-    }))
-    .then(() => {
-      return store.update(t => t.addRecord({
-        type: "list",
-        id: "test-list",
+    .update(t =>
+      t.addRecord({
+        type: 'user',
+        id: 'test-user',
         attributes: {
-          name: "Test list",
-        },
-        relationships: {
-          todos: {
-            data: []
+          name: 'Test user'
+        }
+      })
+    )
+    .then(() => {
+      return store.update(t =>
+        t.addRecord({
+          type: 'list',
+          id: 'test-list',
+          attributes: {
+            name: 'Test list'
           },
-          owner: {
-            data: {
-              type: "user",
-              id: "test-user"
+          relationships: {
+            todos: {
+              data: []
+            },
+            owner: {
+              data: {
+                type: 'user',
+                id: 'test-user'
+              }
             }
           }
-        }
-      }))
+        })
+      )
     })
     .then(() => {
-
-      const testLists = (lists) => {
+      const testLists = lists => {
         callCount++
 
         if (callCount === 1) {
@@ -527,71 +565,79 @@ test("withData receives updates for findRelatedRecords when calling addRecord wi
         }
       }
 
-      const Test = ({lists}) => {
+      const Test = ({ lists }) => {
         testLists(lists)
 
         return <span>test</span>
       }
 
       const mapRecordsToProps = {
-        lists: q => q.findRelatedRecords({
-          type: "user",
-          id: "test-user",
-        }, "lists"),
+        lists: q =>
+          q.findRelatedRecords(
+            {
+              type: 'user',
+              id: 'test-user'
+            },
+            'lists'
+          )
       }
 
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const component = renderer.create(
         <DataProvider dataStore={store}>
-          <TestWithData/>
-        </DataProvider>,
+          <TestWithData />
+        </DataProvider>
       )
 
-      store.update(t => t.addRecord({
-        type: "todo",
-        id: "test-todo",
-        attributes: {
-          description: "Do something"
-        },
-        relationships: {
-          list: {
-            data: {
-              type: "list",
-              id: "test-list"
+      store.update(t =>
+        t.addRecord({
+          type: 'todo',
+          id: 'test-todo',
+          attributes: {
+            description: 'Do something'
+          },
+          relationships: {
+            list: {
+              data: {
+                type: 'list',
+                id: 'test-list'
+              }
             }
           }
-        }
-      }))
+        })
+      )
     })
 })
 
-test("withData receives updates for multiple keys", (done) => {
+test('withData receives updates for multiple keys', done => {
   // Unfortunately, on Windows we can't use async/await for tests
   // see https://github.com/facebook/jest/issues/3750 for more info
   let callCount = 0
 
   store
-    .update(t => t.addRecord({
-      type: "user",
-      id: "test-user",
-      attributes: {
-        name: "Test user",
-      },
-    }))
+    .update(t =>
+      t.addRecord({
+        type: 'user',
+        id: 'test-user',
+        attributes: {
+          name: 'Test user'
+        }
+      })
+    )
     .then(() => {
-      return store.update(t => t.addRecord({
-          type: "todo",
-          id: "my-first-todo",
+      return store.update(t =>
+        t.addRecord({
+          type: 'todo',
+          id: 'my-first-todo',
           attributes: {
-            description: "Run tests",
-          },
-        },
-      ))
+            description: 'Run tests'
+          }
+        })
+      )
     })
     .then(() => {
-
-      const testTodos = ({todos, users}) => {
+      const testTodos = ({ todos, users }) => {
         callCount++
 
         if (callCount === 1) {
@@ -607,68 +653,74 @@ test("withData receives updates for multiple keys", (done) => {
         }
       }
 
-      const Test = ({todos, users}) => {
-        testTodos({todos, users})
+      const Test = ({ todos, users }) => {
+        testTodos({ todos, users })
 
         return <span>test</span>
       }
 
       const mapRecordsToProps = {
-        todos: q => q.findRecords("todo"),
-        users: q => q.findRecords("user"),
+        todos: q => q.findRecords('todo'),
+        users: q => q.findRecords('user')
       }
 
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const component = renderer.create(
         <DataProvider dataStore={store}>
-          <TestWithData/>
-        </DataProvider>,
+          <TestWithData />
+        </DataProvider>
       )
 
-      store.update(t => t.addRecord({
-          type: "todo",
-          id: "my-second-todo",
-          attributes: {
-            description: "Run more tests",
-          },
-        },
-      )).then(() => {
-        store.update(t => t.addRecord({
-            type: "user",
-            id: "another-user",
+      store
+        .update(t =>
+          t.addRecord({
+            type: 'todo',
+            id: 'my-second-todo',
             attributes: {
-              name: "Another user",
-            },
-          },
-        ))
-      })
+              description: 'Run more tests'
+            }
+          })
+        )
+        .then(() => {
+          store.update(t =>
+            t.addRecord({
+              type: 'user',
+              id: 'another-user',
+              attributes: {
+                name: 'Another user'
+              }
+            })
+          )
+        })
     })
 })
 
-test("withData keeps references for unchanged props", (done) => {
+test('withData keeps references for unchanged props', done => {
   store
-    .update(t => t.addRecord({
-      type: "user",
-      id: "test-user",
-      attributes: {
-        name: "Test user",
-      },
-    }))
+    .update(t =>
+      t.addRecord({
+        type: 'user',
+        id: 'test-user',
+        attributes: {
+          name: 'Test user'
+        }
+      })
+    )
     .then(() => {
-      const Test = ({todos, users}) => <span/>
+      const Test = ({ todos, users }) => <span />
 
       const mapRecordsToProps = {
-        todos: q => q.findRecords("todo"),
-        users: q => q.findRecords("user"),
+        todos: q => q.findRecords('todo'),
+        users: q => q.findRecords('user')
       }
 
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const componentRenderer = renderer.create(
         <DataProvider dataStore={store}>
-          <TestWithData/>
-        </DataProvider>,
+          <TestWithData />
+        </DataProvider>
       )
 
       const testComponent = componentRenderer.root.findByType(Test)
@@ -678,71 +730,76 @@ test("withData keeps references for unchanged props", (done) => {
 
       const previousUsers = testComponent.props.users
 
-      store.update(t => t.addRecord({
-          type: "todo",
-          id: "my-first-todo",
-          attributes: {
-            description: "Run tests",
-          },
-        },
-      )).then(() => {
-        expect(testComponent.props.todos).toHaveLength(1)
-        expect(testComponent.props.users).toHaveLength(1)
-        expect(testComponent.props.users).toBe(previousUsers)
-        done()
-      })
+      store
+        .update(t =>
+          t.addRecord({
+            type: 'todo',
+            id: 'my-first-todo',
+            attributes: {
+              description: 'Run tests'
+            }
+          })
+        )
+        .then(() => {
+          expect(testComponent.props.todos).toHaveLength(1)
+          expect(testComponent.props.users).toHaveLength(1)
+          expect(testComponent.props.users).toBe(previousUsers)
+          done()
+        })
     })
 })
 
-test("withData receives updates for findRecord depending on own props", (done) => {
+test('withData receives updates for findRecord depending on own props', done => {
   const record = {
-    type: "user",
-    id: "test-user",
+    type: 'user',
+    id: 'test-user',
     attributes: {
-      name: "Test user",
-    },
+      name: 'Test user'
+    }
   }
 
-  const Test = ({user}) => <span/>
+  const Test = ({ user }) => <span />
 
-  const mapRecordsToProps = ({userId}) => ({
-    user: q => q.findRecord({type: "user", id: userId}),
+  const mapRecordsToProps = ({ userId }) => ({
+    user: q => q.findRecord({ type: 'user', id: userId })
   })
 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const componentRenderer = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData userId="test-user"/>
-    </DataProvider>,
+      <TestWithData userId="test-user" />
+    </DataProvider>
   )
 
   const testComponent = componentRenderer.root.findByType(Test)
 
   expect(testComponent.props.user).toBeUndefined()
 
-  store.update(t => t.addRecord(record)).then(() => {
-    expect(testComponent.props.user).toEqual(record)
-    done()
-  })
+  store
+    .update(t => t.addRecord(record))
+    .then(() => {
+      expect(testComponent.props.user).toEqual(record)
+      done()
+    })
 })
 
-test("withData receives updates when own props change", (done) => {
+test('withData receives updates when own props change', done => {
   const record = {
-    type: "user",
-    id: "test-user",
+    type: 'user',
+    id: 'test-user',
     attributes: {
-      name: "Test user",
-    },
+      name: 'Test user'
+    }
   }
 
   store
     .update(t => t.addRecord(record))
     .then(() => {
-      const Test = ({user}) => <span/>
+      const Test = ({ user }) => <span />
 
-      const mapRecordsToProps = ({userId}) => ({
-        user: q => q.findRecord({type: "user", id: userId}),
+      const mapRecordsToProps = ({ userId }) => ({
+        user: q => q.findRecord({ type: 'user', id: userId })
       })
 
       const TestWithData = withData(mapRecordsToProps)(Test)
@@ -750,8 +807,8 @@ test("withData receives updates when own props change", (done) => {
       let testComponent
       const componentRenderer = renderer.create(
         <DataProvider dataStore={store}>
-          <TestWithData/>
-        </DataProvider>,
+          <TestWithData />
+        </DataProvider>
       )
       testComponent = componentRenderer.root.findByType(Test)
 
@@ -759,8 +816,9 @@ test("withData receives updates when own props change", (done) => {
 
       componentRenderer.update(
         <DataProvider dataStore={store}>
-          <TestWithData userId="test-user"/>
-        </DataProvider>)
+          <TestWithData userId="test-user" />
+        </DataProvider>
+      )
       testComponent = componentRenderer.root.findByType(Test)
 
       expect(testComponent.props.user).toEqual(record)
@@ -770,10 +828,10 @@ test("withData receives updates when own props change", (done) => {
 })
 
 test("withData doesn't update props if records remain the same", () => {
-  const Test = () => <span/>
+  const Test = () => <span />
 
   const mapRecordsToProps = () => ({
-    users: q => q.findRecords("user"),
+    users: q => q.findRecords('user')
   })
 
   const TestWithData = withData(mapRecordsToProps)(Test)
@@ -783,8 +841,8 @@ test("withData doesn't update props if records remain the same", () => {
 
   const componentRenderer = renderer.create(
     <DataProvider dataStore={store}>
-      <TestWithData unusedProp={1}/>
-    </DataProvider>,
+      <TestWithData unusedProp={1} />
+    </DataProvider>
   )
   testComponent = componentRenderer.root.findByType(Test)
 
@@ -793,8 +851,9 @@ test("withData doesn't update props if records remain the same", () => {
 
   componentRenderer.update(
     <DataProvider dataStore={store}>
-      <TestWithData unusedProp={2}/>
-    </DataProvider>)
+      <TestWithData unusedProp={2} />
+    </DataProvider>
+  )
   testComponent = componentRenderer.root.findByType(Test)
 
   expect(testComponent.props.users).toHaveLength(0)
