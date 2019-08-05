@@ -10,7 +10,7 @@ if (!inputFile) {
   process.exit(1)
 }
 
-const absPath = path.join(process.cwd(), inputFile)
+const absPath = path.resolve(process.cwd(), inputFile)
 const transpiled = babel.transformFileSync(absPath, {
   plugins: ['@babel/plugin-transform-modules-commonjs']
 }).code
