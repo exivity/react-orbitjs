@@ -860,7 +860,7 @@ test("withData doesn't update props if records remain the same", () => {
   expect(testComponent.props.users).toBe(usersProp)
 })
 
-test('withData resets all props when configured with empty object', done => {
+test('withData resets all props when mRtP returns an empty object', done => {
   const record = {
     type: 'user',
     id: 'test-user',
@@ -887,7 +887,6 @@ test('withData resets all props when configured with empty object', done => {
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       let testComponent
-      let usersProp
 
       const componentRenderer = renderer.create(
         <DataProvider dataStore={store}>
@@ -906,6 +905,75 @@ test('withData resets all props when configured with empty object', done => {
       testComponent = componentRenderer.root.findByType(Test)
 
       expect(testComponent.props.users).toBeUndefined()
+
+      done()
+    })
+})
+
+test('withData resets some props when mRtP returns different keys', done => {
+  store
+    .update(t =>
+      t.addRecord({
+        type: 'user',
+        id: 'test-user',
+        attributes: {
+          name: 'Test user'
+        }
+      })
+    )
+    .then(() =>
+      store.update(t =>
+        t.addRecord({
+          type: 'todo',
+          id: 'my-first-todo',
+          attributes: {
+            description: 'Run tests'
+          }
+        })
+      )
+    )
+    .then(() => {
+      const Test = () => <span />
+
+      const mapRecordsToProps = ({ showTodos, showUsers }) => {
+        if (showUsers) {
+          return {
+            users: q => q.findRecords('user')
+          }
+        }
+
+        if (showTodos) {
+          return {
+            todos: q => q.findRecords('todo')
+          }
+        }
+
+        return {}
+      }
+
+      const TestWithData = withData(mapRecordsToProps)(Test)
+
+      let testComponent
+
+      const componentRenderer = renderer.create(
+        <DataProvider dataStore={store}>
+          <TestWithData showUsers={true} showTodos={false} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+
+      expect(testComponent.props.users).toHaveLength(1)
+      expect(testComponent.props.todos).toBeUndefined()
+
+      componentRenderer.update(
+        <DataProvider dataStore={store}>
+          <TestWithData showUsers={false} showTodos={true} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+
+      expect(testComponent.props.users).toBeUndefined()
+      expect(testComponent.props.todos).toHaveLength(1)
 
       done()
     })

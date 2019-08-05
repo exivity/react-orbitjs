@@ -116,6 +116,10 @@ export default function withData(mapRecordsToProps, mergeProps) {
         const recordQueries = this.mapRecordsGivenOwnProps(props)
         const recordQueryKeys = Object.keys(recordQueries)
 
+        // Reset subscribedModels so mapRecordsToProps can return different keys with each update
+        // and we don't listen for stale record props.
+        this.subscribedModels = {}
+
         recordQueryKeys.forEach((prop) => this.subscribedModels[prop] = [])
 
         // Iterate all queries, to make a list of models to listen for
@@ -148,15 +152,9 @@ export default function withData(mapRecordsToProps, mergeProps) {
       updateRecordPropsIfNeeded = () => {
         let nextRecordProps = {}
 
-        if (this.recordProps === null) {
-          // Initial run
+        if (this.recordProps === null || (this.haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps)) {
           nextRecordProps = {
             ...this.getConvenienceProps(this.dataStore),
-            ...this.computeAllRecordProps(this.dataStore, this.props)
-          }
-        } else if (this.haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps) {
-          nextRecordProps = {
-            ...this.recordProps,
             ...this.computeAllRecordProps(this.dataStore, this.props)
           }
         } else {
