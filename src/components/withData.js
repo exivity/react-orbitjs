@@ -172,14 +172,25 @@ export default function withData(mapRecordsToProps, mergeProps) {
       updateRecordPropsIfNeeded = () => {
         let nextRecordProps = {}
 
-        if (
-          this.recordProps === null ||
-          (this.haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps)
-        ) {
+        if (this.recordProps === null) {
           nextRecordProps = {
             ...this.getConvenienceProps(this.dataStore),
             ...this.computeAllRecordProps(this.dataStore, this.props)
           }
+        } else if (
+          this.haveOwnPropsChanged &&
+          this.doRecordPropsDependOnOwnProps
+        ) {
+          nextRecordProps = {
+            ...this.recordProps,
+            ...this.computeAllRecordProps(this.dataStore, this.props)
+          }
+
+          // Remove all props no longer returned from mapRecordsToProps
+          const recordQueryKeys = Object.keys(this.subscribedModels)
+          Object.keys(this.recordProps)
+            .filter(key => !recordQueryKeys.includes(key))
+            .forEach(key => delete nextRecordProps[key])
         } else {
           nextRecordProps = {
             ...this.recordProps,
