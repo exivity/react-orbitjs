@@ -1,6 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`withData renders children 1`] = `
+exports[`withData passes down own props 1`] = `
+<span>
+  test
+</span>
+`;
+
+exports[`withData renders children with empty object 1`] = `
+<span>
+  test withdata
+</span>
+`;
+
+exports[`withData renders children with function returning empty object 1`] = `
+<span>
+  test withdata
+</span>
+`;
+
+exports[`withData renders children with no arguments 1`] = `
 <span>
   test withdata
 </span>
