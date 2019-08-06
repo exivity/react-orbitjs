@@ -1164,7 +1164,6 @@ test('withData keeps references for unchanged records when own props are updated
 
       let testComponent
       let todosProp
-      let userProp
 
       const componentRenderer = renderer.create(
         <DataProvider dataStore={store}>
