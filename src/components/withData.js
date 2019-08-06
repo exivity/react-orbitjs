@@ -61,6 +61,22 @@ export default function withData(mapRecordsToProps, mergeProps) {
         return this.selectivelyComputeRecordProps(true, dataStore, props)
       }
 
+      computeChangedQueryProps = (dataStore, props) => {
+        const recordQueries = this.getRecordQueries(dataStore, props)
+        const recordProps = {}
+
+        this.expressionChangedProps.forEach(prop => {
+          try {
+            recordProps[prop] = dataStore.cache.query(recordQueries[prop])
+          } catch (error) {
+            console.warn(error.message)
+            recordProps[prop] = undefined
+          }
+        })
+
+        return recordProps
+      }
+
       selectivelyComputeRecordProps = (
         selectedRecordPropsOrAll,
         dataStore,
@@ -128,6 +144,8 @@ export default function withData(mapRecordsToProps, mergeProps) {
         const recordQueries = this.mapRecordsGivenOwnProps(props)
         const recordQueryKeys = Object.keys(recordQueries)
 
+        const currentExpressions = {}
+
         // Reset subscribedModels so mapRecordsToProps can return different keys with each update
         // and we don't listen for stale record props.
         this.subscribedModels = {}
@@ -138,8 +156,6 @@ export default function withData(mapRecordsToProps, mergeProps) {
         recordQueryKeys.forEach(prop => {
           const expression = recordQueries[prop](dataStore.queryBuilder)
             .expression
-
-          // console.log({ expression })
 
           switch (expression.op) {
             case 'findRecord':
@@ -158,6 +174,8 @@ export default function withData(mapRecordsToProps, mergeProps) {
                   .relationships[expression.relationship].model
               )
           }
+
+          currentExpressions[prop] = expression
         })
 
         recordQueryKeys.forEach(prop => {
@@ -165,6 +183,19 @@ export default function withData(mapRecordsToProps, mergeProps) {
             (value, index, self) => self.indexOf(value) === index
           )
         })
+
+        // Update expressionChangedProps by diffing lastExpressions with expressions
+        recordQueryKeys.forEach(prop => {
+          if (
+            typeof this.lastExpressions[prop] === 'undefined' ||
+            JSON.stringify(currentExpressions[prop]) !==
+              JSON.stringify(this.lastExpressions[prop])
+          ) {
+            this.expressionChangedProps.push(prop)
+          }
+        })
+
+        this.lastExpressions = currentExpressions
 
         return recordQueries
       }
@@ -183,7 +214,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         ) {
           nextRecordProps = {
             ...this.recordProps,
-            ...this.computeAllRecordProps(this.dataStore, this.props)
+            ...this.computeChangedQueryProps(this.dataStore, this.props)
           }
 
           // Remove all props no longer returned from mapRecordsToProps
@@ -262,9 +293,11 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.mergedProps = null
         this.haveOwnPropsChanged = true
         this.dataStoreChangedProps = []
+        this.expressionChangedProps = []
         this.hasDataStoreChanged = true
         this.renderedElement = null
         this.mapRecordsIsConfigured = false
+        this.lastExpressions = {}
         this.subscribedModels = {}
       }
 
@@ -376,6 +409,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.haveOwnPropsChanged = false
         this.hasDataStoreChanged = false
         this.dataStoreChangedProps = []
+        this.expressionChangedProps = []
 
         let haveMergedPropsChanged = true
         if (haveRecordPropsChanged || haveOwnPropsChanged) {
