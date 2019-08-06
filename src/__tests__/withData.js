@@ -1070,7 +1070,8 @@ test('withData keeps references for unchanged records when own props are updated
         return <span>test</span>
       }
 
-      const mapRecordsToProps = () => ({
+      // Need to provide one argument at least, otherwise re-renders are optimized
+      const mapRecordsToProps = props => ({
         todos: q =>
           q.findRelatedRecords({ type: 'user', id: 'test-user' }, 'todos')
       })
@@ -1105,7 +1106,85 @@ test('withData keeps references for unchanged records when own props are updated
       )
       testComponent = componentRenderer.root.findByType(Test)
       expect(testComponent.props.todos).toHaveLength(1)
+      expect(testComponent.props.todos).toEqual(todosProp)
+
+      expect(callCount).toBe(2)
+      done()
+    })
+})
+
+test('withData keeps references for unchanged records when own props are updated', done => {
+  let callCount = 0
+
+  store
+    .update(t =>
+      t.addRecord({
+        type: 'user',
+        id: 'user-1',
+        attributes: {
+          name: 'Test user 1'
+        }
+      })
+    )
+    .then(() => {
+      return store.update(t =>
+        t.addRecord({
+          type: 'user',
+          id: 'user-2',
+          attributes: {
+            name: 'Test user 2'
+          }
+        })
+      )
+    })
+    .then(() => {
+      return store.update(t =>
+        t.addRecord({
+          type: 'todo',
+          id: 'test-todo',
+          attributes: {
+            description: 'Run some tests'
+          }
+        })
+      )
+    })
+    .then(() => {
+      const Test = () => {
+        callCount++
+
+        return <span>test</span>
+      }
+
+      const mapRecordsToProps = ({ userId }) => ({
+        todos: q => q.findRecords('todo'),
+        user: q => q.findRecord({ type: 'user', id: userId })
+      })
+
+      const TestWithData = withData(mapRecordsToProps)(Test)
+
+      let testComponent
+      let todosProp
+      let userProp
+
+      const componentRenderer = renderer.create(
+        <DataProvider dataStore={store}>
+          <TestWithData userId={'user-1'} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+      expect(testComponent.props.todos).toHaveLength(1)
+      expect(testComponent.props.user.id).toEqual('user-1')
+      todosProp = testComponent.props.todos
+
+      componentRenderer.update(
+        <DataProvider dataStore={store}>
+          <TestWithData userId={'user-2'} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+      expect(testComponent.props.todos).toHaveLength(1)
       expect(testComponent.props.todos).toBe(todosProp)
+      expect(testComponent.props.user.id).toEqual('user-2')
 
       expect(callCount).toBe(2)
       done()

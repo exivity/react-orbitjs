@@ -1,16 +1,16 @@
-import {Component, createElement} from "react"
-import dataStoreShape from "../utils/dataStoreShape"
-import shallowEqual from "../utils/shallowEqual"
-import hoistStatics from "hoist-non-react-statics"
+import { Component, createElement } from 'react'
+import dataStoreShape from '../utils/dataStoreShape'
+import shallowEqual from '../utils/shallowEqual'
+import hoistStatics from 'hoist-non-react-statics'
 
 const defaultMapRecordsToProps = {}
 const defaultMergeProps = (recordProps, parentProps) => ({
   ...parentProps,
-  ...recordProps,
+  ...recordProps
 })
 
 function getDisplayName(WrappedComponent) {
-  return WrappedComponent.displayName || WrappedComponent.name || "Component"
+  return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
 export default function withData(mapRecordsToProps, mergeProps) {
@@ -38,9 +38,9 @@ export default function withData(mapRecordsToProps, mergeProps) {
         if (!this.dataStore) {
           throw new Error(
             `Could not find "dataStore" in either the context or ` +
-            `props of "${componentDisplayName}". ` +
-            `Either wrap the root component in a <DataProvider>, ` +
-            `or explicitly pass "dataStore" as a prop to "${componentDisplayName}".`,
+              `props of "${componentDisplayName}". ` +
+              `Either wrap the root component in a <DataProvider>, ` +
+              `or explicitly pass "dataStore" as a prop to "${componentDisplayName}".`
           )
         }
 
@@ -50,17 +50,28 @@ export default function withData(mapRecordsToProps, mergeProps) {
       }
 
       computeChangedRecordProps = (selectedRecordProps, dataStore, props) => {
-        return this.selectivelyComputeRecordProps(selectedRecordProps, dataStore, props)
+        return this.selectivelyComputeRecordProps(
+          selectedRecordProps,
+          dataStore,
+          props
+        )
       }
 
       computeAllRecordProps = (dataStore, props) => {
         return this.selectivelyComputeRecordProps(true, dataStore, props)
       }
 
-      selectivelyComputeRecordProps = (selectedRecordPropsOrAll, dataStore, props) => {
+      selectivelyComputeRecordProps = (
+        selectedRecordPropsOrAll,
+        dataStore,
+        props
+      ) => {
         let recordQueries
 
-        if (selectedRecordPropsOrAll === true || selectedRecordPropsOrAll.length) {
+        if (
+          selectedRecordPropsOrAll === true ||
+          selectedRecordPropsOrAll.length
+        ) {
           recordQueries = this.getRecordQueries(dataStore, props)
         }
 
@@ -70,7 +81,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
 
         const recordProps = {}
 
-        selectedRecordPropsOrAll.forEach((prop) => {
+        selectedRecordPropsOrAll.forEach(prop => {
           try {
             recordProps[prop] = dataStore.cache.query(recordQueries[prop])
           } catch (error) {
@@ -82,11 +93,11 @@ export default function withData(mapRecordsToProps, mergeProps) {
         return recordProps
       }
 
-      getConvenienceProps = (dataStore) => {
+      getConvenienceProps = dataStore => {
         if (!this.convenienceProps) {
           this.convenienceProps = {
             queryStore: (...args) => dataStore.query(...args),
-            updateStore: (...args) => dataStore.update(...args),
+            updateStore: (...args) => dataStore.update(...args)
           }
         }
 
@@ -94,23 +105,24 @@ export default function withData(mapRecordsToProps, mergeProps) {
       }
 
       getRecordQueries = (dataStore, props) => {
-        if (!this.mapRecordsIsConfigured
-          || (this.doRecordPropsDependOnOwnProps && this.haveOwnPropsChanged)) {
+        if (
+          !this.mapRecordsIsConfigured ||
+          (this.doRecordPropsDependOnOwnProps && this.haveOwnPropsChanged)
+        ) {
           return this.configureMapRecords(dataStore, props)
         }
 
         return this.mapRecordsGivenOwnProps(props)
       }
 
-      mapRecordsGivenOwnProps = (props) => {
-        return this.recordPropsIsFunction ?
-          mapRecords(props) :
-          mapRecords
+      mapRecordsGivenOwnProps = props => {
+        return this.recordPropsIsFunction ? mapRecords(props) : mapRecords
       }
 
       configureMapRecords = (dataStore, props) => {
-        this.recordPropsIsFunction = (typeof mapRecords === "function")
-        this.doRecordPropsDependOnOwnProps = this.recordPropsIsFunction && mapRecords.length > 0
+        this.recordPropsIsFunction = typeof mapRecords === 'function'
+        this.doRecordPropsDependOnOwnProps =
+          this.recordPropsIsFunction && mapRecords.length > 0
         this.mapRecordsIsConfigured = true
 
         const recordQueries = this.mapRecordsGivenOwnProps(props)
@@ -120,30 +132,38 @@ export default function withData(mapRecordsToProps, mergeProps) {
         // and we don't listen for stale record props.
         this.subscribedModels = {}
 
-        recordQueryKeys.forEach((prop) => this.subscribedModels[prop] = [])
+        recordQueryKeys.forEach(prop => (this.subscribedModels[prop] = []))
 
         // Iterate all queries, to make a list of models to listen for
-        recordQueryKeys.forEach((prop) => {
-          const expression = recordQueries[prop](dataStore.queryBuilder).expression
+        recordQueryKeys.forEach(prop => {
+          const expression = recordQueries[prop](dataStore.queryBuilder)
+            .expression
+
+          // console.log({ expression })
 
           switch (expression.op) {
-            case "findRecord":
+            case 'findRecord':
               this.subscribedModels[prop].push(expression.record.type)
               break
 
-            case "findRecords":
+            case 'findRecords':
               this.subscribedModels[prop].push(expression.type)
               break
 
-            case "findRelatedRecord":
-            case "findRelatedRecords":
+            case 'findRelatedRecord':
+            case 'findRelatedRecords':
               this.subscribedModels[prop].push(expression.record.type)
-              this.subscribedModels[prop].push(this.dataStore.schema.models[expression.record.type].relationships[expression.relationship].model)
+              this.subscribedModels[prop].push(
+                this.dataStore.schema.models[expression.record.type]
+                  .relationships[expression.relationship].model
+              )
           }
         })
 
-        recordQueryKeys.forEach((prop) => {
-          this.subscribedModels[prop] = this.subscribedModels[prop].filter((value, index, self) => self.indexOf(value) === index)
+        recordQueryKeys.forEach(prop => {
+          this.subscribedModels[prop] = this.subscribedModels[prop].filter(
+            (value, index, self) => self.indexOf(value) === index
+          )
         })
 
         return recordQueries
@@ -152,7 +172,10 @@ export default function withData(mapRecordsToProps, mergeProps) {
       updateRecordPropsIfNeeded = () => {
         let nextRecordProps = {}
 
-        if (this.recordProps === null || (this.haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps)) {
+        if (
+          this.recordProps === null ||
+          (this.haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps)
+        ) {
           nextRecordProps = {
             ...this.getConvenienceProps(this.dataStore),
             ...this.computeAllRecordProps(this.dataStore, this.props)
@@ -160,11 +183,18 @@ export default function withData(mapRecordsToProps, mergeProps) {
         } else {
           nextRecordProps = {
             ...this.recordProps,
-            ...this.computeChangedRecordProps(this.dataStoreChangedProps, this.dataStore, this.props)
+            ...this.computeChangedRecordProps(
+              this.dataStoreChangedProps,
+              this.dataStore,
+              this.props
+            )
           }
         }
 
-        if (this.recordProps && shallowEqual(nextRecordProps, this.recordProps)) {
+        if (
+          this.recordProps &&
+          shallowEqual(nextRecordProps, this.recordProps)
+        ) {
           return false
         }
 
@@ -175,7 +205,10 @@ export default function withData(mapRecordsToProps, mergeProps) {
       updateMergedPropsIfNeeded = () => {
         const nextMergedProps = computeMergedProps(this.recordProps, this.props)
 
-        if (this.mergedProps && shallowEqual(nextMergedProps, this.mergedProps)) {
+        if (
+          this.mergedProps &&
+          shallowEqual(nextMergedProps, this.mergedProps)
+        ) {
           return false
         }
 
@@ -186,14 +219,14 @@ export default function withData(mapRecordsToProps, mergeProps) {
       trySubscribe = () => {
         if (shouldSubscribe && !this.isListening) {
           this.isListening = true
-          this.dataStore.on("transform", this.handleTransform)
+          this.dataStore.on('transform', this.handleTransform)
         }
       }
 
       tryUnsubscribe = () => {
         if (this.isListening) {
           this.isListening = null
-          this.dataStore.off("transform", this.handleTransform)
+          this.dataStore.off('transform', this.handleTransform)
         }
       }
 
@@ -224,7 +257,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.subscribedModels = {}
       }
 
-      handleTransform = (transform) => {
+      handleTransform = transform => {
         if (!this.isListening) {
           return
         }
@@ -233,59 +266,73 @@ export default function withData(mapRecordsToProps, mergeProps) {
         const operationModels = []
         transform.operations.forEach(operation => {
           switch (operation.op) {
-            case "addRecord":
-            case "replaceRecord":
+            case 'addRecord':
+            case 'replaceRecord':
               // operation.record may contains some relationships, in this case
               // its inverse relationships are modified too, we add them to operationModels.
               operationModels.push(operation.record.type)
-              if (operation.record.relationships === undefined) break;
-              Object.keys(operation.record.relationships).forEach((relationship) => {
-                operationModels.push(this.dataStore.schema.models[operation.record.type].relationships[relationship].model)
-              })
+              if (operation.record.relationships === undefined) break
+              Object.keys(operation.record.relationships).forEach(
+                relationship => {
+                  operationModels.push(
+                    this.dataStore.schema.models[operation.record.type]
+                      .relationships[relationship].model
+                  )
+                }
+              )
               break
 
-            case "removeRecord":
+            case 'removeRecord':
               // If the removed record had some relationships, inverse relationships
               // are modified too. As operation.record does not contain any relationships
               // we have to assume that all its inverse relationships defined
               // in the schema could be impacted and must be added to operationModels.
               operationModels.push(operation.record.type)
-              const relationships = this.dataStore.schema.models[operation.record.type].relationships;
-              Object.keys(relationships).map(k => relationships[k]).forEach((relationship) => {
-                operationModels.push(relationship.model)
-              })
+              const relationships = this.dataStore.schema.models[
+                operation.record.type
+              ].relationships
+              Object.keys(relationships)
+                .map(k => relationships[k])
+                .forEach(relationship => {
+                  operationModels.push(relationship.model)
+                })
               break
 
-            case "replaceKey":
-            case "replaceAttribute":
+            case 'replaceKey':
+            case 'replaceAttribute':
               operationModels.push(operation.record.type)
               break
 
-            case "addToRelatedRecords":
-            case "removeFromRelatedRecords":
-            case "replaceRelatedRecord":
+            case 'addToRelatedRecords':
+            case 'removeFromRelatedRecords':
+            case 'replaceRelatedRecord':
               // Add both record and relatedRecord to operationModels, because
               // it can modify both its relationships and inverse relationships.
               operationModels.push(operation.record.type)
-              operationModels.push(this.dataStore.schema.models[operation.record.type].relationships[operation.relationship].model)
+              operationModels.push(
+                this.dataStore.schema.models[operation.record.type]
+                  .relationships[operation.relationship].model
+              )
               break
 
-            case "replaceRelatedRecords":
+            case 'replaceRelatedRecords':
               operationModels.push(operation.record.type)
-              operation.relatedRecords.forEach((relatedRecord) => {
+              operation.relatedRecords.forEach(relatedRecord => {
                 operationModels.push(relatedRecord.type)
               })
               break
 
             default:
-              console.warn("This transform operation is not supported in react-orbitjs.")
+              console.warn(
+                'This transform operation is not supported in react-orbitjs.'
+              )
           }
         })
 
         const uniqueOperationModels = new Set(operationModels)
 
-        uniqueOperationModels.forEach((model) => {
-          Object.keys(this.subscribedModels).forEach((prop) => {
+        uniqueOperationModels.forEach(model => {
+          Object.keys(this.subscribedModels).forEach(prop => {
             if (this.subscribedModels[prop].includes(model)) {
               this.hasDataStoreChanged = true
               this.dataStoreChangedProps.push(prop)
@@ -300,14 +347,14 @@ export default function withData(mapRecordsToProps, mergeProps) {
         const {
           haveOwnPropsChanged,
           hasDataStoreChanged,
-          renderedElement,
+          renderedElement
         } = this
 
         let shouldUpdateRecordProps = true
         if (renderedElement) {
-          shouldUpdateRecordProps = hasDataStoreChanged || (
-            haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps
-          )
+          shouldUpdateRecordProps =
+            hasDataStoreChanged ||
+            (haveOwnPropsChanged && this.doRecordPropsDependOnOwnProps)
         }
 
         let haveRecordPropsChanged = false
@@ -320,10 +367,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.dataStoreChangedProps = []
 
         let haveMergedPropsChanged = true
-        if (
-          haveRecordPropsChanged ||
-          haveOwnPropsChanged
-        ) {
+        if (haveRecordPropsChanged || haveOwnPropsChanged) {
           haveMergedPropsChanged = this.updateMergedPropsIfNeeded()
         } else {
           haveMergedPropsChanged = false
@@ -333,9 +377,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
           return renderedElement
         }
 
-        this.renderedElement = createElement(WrappedComponent,
-          this.mergedProps,
-        )
+        this.renderedElement = createElement(WrappedComponent, this.mergedProps)
 
         return this.renderedElement
       }
@@ -344,10 +386,10 @@ export default function withData(mapRecordsToProps, mergeProps) {
     WithData.displayName = componentDisplayName
     WithData.WrappedComponent = WrappedComponent
     WithData.contextTypes = {
-      dataStore: dataStoreShape,
+      dataStore: dataStoreShape
     }
     WithData.propTypes = {
-      dataStore: dataStoreShape,
+      dataStore: dataStoreShape
     }
 
     return hoistStatics(WithData, WrappedComponent)
