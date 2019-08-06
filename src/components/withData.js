@@ -49,6 +49,23 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.clearCache()
       }
 
+      makeReducePropsToRecords = (dataStore, recordQueries) => (
+        recordProps,
+        prop
+      ) => {
+        let result
+        try {
+          result = dataStore.cache.query(recordQueries[prop])
+        } catch (error) {
+          console.warn(error.message)
+          result = undefined
+        }
+        return {
+          ...recordProps,
+          [prop]: result
+        }
+      }
+
       computeChangedRecordProps = (selectedRecordProps, dataStore, props) => {
         return this.selectivelyComputeRecordProps(
           selectedRecordProps,
@@ -63,16 +80,10 @@ export default function withData(mapRecordsToProps, mergeProps) {
 
       computeChangedQueryProps = (dataStore, props) => {
         const recordQueries = this.getRecordQueries(dataStore, props)
-        const recordProps = {}
-
-        this.expressionChangedProps.forEach(prop => {
-          try {
-            recordProps[prop] = dataStore.cache.query(recordQueries[prop])
-          } catch (error) {
-            console.warn(error.message)
-            recordProps[prop] = undefined
-          }
-        })
+        const recordProps = this.expressionChangedProps.reduce(
+          this.makeReducePropsToRecords(dataStore, recordQueries),
+          {}
+        )
 
         return recordProps
       }
@@ -95,16 +106,10 @@ export default function withData(mapRecordsToProps, mergeProps) {
           selectedRecordPropsOrAll = Object.keys(recordQueries)
         }
 
-        const recordProps = {}
-
-        selectedRecordPropsOrAll.forEach(prop => {
-          try {
-            recordProps[prop] = dataStore.cache.query(recordQueries[prop])
-          } catch (error) {
-            console.warn(error.message)
-            recordProps[prop] = undefined
-          }
-        })
+        const recordProps = selectedRecordPropsOrAll.reduce(
+          this.makeReducePropsToRecords(dataStore, recordQueries),
+          {}
+        )
 
         return recordProps
       }
