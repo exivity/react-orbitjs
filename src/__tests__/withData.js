@@ -41,10 +41,11 @@ const definition = {
   }
 }
 
-const schema = new Schema(definition)
+let schema
 let store
 
 beforeEach(() => {
+  schema = new Schema({ ...definition })
   store = new Store({ schema })
 })
 
@@ -66,7 +67,7 @@ test('withData requires a dataStore', () => {
   }).toThrow()
 })
 
-test('withData renders children', () => {
+test('withData renders children with no arguments', () => {
   const Test = () => {
     return <span>test withdata</span>
   }
@@ -76,6 +77,57 @@ test('withData renders children', () => {
   const component = renderer.create(
     <DataProvider dataStore={store}>
       <TestWithData />
+    </DataProvider>
+  )
+
+  let tree = component.toJSON()
+  expect(tree).toMatchSnapshot()
+})
+
+test('withData renders children with empty object', () => {
+  const Test = () => {
+    return <span>test withdata</span>
+  }
+
+  const TestWithData = withData({})(Test)
+
+  const component = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData />
+    </DataProvider>
+  )
+
+  let tree = component.toJSON()
+  expect(tree).toMatchSnapshot()
+})
+
+test('withData renders children with function returning empty object', () => {
+  const Test = () => {
+    return <span>test withdata</span>
+  }
+
+  const TestWithData = withData(() => ({}))(Test)
+
+  const component = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData />
+    </DataProvider>
+  )
+
+  let tree = component.toJSON()
+  expect(tree).toMatchSnapshot()
+})
+
+test('withData passes down own props', () => {
+  const Test = ({ test }) => {
+    return <span>{test}</span>
+  }
+
+  const TestWithData = withData()(Test)
+
+  const component = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData test="test" />
     </DataProvider>
   )
 
@@ -975,6 +1027,87 @@ test('withData resets some props when mRtP returns different keys', done => {
       expect(testComponent.props.users).toBeUndefined()
       expect(testComponent.props.todos).toHaveLength(1)
 
+      done()
+    })
+})
+
+test('withData keeps references for unchanged records when own props are updated', done => {
+  let callCount = 0
+
+  store
+    .update(t =>
+      t.addRecord({
+        type: 'user',
+        id: 'test-user',
+        attributes: {
+          name: 'Test user'
+        }
+      })
+    )
+    .then(() => {
+      return store.update(t =>
+        t.addRecord({
+          type: 'todo',
+          id: 'test-todo',
+          attributes: {
+            description: 'Run even more tests'
+          },
+          relationships: {
+            owner: {
+              data: {
+                type: 'user',
+                id: 'test-user'
+              }
+            }
+          }
+        })
+      )
+    })
+    .then(() => {
+      const Test = () => {
+        callCount++
+
+        return <span>test</span>
+      }
+
+      const mapRecordsToProps = () => ({
+        todos: q =>
+          q.findRelatedRecords({ type: 'user', id: 'test-user' }, 'todos')
+      })
+
+      const TestWithData = withData(mapRecordsToProps)(Test)
+
+      let testComponent
+      let todosProp
+
+      const componentRenderer = renderer.create(
+        <DataProvider dataStore={store}>
+          <TestWithData unusedProp={1} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+      expect(testComponent.props.todos).toHaveLength(1)
+      todosProp = testComponent.props.todos
+
+      componentRenderer.update(
+        <DataProvider dataStore={store}>
+          <TestWithData unusedProp={1} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+      expect(testComponent.props.todos).toHaveLength(1)
+      expect(testComponent.props.todos).toBe(todosProp)
+
+      componentRenderer.update(
+        <DataProvider dataStore={store}>
+          <TestWithData unusedProp={2} />
+        </DataProvider>
+      )
+      testComponent = componentRenderer.root.findByType(Test)
+      expect(testComponent.props.todos).toHaveLength(1)
+      expect(testComponent.props.todos).toBe(todosProp)
+
+      expect(callCount).toBe(2)
       done()
     })
 })
