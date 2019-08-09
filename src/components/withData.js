@@ -317,6 +317,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
           switch (operation.op) {
             case 'addRecord':
             case 'replaceRecord':
+            case 'updateRecord':
               // operation.record may contains some relationships, in this case
               // its inverse relationships are modified too, we add them to operationModels.
               operationModels.push(operation.record.type)
