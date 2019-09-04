@@ -1190,10 +1190,12 @@ test('withData keeps references for unchanged records when own props are updated
     })
 })
 
-test('[regression] withData passes convenience props in subsequent renders', done => {
+test('[regression] withData passes convenience props in subsequent renders (without ownProps)', () => {
   const Test = () => <span>test</span>
 
-  const TestWithData = withData((ownProps) => ({}))(Test)
+  const mapRecordsToProps = {}
+
+  const TestWithData = withData(mapRecordsToProps)(Test)
 
   let testComponent
   const componentRenderer = renderer.create(
@@ -1216,5 +1218,33 @@ test('[regression] withData passes convenience props in subsequent renders', don
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 
-  done()
+})
+
+test('[regression] withData passes convenience props in subsequent renders (with ownProps)', () => {
+  const Test = () => <span>test</span>
+
+  const mapRecordsToProps = (ownProps) => ({})
+
+  const TestWithData = withData(mapRecordsToProps)(Test)
+
+  let testComponent
+  const componentRenderer = renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData />
+    </DataProvider>
+  )
+  testComponent = componentRenderer.root.findByType(Test)
+
+  expect(typeof testComponent.props.queryStore).toEqual('function')
+  expect(typeof testComponent.props.updateStore).toEqual('function')
+
+  componentRenderer.update(
+    <DataProvider dataStore={store}>
+      <TestWithData userId="test-user" />
+    </DataProvider>
+  )
+  testComponent = componentRenderer.root.findByType(Test)
+
+  expect(typeof testComponent.props.queryStore).toEqual('function')
+  expect(typeof testComponent.props.updateStore).toEqual('function')
 })
