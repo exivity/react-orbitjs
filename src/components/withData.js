@@ -224,8 +224,9 @@ export default function withData(mapRecordsToProps, mergeProps) {
 
           // Remove all props no longer returned from mapRecordsToProps
           const recordQueryKeys = Object.keys(this.subscribedModels)
+          const conveniencePropKeys = Object.keys(this.getConvenienceProps(this.dataStore))
           Object.keys(this.recordProps)
-            .filter(key => !recordQueryKeys.includes(key))
+            .filter(key => !recordQueryKeys.includes(key) && !conveniencePropKeys.includes(key))
             .forEach(key => delete nextRecordProps[key])
         } else {
           nextRecordProps = {
