@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Store from '@orbit/store';
-import { QueryOrExpression, QueryBuilder } from '@orbit/data';
+import { QueryOrExpression, QueryBuilder, FindRecordTerm, FindRecordsTerm, FindRelatedRecordTerm, FindRelatedRecordsTerm } from '@orbit/data';
 
 type ComponentType<P> = React.ComponentType<P>;
 type ComponentClass<P> = React.ComponentClass<P>;
@@ -10,7 +10,7 @@ export interface DataProviderProps {
 }
 
 export type RecordsToProps<Keys extends string | number | symbol> = {
-  [Key in Keys]: (q: QueryBuilder) => any;
+  [Key in Keys]?: (q: QueryBuilder) => FindRecordTerm | FindRecordsTerm | FindRelatedRecordTerm | FindRelatedRecordsTerm;
 }
 
 export interface WithData {
@@ -53,5 +53,5 @@ export interface InferableComponentEnhancerWithProps<TInjectedProps, TNeedsProps
 }
 
 export function withData<TRecordProps = {}, TOwnProps = {}>(
-  mapRecordsToProps: MapRecordsToProps<TRecordProps, TOwnProps>
+  mapRecordsToProps?: MapRecordsToProps<TRecordProps, TOwnProps>
 ): InferableComponentEnhancerWithProps<TRecordProps & WithDataProps & TOwnProps, TOwnProps>
