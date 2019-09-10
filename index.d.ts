@@ -1,14 +1,16 @@
 import * as React from 'react';
 import Store from '@orbit/store';
-import { TransformOrOperations, QueryOrExpression, QueryBuilder, Source } from '@orbit/data';
+import { QueryOrExpression, QueryBuilder, FindRecordTerm, FindRelatedRecordTerm, FindRelatedRecordsTerm } from '@orbit/data';
 
+type ComponentType<P> = React.ComponentType<P>;
+type ComponentClass<P> = React.ComponentClass<P>;
 
 export interface DataProviderProps {
   dataStore: Store;
 }
 
-export interface RecordsToProps {
-  [key: string]: (q: QueryBuilder) => any;
+export type RecordsToProps<Keys extends string | number | symbol> = {
+  [Key in Keys]: (q: QueryBuilder) => any;
 }
 
 export interface WithData {
@@ -22,17 +24,34 @@ export type WithDataProps =
   }
   & WithData
 
+export type Matching<InjectedProps, DecorationTargetProps> = {
+  [P in keyof DecorationTargetProps]: P extends keyof InjectedProps
+      ? InjectedProps[P] extends DecorationTargetProps[P]
+          ? DecorationTargetProps[P]
+          : InjectedProps[P]
+      : DecorationTargetProps[P];
+};
 
-type MapRecordsToPropsFn<TWrappedProps> = (props: TWrappedProps) => RecordsToProps;
+export type GetProps<C> = C extends ComponentType<infer P> ? P : never;
 
-export type MapRecordsToProps<TWrappedProps> =
-  | RecordsToProps
-  | MapRecordsToPropsFn<TWrappedProps>
+type MapRecordsToPropsFn<TRecordProps = {}, TOwnProps = {}> = (props: TOwnProps) => RecordsToProps<keyof TRecordProps>;
+
+export type MapRecordsToProps<TRecordProps = {}, TOwnProps = {}> =
+  | RecordsToProps<keyof TRecordProps>
+  | MapRecordsToPropsFn<TRecordProps, TOwnProps>
 
 export class DataProvider extends React.Component<DataProviderProps> {}
 
+export type ConnectedComponentClass<C, P> = ComponentClass<JSX.LibraryManagedAttributes<C, P>> & {
+  WrappedComponent: C;
+};
 
-export function withData<TWrappedProps>(mapRecordsToProps: MapRecordsToProps<TWrappedProps>):
-  <Props, State>(
-    WrappedComponent: React.Component<any, any, any>
-  ) => React.Component<TWrappedProps & Props>;
+export interface InferableComponentEnhancerWithProps<TInjectedProps, TNeedsProps> {
+  <C extends ComponentType<Matching<TInjectedProps, GetProps<C>>>>(
+      component: C
+  ): ConnectedComponentClass<C, Omit<GetProps<C>, keyof TInjectedProps> & TNeedsProps>
+}
+
+export function withData<TRecordProps = {}, TOwnProps = {}>(
+  mapRecordsToProps: MapRecordsToProps<TRecordProps, TOwnProps>
+): InferableComponentEnhancerWithProps<TRecordProps & WithDataProps & TOwnProps, TOwnProps>
