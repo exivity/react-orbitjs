@@ -38,6 +38,7 @@
   "devDependencies": {
     "@orbit/data": "^0.15.8",
     "@orbit/store": "^0.15.8",
+    "@types/react": "^16.9.2",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-jest": "^21.2.0",
@@ -66,8 +67,8 @@
   },
   "peerDependencies": {
     "@orbit/core": "^0.15.0",
-    "@orbit/store": "^0.15.0",
     "@orbit/data": "^0.15.0",
+    "@orbit/store": "^0.15.0",
     "react": ">=15"
   },
   "jest": {
