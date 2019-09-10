@@ -1,9 +1,6 @@
-import * as React from 'react';
+import React, { ComponentClass, ComponentType } from 'react';
 import Store from '@orbit/store';
 import { QueryOrExpression, QueryBuilder, FindRecordTerm, FindRecordsTerm, FindRelatedRecordTerm, FindRelatedRecordsTerm } from '@orbit/data';
-
-type ComponentType<P> = React.ComponentType<P>;
-type ComponentClass<P> = React.ComponentClass<P>;
 
 export interface DataProviderProps {
   dataStore: Store;
