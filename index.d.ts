@@ -21,17 +21,7 @@ export type WithDataProps =
   }
   & WithData
 
-export type Matching<InjectedProps, DecorationTargetProps> = {
-  [P in keyof DecorationTargetProps]: P extends keyof InjectedProps
-      ? InjectedProps[P] extends DecorationTargetProps[P]
-          ? DecorationTargetProps[P]
-          : InjectedProps[P]
-      : DecorationTargetProps[P];
-};
-
-export type GetProps<C> = C extends ComponentType<infer P> ? P : never;
-
-type MapRecordsToPropsFn<TRecordProps = {}, TOwnProps = {}> = (props: TOwnProps) => RecordsToProps<keyof TRecordProps>;
+export type MapRecordsToPropsFn<TRecordProps = {}, TOwnProps = {}> = (props: TOwnProps) => RecordsToProps<keyof TRecordProps>;
 
 export type MapRecordsToProps<TRecordProps = {}, TOwnProps = {}> =
   | RecordsToProps<keyof TRecordProps>
@@ -39,16 +29,18 @@ export type MapRecordsToProps<TRecordProps = {}, TOwnProps = {}> =
 
 export class DataProvider extends React.Component<DataProviderProps> {}
 
+export function withData<TRecordProps = {}, TOwnProps = {}>(
+  mapRecordsToProps?: MapRecordsToProps<TRecordProps, TOwnProps>
+): InferableComponentEnhancerWithProps<TRecordProps & WithDataProps>
+
+export type GetProps<C> = C extends ComponentType<infer P> ? P : boolean;
+
 export type ConnectedComponentClass<C, P> = ComponentClass<JSX.LibraryManagedAttributes<C, P>> & {
   WrappedComponent: C;
 };
 
-export interface InferableComponentEnhancerWithProps<TInjectedProps, TNeedsProps> {
-  <C extends ComponentType<Matching<TInjectedProps, GetProps<C>>>>(
-      component: C
-  ): ConnectedComponentClass<C, Omit<GetProps<C>, keyof TInjectedProps> & TNeedsProps>
-}
+export type InferableComponentEnhancerWithProps<TInjectedProps> =
+    <C extends ComponentType<GetProps<C>>>(
+        component: C
+    ) => ConnectedComponentClass<C, Omit<GetProps<C>, keyof TInjectedProps>>;
 
-export function withData<TRecordProps = {}, TOwnProps = {}>(
-  mapRecordsToProps?: MapRecordsToProps<TRecordProps, TOwnProps>
-): InferableComponentEnhancerWithProps<TRecordProps & WithDataProps & TOwnProps, TOwnProps>

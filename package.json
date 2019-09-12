@@ -36,8 +36,8 @@
     "watch": "jest --watch"
   },
   "devDependencies": {
-    "@orbit/data": "^0.15.8",
-    "@orbit/store": "^0.15.8",
+    "@orbit/data": "^0.16.1",
+    "@orbit/store": "^0.16.1",
     "@types/react": "^16.9.2",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
