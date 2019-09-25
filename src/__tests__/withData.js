@@ -221,6 +221,22 @@ test('withData passes non-existing record as empty array in findRecords', () => 
   )
 })
 
+test('withData passes dataStore', () => {
+  const Test = ({ dataStore }) => {
+    expect(dataStore).toBe(store)
+
+    return <span>test</span>
+  }
+
+  const TestWithData = withData()(Test)
+
+  renderer.create(
+    <DataProvider dataStore={store}>
+      <TestWithData />
+    </DataProvider>
+  )
+})
+
 test('withData passes queryStore', () => {
   const Test = ({ queryStore }) => {
     expect(typeof queryStore).toEqual('function')
@@ -1205,6 +1221,7 @@ test('[regression] withData passes convenience props in subsequent renders (with
   )
   testComponent = componentRenderer.root.findByType(Test)
 
+  expect(testComponent.props.dataStore).toBe(store)
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 
@@ -1215,6 +1232,7 @@ test('[regression] withData passes convenience props in subsequent renders (with
   )
   testComponent = componentRenderer.root.findByType(Test)
 
+  expect(testComponent.props.dataStore).toBe(store)
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 
@@ -1235,6 +1253,7 @@ test('[regression] withData passes convenience props in subsequent renders (with
   )
   testComponent = componentRenderer.root.findByType(Test)
 
+  expect(testComponent.props.dataStore).toBe(store)
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 
@@ -1245,6 +1264,7 @@ test('[regression] withData passes convenience props in subsequent renders (with
   )
   testComponent = componentRenderer.root.findByType(Test)
 
+  expect(testComponent.props.dataStore).toBe(store)
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 })

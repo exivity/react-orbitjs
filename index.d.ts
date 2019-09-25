@@ -1,9 +1,8 @@
 import React, { ComponentClass, ComponentType } from 'react';
-import Store from '@orbit/store';
-import { QueryOrExpression, QueryBuilder, FindRecordTerm, FindRecordsTerm, FindRelatedRecordTerm, FindRelatedRecordsTerm } from '@orbit/data';
+import { QueryOrExpression, QueryBuilder, FindRecordTerm, FindRecordsTerm, FindRelatedRecordTerm, FindRelatedRecordsTerm, Source } from '@orbit/data';
 
 export interface DataProviderProps {
-  dataStore: Store;
+  dataStore: Source;
 }
 
 export type RecordsToProps<Keys extends string | number | symbol> = {
@@ -11,7 +10,7 @@ export type RecordsToProps<Keys extends string | number | symbol> = {
 }
 
 export interface WithData {
-  dataStore: Store;
+  dataStore: Source;
 }
 
 export type WithDataProps =
