@@ -24,7 +24,7 @@
     "@orbit/data": "^0.15.23",
     "@orbit/store": "^0.15.25",
     "@types/jest": "^24.0.11",
-    "ts-jest": "^24.0.2"
+    "ts-jest": "^25.3.0"
   },
   "repository": {
     "type": "git",
