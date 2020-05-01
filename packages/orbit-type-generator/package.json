@@ -34,7 +34,9 @@
     "build": "rm -rf ./lib && yarn build:static && tsc",
     "build:static": "copyfiles -u 1 src/__templates__/** lib/",
     "build:watch": "rm -rf ./lib && yarn build:static && tsc --watch",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "dependencies": {
     "@babel/core": "^7.4.5",
@@ -42,7 +44,8 @@
     "camelcase": "^5.3.1",
     "slash": "^3.0.0",
     "tslib": "^1.9.3",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.1",
+    "snyk": "^1.316.1"
   },
   "peerDependencies": {
     "@orbit/data": "^0.15.23",
@@ -58,5 +61,6 @@
     "ts-jest": "^24.0.2",
     "tslint": "^5.16.0",
     "tslint-config-standard": "^8.0.1"
-  }
+  },
+  "snyk": true
 }
