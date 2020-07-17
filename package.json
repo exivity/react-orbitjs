@@ -69,7 +69,7 @@
     "@orbit/core": "^0.16.0",
     "@orbit/data": "^0.16.0",
     "@orbit/memory": "^0.16.0",
-    "react": ">=16"
+    "react": "^16.0.0"
   },
   "jest": {
     "coverageDirectory": "./coverage/",
