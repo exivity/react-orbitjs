@@ -36,8 +36,8 @@
     "watch": "jest --watch"
   },
   "devDependencies": {
-    "@orbit/data": "^0.16.1",
-    "@orbit/store": "^0.16.1",
+    "@orbit/data": "^0.16.0",
+    "@orbit/memory": "^0.16.0",
     "@types/react": "^16.9.2",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
@@ -66,10 +66,10 @@
     "prop-types": "^15.6.0"
   },
   "peerDependencies": {
-    "@orbit/core": "^0.15.0",
-    "@orbit/data": "^0.15.0",
-    "@orbit/store": "^0.15.0",
-    "react": ">=15"
+    "@orbit/core": "^0.16.0",
+    "@orbit/data": "^0.16.0",
+    "@orbit/memory": "^0.16.0",
+    "react": ">=16"
   },
   "jest": {
     "coverageDirectory": "./coverage/",

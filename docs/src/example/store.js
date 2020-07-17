@@ -1,5 +1,5 @@
 import {Schema} from "@orbit/data"
-import Store from "@orbit/store"
+import MemorySource from "@orbit/memory"
 import {DateTime} from "luxon"
 
 const schemaDefinition = {
@@ -16,9 +16,9 @@ const schemaDefinition = {
 
 const schema = new Schema(schemaDefinition)
 
-const store = new Store({schema})
+const memory = new MemorySource({schema})
 
-store.update(t => t.addRecord({
+memory.update(t => t.addRecord({
     type: "todo",
     id: "my-first-todo",
     attributes: {
@@ -29,4 +29,4 @@ store.update(t => t.addRecord({
   },
 ))
 
-export default store
+export default memory
