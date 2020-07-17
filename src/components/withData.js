@@ -283,7 +283,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         this.trySubscribe()
       }
 
-      componentWillReceiveProps(nextProps) {
+      UNSAFE_componentWillReceiveProps(nextProps) {
         if (!shallowEqual(nextProps, this.props)) {
           this.haveOwnPropsChanged = true
         }
@@ -446,5 +446,5 @@ export default function withData(mapRecordsToProps, mergeProps) {
     }
 
     return hoistStatics(WithData, WrappedComponent)
-  }
+  };
 }

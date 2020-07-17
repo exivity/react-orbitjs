@@ -2,7 +2,7 @@ import React from 'react'
 import renderer from 'react-test-renderer'
 
 import { Schema } from '@orbit/data'
-import Store from '@orbit/store'
+import MemorySource from '@orbit/memory'
 
 import { DataProvider, withData } from './../index'
 
@@ -42,11 +42,11 @@ const definition = {
 }
 
 let schema
-let store
+let memory
 
 beforeEach(() => {
   schema = new Schema({ ...definition })
-  store = new Store({ schema })
+  memory = new MemorySource({ schema })
 })
 
 afterEach(() => {
@@ -75,7 +75,7 @@ test('withData renders children with no arguments', () => {
   const TestWithData = withData()(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -92,7 +92,7 @@ test('withData renders children with empty object', () => {
   const TestWithData = withData({})(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -109,7 +109,7 @@ test('withData renders children with function returning empty object', () => {
   const TestWithData = withData(() => ({}))(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -126,7 +126,7 @@ test('withData passes down own props', () => {
   const TestWithData = withData()(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData test="test" />
     </DataProvider>
   )
@@ -146,19 +146,19 @@ test('withData subscribes and unsubscribes from store event', () => {
 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
-  expect(store.listeners('transform')).toHaveLength(0)
+  expect(memory.listeners('transform')).toHaveLength(0)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
 
-  expect(store.listeners('transform')).toHaveLength(1)
+  expect(memory.listeners('transform')).toHaveLength(1)
 
   component.unmount()
 
-  expect(store.listeners('transform')).toHaveLength(0)
+  expect(memory.listeners('transform')).toHaveLength(0)
 })
 
 test('withData passes records as prop', () => {
@@ -175,7 +175,7 @@ test('withData passes records as prop', () => {
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -195,7 +195,7 @@ test('withData passes non-existing record as undefined in findRecord', () => {
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -215,7 +215,7 @@ test('withData passes non-existing record as empty array in findRecords', () => 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -223,7 +223,7 @@ test('withData passes non-existing record as empty array in findRecords', () => 
 
 test('withData passes dataStore', () => {
   const Test = ({ dataStore }) => {
-    expect(dataStore).toBe(store)
+    expect(dataStore).toBe(memory)
 
     return <span>test</span>
   }
@@ -231,7 +231,7 @@ test('withData passes dataStore', () => {
   const TestWithData = withData()(Test)
 
   renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -250,7 +250,7 @@ test('withData passes queryStore', () => {
   const TestWithData = withData()(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -269,7 +269,7 @@ test('withData passes updateStore', () => {
   const TestWithData = withData()(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
@@ -306,12 +306,12 @@ test('withData receives updates for findRecord', done => {
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
 
-  store.update(t => t.addRecord(record))
+  memory.update(t => t.addRecord(record))
 })
 
 test('withData receives updates for findRecords', done => {
@@ -338,12 +338,12 @@ test('withData receives updates for findRecords', done => {
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
 
-  store.update(t =>
+  memory.update(t =>
     t.addRecord({
       type: 'todo',
       id: 'my-first-todo',
@@ -367,10 +367,10 @@ test('withData receives updates for findRelatedRecord', done => {
   }
   const updatedName = 'updated-test-user'
 
-  store
+  memory
     .update(t => t.addRecord(user))
     .then(() => {
-      return store.update(t =>
+      return memory.update(t =>
         t.addRecord({
           type: 'todo',
           id: 'my-first-todo',
@@ -416,12 +416,12 @@ test('withData receives updates for findRelatedRecord', done => {
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const component = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData />
         </DataProvider>
       )
 
-      store
+      memory
         .update(t =>
           t.replaceRelatedRecord(
             { type: 'todo', id: 'my-first-todo' },
@@ -430,7 +430,7 @@ test('withData receives updates for findRelatedRecord', done => {
           )
         )
         .then(() => {
-          store.update(t =>
+          memory.update(t =>
             t.replaceAttribute(
               { type: 'user', id: 'test-user' },
               'name',
@@ -439,7 +439,7 @@ test('withData receives updates for findRelatedRecord', done => {
           )
         })
         .then(() => {
-          store.update(t =>
+          memory.update(t =>
             t.replaceRelatedRecord(
               { type: 'todo', id: 'my-first-todo' },
               'owner',
@@ -456,7 +456,7 @@ test('withData receives updates for findRelatedRecords', done => {
   let callCount = 0
   const updatedDescription = 'Run tests again'
 
-  store
+  memory
     .update(t =>
       t.addRecord({
         type: 'user',
@@ -467,7 +467,7 @@ test('withData receives updates for findRelatedRecords', done => {
       })
     )
     .then(() => {
-      return store.update(t =>
+      return memory.update(t =>
         t.addRecord({
           type: 'todo',
           id: 'my-first-todo',
@@ -524,12 +524,12 @@ test('withData receives updates for findRelatedRecords', done => {
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const component = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData />
         </DataProvider>
       )
 
-      store
+      memory
         .update(t =>
           t.addToRelatedRecords({ type: 'user', id: 'test-user' }, 'todos', {
             type: 'todo',
@@ -537,7 +537,7 @@ test('withData receives updates for findRelatedRecords', done => {
           })
         )
         .then(() => {
-          return store.update(t =>
+          return memory.update(t =>
             t.replaceAttribute(
               { type: 'todo', id: 'my-first-todo' },
               'description',
@@ -546,7 +546,7 @@ test('withData receives updates for findRelatedRecords', done => {
           )
         })
         .then(() => {
-          store.update(t =>
+          memory.update(t =>
             t.removeFromRelatedRecords(
               { type: 'user', id: 'test-user' },
               'todos',
@@ -555,7 +555,7 @@ test('withData receives updates for findRelatedRecords', done => {
           )
         })
         .then(() => {
-          store.update(t =>
+          memory.update(t =>
             t.addRecord({
               type: 'todo',
               id: 'my-second-todo',
@@ -571,7 +571,7 @@ test('withData receives updates for findRelatedRecords', done => {
           )
         })
         .then(() => {
-          store.update(t =>
+          memory.update(t =>
             t.removeRecord({
               type: 'todo',
               id: 'my-second-todo'
@@ -587,7 +587,7 @@ test('withData receives updates for findRelatedRecords when calling addRecord wi
   let callCount = 0
   const updatedDescription = 'Run tests again'
 
-  store
+  memory
     .update(t =>
       t.addRecord({
         type: 'user',
@@ -598,7 +598,7 @@ test('withData receives updates for findRelatedRecords when calling addRecord wi
       })
     )
     .then(() => {
-      return store.update(t =>
+      return memory.update(t =>
         t.addRecord({
           type: 'list',
           id: 'test-list',
@@ -653,12 +653,12 @@ test('withData receives updates for findRelatedRecords when calling addRecord wi
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const component = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData />
         </DataProvider>
       )
 
-      store.update(t =>
+      memory.update(t =>
         t.addRecord({
           type: 'todo',
           id: 'test-todo',
@@ -683,7 +683,7 @@ test('withData receives updates for multiple keys', done => {
   // see https://github.com/facebook/jest/issues/3750 for more info
   let callCount = 0
 
-  store
+  memory
     .update(t =>
       t.addRecord({
         type: 'user',
@@ -694,7 +694,7 @@ test('withData receives updates for multiple keys', done => {
       })
     )
     .then(() => {
-      return store.update(t =>
+      return memory.update(t =>
         t.addRecord({
           type: 'todo',
           id: 'my-first-todo',
@@ -735,12 +735,12 @@ test('withData receives updates for multiple keys', done => {
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const component = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData />
         </DataProvider>
       )
 
-      store
+      memory
         .update(t =>
           t.addRecord({
             type: 'todo',
@@ -751,7 +751,7 @@ test('withData receives updates for multiple keys', done => {
           })
         )
         .then(() => {
-          store.update(t =>
+          memory.update(t =>
             t.addRecord({
               type: 'user',
               id: 'another-user',
@@ -765,7 +765,7 @@ test('withData receives updates for multiple keys', done => {
 })
 
 test('withData keeps references for unchanged props', done => {
-  store
+  memory
     .update(t =>
       t.addRecord({
         type: 'user',
@@ -786,7 +786,7 @@ test('withData keeps references for unchanged props', done => {
       const TestWithData = withData(mapRecordsToProps)(Test)
 
       const componentRenderer = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData />
         </DataProvider>
       )
@@ -798,7 +798,7 @@ test('withData keeps references for unchanged props', done => {
 
       const previousUsers = testComponent.props.users
 
-      store
+      memory
         .update(t =>
           t.addRecord({
             type: 'todo',
@@ -835,7 +835,7 @@ test('withData receives updates for findRecord depending on own props', done => 
   const TestWithData = withData(mapRecordsToProps)(Test)
 
   const componentRenderer = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData userId="test-user" />
     </DataProvider>
   )
@@ -844,7 +844,7 @@ test('withData receives updates for findRecord depending on own props', done => 
 
   expect(testComponent.props.user).toBeUndefined()
 
-  store
+  memory
     .update(t => t.addRecord(record))
     .then(() => {
       expect(testComponent.props.user).toEqual(record)
@@ -861,7 +861,7 @@ test('withData receives updates when own props change', done => {
     }
   }
 
-  store
+  memory
     .update(t => t.addRecord(record))
     .then(() => {
       const Test = ({ user }) => <span />
@@ -874,7 +874,7 @@ test('withData receives updates when own props change', done => {
 
       let testComponent
       const componentRenderer = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData />
         </DataProvider>
       )
@@ -883,7 +883,7 @@ test('withData receives updates when own props change', done => {
       expect(testComponent.props.user).toBeUndefined()
 
       componentRenderer.update(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData userId="test-user" />
         </DataProvider>
       )
@@ -908,7 +908,7 @@ test("withData doesn't update props if records remain the same", () => {
   let usersProp
 
   const componentRenderer = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData unusedProp={1} />
     </DataProvider>
   )
@@ -918,7 +918,7 @@ test("withData doesn't update props if records remain the same", () => {
   usersProp = testComponent.props.users
 
   componentRenderer.update(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData unusedProp={2} />
     </DataProvider>
   )
@@ -937,7 +937,7 @@ test('withData resets all props when mRtP returns an empty object', done => {
     }
   }
 
-  store
+  memory
     .update(t => t.addRecord(record))
     .then(() => {
       const Test = () => <span />
@@ -957,7 +957,7 @@ test('withData resets all props when mRtP returns an empty object', done => {
       let testComponent
 
       const componentRenderer = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData showUsers={true} />
         </DataProvider>
       )
@@ -966,7 +966,7 @@ test('withData resets all props when mRtP returns an empty object', done => {
       expect(testComponent.props.users).toHaveLength(1)
 
       componentRenderer.update(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData showUsers={false} />
         </DataProvider>
       )
@@ -979,7 +979,7 @@ test('withData resets all props when mRtP returns an empty object', done => {
 })
 
 test('withData resets some props when mRtP returns different keys', done => {
-  store
+  memory
     .update(t =>
       t.addRecord({
         type: 'user',
@@ -990,7 +990,7 @@ test('withData resets some props when mRtP returns different keys', done => {
       })
     )
     .then(() =>
-      store.update(t =>
+      memory.update(t =>
         t.addRecord({
           type: 'todo',
           id: 'my-first-todo',
@@ -1024,7 +1024,7 @@ test('withData resets some props when mRtP returns different keys', done => {
       let testComponent
 
       const componentRenderer = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData showUsers={true} showTodos={false} />
         </DataProvider>
       )
@@ -1034,7 +1034,7 @@ test('withData resets some props when mRtP returns different keys', done => {
       expect(testComponent.props.todos).toBeUndefined()
 
       componentRenderer.update(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData showUsers={false} showTodos={true} />
         </DataProvider>
       )
@@ -1050,7 +1050,7 @@ test('withData resets some props when mRtP returns different keys', done => {
 test('withData keeps references for unchanged records when own props are updated', done => {
   let callCount = 0
 
-  store
+  memory
     .update(t =>
       t.addRecord({
         type: 'user',
@@ -1061,7 +1061,7 @@ test('withData keeps references for unchanged records when own props are updated
       })
     )
     .then(() => {
-      return store.update(t =>
+      return memory.update(t =>
         t.addRecord({
           type: 'todo',
           id: 'test-todo',
@@ -1098,7 +1098,7 @@ test('withData keeps references for unchanged records when own props are updated
       let todosProp
 
       const componentRenderer = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData unusedProp={1} />
         </DataProvider>
       )
@@ -1107,7 +1107,7 @@ test('withData keeps references for unchanged records when own props are updated
       todosProp = testComponent.props.todos
 
       componentRenderer.update(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData unusedProp={1} />
         </DataProvider>
       )
@@ -1116,7 +1116,7 @@ test('withData keeps references for unchanged records when own props are updated
       expect(testComponent.props.todos).toBe(todosProp)
 
       componentRenderer.update(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData unusedProp={2} />
         </DataProvider>
       )
@@ -1132,7 +1132,7 @@ test('withData keeps references for unchanged records when own props are updated
 test('withData keeps references for unchanged records when own props are updated', done => {
   let callCount = 0
 
-  store
+  memory
     .update(t =>
       t.addRecord({
         type: 'user',
@@ -1143,7 +1143,7 @@ test('withData keeps references for unchanged records when own props are updated
       })
     )
     .then(() => {
-      return store.update(t =>
+      return memory.update(t =>
         t.addRecord({
           type: 'user',
           id: 'user-2',
@@ -1154,7 +1154,7 @@ test('withData keeps references for unchanged records when own props are updated
       )
     })
     .then(() => {
-      return store.update(t =>
+      return memory.update(t =>
         t.addRecord({
           type: 'todo',
           id: 'test-todo',
@@ -1182,7 +1182,7 @@ test('withData keeps references for unchanged records when own props are updated
       let todosProp
 
       const componentRenderer = renderer.create(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData userId={'user-1'} />
         </DataProvider>
       )
@@ -1192,7 +1192,7 @@ test('withData keeps references for unchanged records when own props are updated
       todosProp = testComponent.props.todos
 
       componentRenderer.update(
-        <DataProvider dataStore={store}>
+        <DataProvider dataStore={memory}>
           <TestWithData userId={'user-2'} />
         </DataProvider>
       )
@@ -1215,24 +1215,24 @@ test('[regression] withData passes convenience props in subsequent renders (with
 
   let testComponent
   const componentRenderer = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
   testComponent = componentRenderer.root.findByType(Test)
 
-  expect(testComponent.props.dataStore).toBe(store)
+  expect(testComponent.props.dataStore).toBe(memory)
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 
   componentRenderer.update(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData userId="test-user" />
     </DataProvider>
   )
   testComponent = componentRenderer.root.findByType(Test)
 
-  expect(testComponent.props.dataStore).toBe(store)
+  expect(testComponent.props.dataStore).toBe(memory)
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 
@@ -1247,24 +1247,24 @@ test('[regression] withData passes convenience props in subsequent renders (with
 
   let testComponent
   const componentRenderer = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData />
     </DataProvider>
   )
   testComponent = componentRenderer.root.findByType(Test)
 
-  expect(testComponent.props.dataStore).toBe(store)
+  expect(testComponent.props.dataStore).toBe(memory)
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 
   componentRenderer.update(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestWithData userId="test-user" />
     </DataProvider>
   )
   testComponent = componentRenderer.root.findByType(Test)
 
-  expect(testComponent.props.dataStore).toBe(store)
+  expect(testComponent.props.dataStore).toBe(memory)
   expect(typeof testComponent.props.queryStore).toEqual('function')
   expect(typeof testComponent.props.updateStore).toEqual('function')
 })

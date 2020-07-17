@@ -24,20 +24,20 @@
     "dist"
   ],
   "scripts": {
-    "build": "yarn run build:clean && yarn run build:module && yarn run build:bundle",
+    "build": "yarn build:clean && yarn build:module && yarn build:bundle",
     "build:clean": "rimraf dist && rimraf example/build",
     "build:module": "babel src -d dist/module/es5",
     "build:bundle": "webpack --config webpack.bundle.config.js",
     "build:docs": "webpack --config webpack.docs.config.js && rimraf docs/dist/main.bundle.js.map",
-    "publishDocs": "git subtree push --prefix docs/dist origin gh-pages",
+    "publishDocs": "yarn build:docs && git subtree push --prefix docs/dist origin gh-pages",
     "prepublishOnly": "yarn test && yarn build",
     "start": "webpack-dev-server --config webpack.docs.config.js",
     "test": "jest && codecov",
     "watch": "jest --watch"
   },
   "devDependencies": {
-    "@orbit/data": "^0.16.1",
-    "@orbit/store": "^0.16.1",
+    "@orbit/data": "^0.16.0",
+    "@orbit/memory": "^0.16.0",
     "@types/react": "^16.9.2",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
@@ -66,10 +66,10 @@
     "prop-types": "^15.6.0"
   },
   "peerDependencies": {
-    "@orbit/core": "^0.15.0",
-    "@orbit/data": "^0.15.0",
-    "@orbit/store": "^0.15.0",
-    "react": ">=15"
+    "@orbit/core": "^0.16.0",
+    "@orbit/data": "^0.16.0",
+    "@orbit/memory": "^0.16.0",
+    "react": "^16.0.0"
   },
   "jest": {
     "coverageDirectory": "./coverage/",

@@ -2,17 +2,17 @@ import React from "react"
 import renderer from "react-test-renderer"
 
 import {Schema} from "@orbit/data"
-import Store from "@orbit/store"
+import MemorySource from "@orbit/memory"
 
 import {DataProvider} from "./../index"
 import dataStoreShape from "./../utils/dataStoreShape"
 
 const schema = new Schema({})
-const store = new Store({schema})
+const memory = new MemorySource({schema})
 
 test("DataProvider renders children", () => {
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <span>test children</span>
     </DataProvider>
   )
@@ -23,7 +23,7 @@ test("DataProvider renders children", () => {
 
 test("DataProvider make dataStore available through context", () => {
   const TestContext = (props, context) => {
-    expect(context.dataStore).toBe(store)
+    expect(context.dataStore).toBe(memory)
 
     return <span>test context</span>
   }
@@ -33,7 +33,7 @@ test("DataProvider make dataStore available through context", () => {
   }
 
   const component = renderer.create(
-    <DataProvider dataStore={store}>
+    <DataProvider dataStore={memory}>
       <TestContext/>
     </DataProvider>
   )
