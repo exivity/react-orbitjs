@@ -2,6 +2,7 @@ const path = require("path")
 
 // Webpack configuration
 module.exports = {
+  mode: "production",
   entry: "./src/index.js",
   output: {
     path: path.resolve(__dirname, "dist/bundle/umd"),
@@ -13,8 +14,14 @@ module.exports = {
     "react",
   ],
   module: {
-    loaders: [
-      {test: /\.js$/, loader: "babel-loader", exclude: /node_modules/},
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+        },
+      },
     ],
   },
 }

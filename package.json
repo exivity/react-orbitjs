@@ -36,40 +36,40 @@
     "watch": "jest --watch"
   },
   "devDependencies": {
-    "@orbit/data": "^0.16.0",
-    "@orbit/memory": "^0.16.0",
-    "@types/react": "^16.9.2",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-jest": "^21.2.0",
-    "babel-loader": "^7.1.2",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-react": "^6.24.1",
-    "codecov": "^3.0.0",
-    "copy-webpack-plugin": "^4.2.3",
-    "html-webpack-plugin": "^2.30.1",
-    "jest": "^21.2.1",
-    "luxon": "^0.2.3",
-    "raw-loader": "^0.5.1",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "react-syntax-highlighter": "^6.0.4",
-    "react-test-renderer": "^16.2.0",
-    "rimraf": "^2.6.2",
-    "webpack": "^3.7.1",
-    "webpack-dev-server": "^3.1.11"
+    "@babel/cli": "^7.12.16",
+    "@babel/core": "^7.12.16",
+    "@babel/plugin-proposal-class-properties": "^7.12.13",
+    "@babel/preset-env": "^7.12.16",
+    "@babel/preset-react": "^7.12.13",
+    "@orbit/data": "^0.16.7",
+    "@orbit/memory": "^0.16.7",
+    "@types/react": "^17.0.2",
+    "babel-jest": "^26.6.3",
+    "babel-loader": "^8.2.2",
+    "codecov": "^3.8.1",
+    "copy-webpack-plugin": "^7.0.0",
+    "html-webpack-plugin": "^5.1.0",
+    "jest": "^26.6.3",
+    "luxon": "^1.26.0",
+    "raw-loader": "^4.0.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-syntax-highlighter": "^15.4.3",
+    "react-test-renderer": "^17.0.1",
+    "rimraf": "^3.0.2",
+    "webpack": "^5.22.0",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
-    "hoist-non-react-statics": "^2.3.1",
+    "hoist-non-react-statics": "^3.3.2",
     "prop-types": "^15.6.0"
   },
   "peerDependencies": {
     "@orbit/core": "^0.16.0",
     "@orbit/data": "^0.16.0",
     "@orbit/memory": "^0.16.0",
-    "react": "^16.0.0"
+    "react": ">=16"
   },
   "jest": {
     "coverageDirectory": "./coverage/",
@@ -78,5 +78,6 @@
       "/node_modules/",
       "/dist/"
     ]
-  }
+  },
+  "browserslist": "> 0.25%, not dead"
 }
