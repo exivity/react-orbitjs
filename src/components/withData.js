@@ -161,7 +161,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
         // Iterate all queries, to make a list of models to listen for
         recordQueryKeys.forEach(prop => {
           const expression = recordQueries[prop](dataStore.queryBuilder)
-            .expression
+            .toQueryExpression()
 
           switch (expression.op) {
             case 'findRecord':
