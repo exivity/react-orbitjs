@@ -1,10 +1,10 @@
-import React from 'react'
-import renderer from 'react-test-renderer'
-
 import { Schema } from '@orbit/data'
 import MemorySource from '@orbit/memory'
-
+import React from 'react'
+import renderer from 'react-test-renderer'
 import { DataProvider, withData } from './../index'
+
+
 
 // Unfortunately, on Windows we can't use async/await for tests
 // see https://github.com/facebook/jest/issues/3750 for more info
@@ -257,11 +257,19 @@ test('withData passes queryStore', () => {
 })
 
 test('withData passes updateStore', () => {
+  const record = {
+    type: 'todo',
+    id: 'my-first-todo',
+    attributes: {
+      description: 'Run tests'
+    }
+  }
+
   const Test = ({ updateStore }) => {
     expect(typeof updateStore).toEqual('function')
 
     // updateStore should return a promise
-    expect(typeof updateStore(t => t.addRecord({}))).toEqual('object')
+    expect(typeof updateStore(t => t.addRecord(record))).toEqual('object')
 
     return <span>test</span>
   }
