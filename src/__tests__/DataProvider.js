@@ -1,14 +1,10 @@
 import React from "react"
 import renderer from "react-test-renderer"
+import { DataProvider } from "../index"
+import dataStoreShape from "../utils/dataStoreShape"
+import { getOrbitSchemaAndStore } from './utils'
 
-import {Schema} from "@orbit/data"
-import MemorySource from "@orbit/memory"
-
-import {DataProvider} from "./../index"
-import dataStoreShape from "./../utils/dataStoreShape"
-
-const schema = new Schema({})
-const memory = new MemorySource({schema})
+const { memory } = getOrbitSchemaAndStore({})
 
 test("DataProvider renders children", () => {
   const component = renderer.create(

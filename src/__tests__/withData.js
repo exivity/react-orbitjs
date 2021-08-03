@@ -1,10 +1,7 @@
-import { Schema } from '@orbit/data'
-import MemorySource from '@orbit/memory'
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { DataProvider, withData } from './../index'
-
-
+import { DataProvider, withData } from '../index'
+import { getOrbitSchemaAndStore } from './utils'
 
 // Unfortunately, on Windows we can't use async/await for tests
 // see https://github.com/facebook/jest/issues/3750 for more info
@@ -45,8 +42,10 @@ let schema
 let memory
 
 beforeEach(() => {
-  schema = new Schema({ ...definition })
-  memory = new MemorySource({ schema })
+  const orbitSchemaAndStore = getOrbitSchemaAndStore({ ...definition })
+
+  schema = orbitSchemaAndStore.schema
+  memory = orbitSchemaAndStore.memory
 })
 
 afterEach(() => {
