@@ -2,10 +2,9 @@ react-orbitjs
 =============
 
 [![npm](https://img.shields.io/npm/v/react-orbitjs.svg)](https://www.npmjs.com/package/react-orbitjs)
-[![Travis](https://img.shields.io/travis/exivity/react-orbitjs.svg)](https://travis-ci.org/exivity/react-orbitjs)
+[![ci](https://github.com/exivity/react-orbitjs/actions/workflows/ci.yml/badge.svg)](https://github.com/exivity/react-orbitjs/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/exivity/react-orbitjs.svg)](https://codecov.io/gh/exivity/react-orbitjs)
 [![Code Climate](https://img.shields.io/codeclimate/maintainability/exivity/react-orbitjs.svg)](https://codeclimate.com/github/exivity/react-orbitjs)
-[![Gitter](https://badges.gitter.im/exivity/react-orbitjs.svg)](https://gitter.im/exivity/react-orbitjs)
 
 [React](https://reactjs.org/) bindings for [Orbit](http://orbitjs.com/).
 
