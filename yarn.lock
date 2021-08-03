@@ -1263,6 +1263,13 @@
   dependencies:
     "@orbit/utils" "^0.16.3"
 
+"@orbit/core@^0.17.0-beta.20":
+  version "0.17.0-beta.20"
+  resolved "https://registry.yarnpkg.com/@orbit/core/-/core-0.17.0-beta.20.tgz#27f3813f13f4e9f00bd46b4056a62dca5025569f"
+  integrity sha512-w9Fe3RPCFvIZ31SzgL/VXsYXc65XidQ5ImLjJfbYzej2K+oEBLeFmfSmQ2uwMnPU/Uzrc+nxs/3SS4p4NksDeQ==
+  dependencies:
+    "@orbit/utils" "^0.17.0-beta.19"
+
 "@orbit/data@0.16.7", "@orbit/data@^0.16.7":
   version "0.16.7"
   resolved "https://registry.yarnpkg.com/@orbit/data/-/data-0.16.7.tgz#0bbe7a005ee8b7f20615cf18fce0b56ea325fcd1"
@@ -1270,6 +1277,14 @@
   dependencies:
     "@orbit/core" "^0.16.3"
     "@orbit/utils" "^0.16.3"
+
+"@orbit/data@^0.17.0-beta.20":
+  version "0.17.0-beta.20"
+  resolved "https://registry.yarnpkg.com/@orbit/data/-/data-0.17.0-beta.20.tgz#f669aae313b1889f7e82673a70e87667086989bc"
+  integrity sha512-1gFDT3pRbkBrnUfk6ytDUBBc/DFJUECqxYI5zjiZ8/kersjt1awZoKHJC/x9NoZSC90L1xfKrxOKc5c8I5KkPA==
+  dependencies:
+    "@orbit/core" "^0.17.0-beta.20"
+    "@orbit/utils" "^0.17.0-beta.19"
 
 "@orbit/immutable@^0.16.3":
   version "0.16.3"
@@ -1296,10 +1311,31 @@
     "@orbit/data" "^0.16.7"
     "@orbit/utils" "^0.16.3"
 
+"@orbit/records@^0.17.0-beta":
+  version "0.17.0-beta.22"
+  resolved "https://registry.yarnpkg.com/@orbit/records/-/records-0.17.0-beta.22.tgz#eb1130b811a6021af79033dbbc2ec6c1384ab3f6"
+  integrity sha512-lwwdS1s9elUSmFqgeEh+lcPbQ2MbiE5r+aXn26MLRD955PhCzENvm4bf7MkIlP0uwEB5cOcQBacpAGMo/nttbQ==
+  dependencies:
+    "@orbit/data" "^0.17.0-beta.20"
+    "@orbit/utils" "^0.17.0-beta.19"
+    "@orbit/validators" "^0.17.0-beta.22"
+
 "@orbit/utils@^0.16.3":
   version "0.16.3"
   resolved "https://registry.yarnpkg.com/@orbit/utils/-/utils-0.16.3.tgz#fa94700191360c4c49fc9fdf464994cfe817dd0b"
   integrity sha512-JSF9xVRUEWugGtcR9mFOCzsMLphWMh/8xAe0FOuEpyyBFxBlWLuovatg/cwvlHo7AJh3J5StiiJXmBecTk/m6A==
+
+"@orbit/utils@^0.17.0-beta.19":
+  version "0.17.0-beta.19"
+  resolved "https://registry.yarnpkg.com/@orbit/utils/-/utils-0.17.0-beta.19.tgz#c66f96d73459f84847c0f3e518766d39cbeb8eb2"
+  integrity sha512-JMpuVQpIVjY9mwI25TVKxvAvyuujYfNr5zH+QUtx4GZkDW5va50XuFKK6z0IW2FaM9KpUNfLyhTYGH9CV0vBAQ==
+
+"@orbit/validators@^0.17.0-beta.22":
+  version "0.17.0-beta.22"
+  resolved "https://registry.yarnpkg.com/@orbit/validators/-/validators-0.17.0-beta.22.tgz#9aec4491c567c77d2b71af3507e20c2de93c9bf0"
+  integrity sha512-5Qlvc+sZYekH1FRIADfJnnUOvr0Ow9+XqysmyDQliJg2tP482k9PP1uo2kTIB2x0hIequyrJDiRZ3PC2BpwNKA==
+  dependencies:
+    "@orbit/utils" "^0.17.0-beta.19"
 
 "@semantic-release/changelog@5.0.1":
   version "5.0.1"

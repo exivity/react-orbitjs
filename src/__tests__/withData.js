@@ -1,52 +1,83 @@
-import { Schema } from '@orbit/data'
-import MemorySource from '@orbit/memory'
 import React from 'react'
 import renderer from 'react-test-renderer'
-import { DataProvider, withData } from './../index'
-
-
+import { DataProvider, withData } from '../index'
+import { getOrbitSchemaAndStore, getOrbitVersion } from './utils'
 
 // Unfortunately, on Windows we can't use async/await for tests
 // see https://github.com/facebook/jest/issues/3750 for more info
 
-const definition = {
-  models: {
-    list: {
-      attributes: {
-        name: { type: 'string' }
+const definition = getOrbitVersion() === 16
+  ? {
+    models: {
+      list: {
+        attributes: {
+          name: { type: 'string' }
+        },
+        relationships: {
+          owner: { type: 'hasOne', model: 'user', inverse: 'lists' },
+          todos: { type: 'hasMany', model: 'todo', inverse: 'list' }
+        }
       },
-      relationships: {
-        owner: { type: 'hasOne', model: 'user', inverse: 'lists' },
-        todos: { type: 'hasMany', model: 'todo', inverse: 'list' }
-      }
-    },
-    todo: {
-      attributes: {
-        description: { type: 'string' }
+      todo: {
+        attributes: {
+          description: { type: 'string' }
+        },
+        relationships: {
+          list: { type: 'hasOne', model: 'list', inverse: 'todos' },
+          owner: { type: 'hasOne', model: 'user', inverse: 'todos' }
+        }
       },
-      relationships: {
-        list: { type: 'hasOne', model: 'list', inverse: 'todos' },
-        owner: { type: 'hasOne', model: 'user', inverse: 'todos' }
-      }
-    },
-    user: {
-      attributes: {
-        name: { type: 'string' }
-      },
-      relationships: {
-        lists: { type: 'hasMany', model: 'list', inverse: 'owner' },
-        todos: { type: 'hasMany', model: 'todo', inverse: 'owner' }
+      user: {
+        attributes: {
+          name: { type: 'string' }
+        },
+        relationships: {
+          lists: { type: 'hasMany', model: 'list', inverse: 'owner' },
+          todos: { type: 'hasMany', model: 'todo', inverse: 'owner' }
+        }
       }
     }
   }
-}
+  : {
+    models: {
+      list: {
+        attributes: {
+          name: { type: 'string' }
+        },
+        relationships: {
+          owner: { kind: 'hasOne', type: 'user', inverse: 'lists' },
+          todos: { kind: 'hasMany', type: 'todo', inverse: 'list' }
+        }
+      },
+      todo: {
+        attributes: {
+          description: { type: 'string' }
+        },
+        relationships: {
+          list: { kind: 'hasOne', type: 'list', inverse: 'todos' },
+          owner: { kind: 'hasOne', type: 'user', inverse: 'todos' }
+        }
+      },
+      user: {
+        attributes: {
+          name: { type: 'string' }
+        },
+        relationships: {
+          lists: { kind: 'hasMany', type: 'list', inverse: 'owner' },
+          todos: { kind: 'hasMany', type: 'todo', inverse: 'owner' }
+        }
+      }
+    }
+  }
 
 let schema
 let memory
 
 beforeEach(() => {
-  schema = new Schema({ ...definition })
-  memory = new MemorySource({ schema })
+  const orbitSchemaAndStore = getOrbitSchemaAndStore({ ...definition })
+
+  schema = orbitSchemaAndStore.schema
+  memory = orbitSchemaAndStore.memory
 })
 
 afterEach(() => {
@@ -861,16 +892,26 @@ test('withData receives updates for findRecord depending on own props', done => 
 })
 
 test('withData receives updates when own props change', done => {
-  const record = {
+  const foo = {
     type: 'user',
-    id: 'test-user',
+    id: 'foo',
     attributes: {
-      name: 'Test user'
+      name: 'Foo user'
+    }
+  }
+  const bar = {
+    type: 'user',
+    id: 'bar',
+    attributes: {
+      name: 'Bar user'
     }
   }
 
   memory
-    .update(t => t.addRecord(record))
+    .update(t => t.addRecord(foo))
+    .then(() => {
+      return memory.update(t => t.addRecord(bar))
+    })
     .then(() => {
       const Test = ({ user }) => <span />
 
@@ -883,21 +924,21 @@ test('withData receives updates when own props change', done => {
       let testComponent
       const componentRenderer = renderer.create(
         <DataProvider dataStore={memory}>
-          <TestWithData />
+          <TestWithData userId="foo" />
         </DataProvider>
       )
       testComponent = componentRenderer.root.findByType(Test)
 
-      expect(testComponent.props.user).toBeUndefined()
+      expect(testComponent.props.user).toEqual(foo)
 
       componentRenderer.update(
         <DataProvider dataStore={memory}>
-          <TestWithData userId="test-user" />
+          <TestWithData userId="bar" />
         </DataProvider>
       )
       testComponent = componentRenderer.root.findByType(Test)
 
-      expect(testComponent.props.user).toEqual(record)
+      expect(testComponent.props.user).toEqual(bar)
 
       done()
     })
