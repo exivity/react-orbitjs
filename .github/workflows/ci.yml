@@ -9,13 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [12, 14]
+        node: [12, 14, 16]
         #orbitjs: [latest, beta]
         experimental: [false]
         include:
           - node: 15
-            experimental: true
-          - node: 16
             experimental: true
     continue-on-error: ${{ matrix.experimental }}
     steps:
