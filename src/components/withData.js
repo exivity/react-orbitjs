@@ -1,7 +1,7 @@
+import hoistStatics from 'hoist-non-react-statics'
 import { Component, createElement } from 'react'
 import dataStoreShape from '../utils/dataStoreShape'
 import shallowEqual from '../utils/shallowEqual'
-import hoistStatics from 'hoist-non-react-statics'
 
 const defaultMapRecordsToProps = {}
 const defaultMergeProps = (recordProps, parentProps) => ({
@@ -177,7 +177,9 @@ export default function withData(mapRecordsToProps, mergeProps) {
               this.subscribedModels[prop].push(expression.record.type)
               this.subscribedModels[prop].push(
                 this.dataStore.schema.models[expression.record.type]
-                  .relationships[expression.relationship].model
+                  .relationships[expression.relationship].model ||
+                this.dataStore.schema.models[expression.record.type]
+                  .relationships[expression.relationship].type
               )
           }
 
@@ -313,9 +315,13 @@ export default function withData(mapRecordsToProps, mergeProps) {
           return
         }
 
+        const operations = Array.isArray(transform.operations)
+          ? transform.operations
+          : [transform.operations]
+
         // Iterate all transforms, to see if any of those matches a model in the list of queries
         const operationModels = []
-        transform.operations.forEach(operation => {
+        operations.forEach(operation => {
           switch (operation.op) {
             case 'addRecord':
             case 'replaceRecord':
@@ -328,7 +334,9 @@ export default function withData(mapRecordsToProps, mergeProps) {
                 relationship => {
                   operationModels.push(
                     this.dataStore.schema.models[operation.record.type]
-                      .relationships[relationship].model
+                      .relationships[relationship].model ||
+                    this.dataStore.schema.models[operation.record.type]
+                      .relationships[relationship].type
                   )
                 }
               )
@@ -346,7 +354,7 @@ export default function withData(mapRecordsToProps, mergeProps) {
               Object.keys(relationships)
                 .map(k => relationships[k])
                 .forEach(relationship => {
-                  operationModels.push(relationship.model)
+                  operationModels.push(relationship.model || relationship.type)
                 })
               break
 
@@ -363,7 +371,9 @@ export default function withData(mapRecordsToProps, mergeProps) {
               operationModels.push(operation.record.type)
               operationModels.push(
                 this.dataStore.schema.models[operation.record.type]
-                  .relationships[operation.relationship].model
+                  .relationships[operation.relationship].model ||
+                this.dataStore.schema.models[operation.record.type]
+                  .relationships[operation.relationship].type
               )
               break
 
