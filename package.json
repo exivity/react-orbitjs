@@ -32,7 +32,7 @@
     "publishDocs": "yarn build:docs && git subtree push --prefix docs/dist origin gh-pages",
     "prepublishOnly": "yarn test && yarn build",
     "start": "webpack-dev-server --config webpack.docs.config.js",
-    "test": "jest && codecov",
+    "test": "jest",
     "watch": "jest --watch"
   },
   "devDependencies": {
