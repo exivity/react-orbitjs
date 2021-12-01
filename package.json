@@ -52,7 +52,7 @@
     "codecov": "3.8.3",
     "copy-webpack-plugin": "10.0.0",
     "html-webpack-plugin": "5.5.0",
-    "jest": "27.4.2",
+    "jest": "27.4.3",
     "luxon": "2.1.1",
     "raw-loader": "4.0.2",
     "react": "17.0.2",
