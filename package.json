@@ -36,11 +36,11 @@
     "watch": "jest --watch"
   },
   "devDependencies": {
-    "@babel/cli": "7.16.0",
-    "@babel/core": "7.16.5",
-    "@babel/plugin-proposal-class-properties": "7.16.5",
-    "@babel/preset-env": "7.16.5",
-    "@babel/preset-react": "7.16.5",
+    "@babel/cli": "7.16.7",
+    "@babel/core": "7.16.7",
+    "@babel/plugin-proposal-class-properties": "7.16.7",
+    "@babel/preset-env": "7.16.7",
+    "@babel/preset-react": "7.16.7",
     "@orbit/data": "0.16.7",
     "@orbit/memory": "0.16.7",
     "@orbit/records": "^0.17.0-beta",
