@@ -1,3 +1,10 @@
+## [0.3.3](https://github.com/exivity/react-orbitjs/compare/v0.3.2...v0.3.3) (2022-01-16)
+
+
+### Bug Fixes
+
+* **deps:** bump follow-redirects from 1.12.1 to 1.14.7 ([#229](https://github.com/exivity/react-orbitjs/issues/229)) ([7c97274](https://github.com/exivity/react-orbitjs/commit/7c97274e63f150ee6155bf1da46c50f657f62c6e))
+
 ## [0.3.2](https://github.com/exivity/react-orbitjs/compare/v0.3.1...v0.3.2) (2022-01-05)
 
 
