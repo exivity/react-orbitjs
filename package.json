@@ -50,7 +50,7 @@
     "babel-jest": "27.4.6",
     "babel-loader": "8.2.3",
     "codecov": "3.8.3",
-    "copy-webpack-plugin": "10.2.3",
+    "copy-webpack-plugin": "10.2.4",
     "html-webpack-plugin": "5.5.0",
     "jest": "27.4.7",
     "luxon": "2.3.0",
