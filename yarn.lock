@@ -1614,21 +1614,21 @@
   dependencies:
     "@orbit/utils" "^0.17.0"
 
-"@orbit/data@0.16.7", "@orbit/data@^0.16.7":
-  version "0.16.7"
-  resolved "https://registry.yarnpkg.com/@orbit/data/-/data-0.16.7.tgz#0bbe7a005ee8b7f20615cf18fce0b56ea325fcd1"
-  integrity sha512-hCLDBcX0ocUgHfyH9ViJOrnR3w9gaKR7w80scQEioY2oPM1CwKVAC+qZBxgeIUuo2dH7BP2ZegqS8AB7ToJyuQ==
-  dependencies:
-    "@orbit/core" "^0.16.3"
-    "@orbit/utils" "^0.16.3"
-
-"@orbit/data@^0.17.0":
+"@orbit/data@0.17.0", "@orbit/data@^0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@orbit/data/-/data-0.17.0.tgz#52c2d9590df06d8f4f91c16cfae2d247720f2bcb"
   integrity sha512-aaF40uriJ0SBXjoqyZ5/03Cj1XVxYzDwZnrRlM7GjI1lSd6f6OwyoDeru5WoflQvDTE3ILej1h0v1++fh9H5/A==
   dependencies:
     "@orbit/core" "^0.17.0"
     "@orbit/utils" "^0.17.0"
+
+"@orbit/data@^0.16.7":
+  version "0.16.7"
+  resolved "https://registry.yarnpkg.com/@orbit/data/-/data-0.16.7.tgz#0bbe7a005ee8b7f20615cf18fce0b56ea325fcd1"
+  integrity sha512-hCLDBcX0ocUgHfyH9ViJOrnR3w9gaKR7w80scQEioY2oPM1CwKVAC+qZBxgeIUuo2dH7BP2ZegqS8AB7ToJyuQ==
+  dependencies:
+    "@orbit/core" "^0.16.3"
+    "@orbit/utils" "^0.16.3"
 
 "@orbit/immutable@^0.16.3":
   version "0.16.3"
