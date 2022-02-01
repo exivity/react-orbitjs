@@ -1655,7 +1655,7 @@
     "@orbit/data" "^0.16.7"
     "@orbit/utils" "^0.16.3"
 
-"@orbit/records@^0.17.0-beta":
+"@orbit/records@0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@orbit/records/-/records-0.17.0.tgz#5ed5a21f8b969b1cec1b8cb2bc234b2fbe443cc4"
   integrity sha512-ljXbaV4o3iK3xDhHlCrtl5YQiMMHWav71m2qOd/BprdieMtU7nMAWeAUfXegLnIAv35imrowGcIgx5rGXkGo0g==

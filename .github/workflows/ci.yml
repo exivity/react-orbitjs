@@ -10,12 +10,9 @@ jobs:
     strategy:
       matrix:
         node: [12, 14, 16]
-        orbitjs: [0.16.7]
+        orbitjs: [0.16.7, 0.17.0]
         experimental: [false]
         include:
-          - node: 16
-            orbitjs: ^0.17.0-beta
-            experimental: true
           - node: 17
             experimental: true
     continue-on-error: ${{ matrix.experimental }}
