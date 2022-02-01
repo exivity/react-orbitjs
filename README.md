@@ -29,7 +29,7 @@ react-orbitjs is largely based on their code.
 Installation
 ------------
 
-_react-orbitjs requires React 16 and Orbit 0.16._
+_react-orbitjs requires Orbit 0.16.x or 0.17.x._
 
 _npm_
 
