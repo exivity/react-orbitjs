@@ -11,7 +11,7 @@ module.exports = {
     filename: "main.bundle.js",
   },
   module: {
-    loaders: [
+    rules: [
       {test: /\.(?:sample|api)\.js$/, loader: "raw-loader"},
       {test: /\.js$/, loader: "babel-loader", exclude: [/node_modules/, /\.(?:sample|api)\.js$/]},
     ],
@@ -22,10 +22,12 @@ module.exports = {
       filename: "index.html",
       inject: "body",
     }),
-    new CopyWebpackPlugin([
-      { from: "docs/src/index.css" },
-      { from: "docs/src/favicon.png" },
-    ])
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: "docs/src/index.css" },
+        { from: "docs/src/favicon.png" },
+      ]
+    })
   ],
   devtool: "source-map",
   devServer: {

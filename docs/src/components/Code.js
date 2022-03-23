@@ -1,7 +1,7 @@
-import React from "react"
 import PropTypes from "prop-types"
-import SyntaxHighlighter from "react-syntax-highlighter/prism"
-import {tomorrow} from "react-syntax-highlighter/styles/prism"
+import React from "react"
+import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/prism"
+import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism"
 
 const Code = ({children, language = "text"}) => (
   <SyntaxHighlighter language={language}

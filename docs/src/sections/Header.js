@@ -8,7 +8,7 @@ const Header = () => (
       <a className="button"
          href="https://github.com/exivity/react-orbitjs/">
         <img
-          src="https://image.flaticon.com/icons/svg/25/25231.svg"
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/2048px-Octicons-mark-github.svg.png"
           alt="GitHub logo"/>
           github
       </a>
