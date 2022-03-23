@@ -29,7 +29,7 @@
     "build:module": "babel src -d dist/module/es5",
     "build:bundle": "webpack --config webpack.bundle.config.js",
     "build:docs": "webpack --config webpack.docs.config.js && rimraf docs/dist/main.bundle.js.map",
-    "publishDocs": "yarn build:docs && git subtree push --prefix docs/dist origin gh-pages",
+    "publishDocs": "yarn build:docs && git add . && git commit -m \"docs: update\" && git subtree push --prefix docs/dist origin gh-pages",
     "prepublishOnly": "yarn test && yarn build",
     "start": "webpack-dev-server --config webpack.docs.config.js",
     "test": "jest",
