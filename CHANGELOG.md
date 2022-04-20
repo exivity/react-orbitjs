@@ -1,3 +1,10 @@
+## [0.3.4](https://github.com/exivity/react-orbitjs/compare/v0.3.3...v0.3.4) (2022-04-20)
+
+
+### Bug Fixes
+
+* force release ([005099d](https://github.com/exivity/react-orbitjs/commit/005099d2ec9b76938f1d3c53651f3d819f4c10b4))
+
 ## [0.3.3](https://github.com/exivity/react-orbitjs/compare/v0.3.2...v0.3.3) (2022-01-16)
 
 
