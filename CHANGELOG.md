@@ -1,3 +1,10 @@
+## [0.3.5](https://github.com/exivity/react-orbitjs/compare/v0.3.4...v0.3.5) (2022-05-18)
+
+
+### Reverts
+
+* Revert "chore: update renovate config for semantic-release (#190)" (#307) ([0984836](https://github.com/exivity/react-orbitjs/commit/0984836e6dfb415649c3a1f2ea421f142200d94d)), closes [#190](https://github.com/exivity/react-orbitjs/issues/190) [#307](https://github.com/exivity/react-orbitjs/issues/307)
+
 ## [0.3.4](https://github.com/exivity/react-orbitjs/compare/v0.3.3...v0.3.4) (2022-04-20)
 
 
