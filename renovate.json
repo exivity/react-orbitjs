@@ -4,15 +4,5 @@
   ],
   "dependencyDashboard": false,
   "automerge": true,
-  "rangeStrategy": "update-lockfile",
-  "packageRules": [
-    {
-      "matchPackageNames": ["@semantic-release/changelog"],
-      "allowedVersions": "~5"
-    },
-    {
-      "matchPackageNames": ["@semantic-release/git"],
-      "allowedVersions": "~9"
-    }
-  ]
+  "rangeStrategy": "update-lockfile"
 }
