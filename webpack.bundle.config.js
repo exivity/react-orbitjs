@@ -9,6 +9,7 @@ module.exports = {
     filename: "react-orbitjs.js",
     library: "ReactOrbitjs",
     libraryTarget: "umd",
+    globalObject: "this"
   },
   externals: [
     "react",
