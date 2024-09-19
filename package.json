@@ -46,7 +46,7 @@
     "@orbit/records": "0.17.0",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/git": "10.0.1",
-    "@types/react": "18.3.7",
+    "@types/react": "18.3.8",
     "babel-jest": "29.7.0",
     "babel-loader": "9.2.1",
     "codecov": "3.8.3",
