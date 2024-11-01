@@ -60,7 +60,7 @@
     "react-syntax-highlighter": "15.6.1",
     "react-test-renderer": "18.3.1",
     "rimraf": "6.0.1",
-    "webpack": "5.96.0",
+    "webpack": "5.96.1",
     "webpack-cli": "5.1.4",
     "webpack-dev-server": "5.1.0"
   },
